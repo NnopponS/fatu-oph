@@ -76,16 +76,17 @@ The remaining infrastructure step is Vercel: connect production to `main`, add F
 
 ## Next implementation work
 
-Complete Phase 0 before broad feature implementation:
+Current foundation already includes live Firebase venue reads plus Firebase-authenticated Admin login/role guarding.
 
-- inspect/tag reference screenshots
-- lock mobile wireframes and design tokens
-- create venue visual-identity art direction
-- define real venue media slots
-- finalize Firebase schema/security draft
-- finalize dynamic activity schema
-- finalize point ledger and duplicate/repeat rules
-- define trusted mutation path
-- produce exact Phase 1 checklist
+Next sequence:
+
+- provision Vercel production from main, environment variables, and public Blob storage
+- inspect/tag reference screenshots and lock mobile wireframes/design tokens
+- finalize registration fields while keeping the participant/pass contract already documented
+- implement the generic Activity schema + Firebase adapter + Admin CRUD
+- add Venue editing on top of the same generic content pattern
+- add Firebase Admin SDK only in Vercel server code for trusted points/audit/redemption mutations
+- implement points/check-in after the trusted server endpoint exists
+- add media upload only after Vercel Blob is connected
 
 When reusing old code, copy the smallest useful logic pattern from `references/legacy` and rewrite it to the 2026 contracts rather than restoring legacy files into `src`.

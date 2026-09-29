@@ -1,8 +1,10 @@
 import { ArrowRight, MapPinned, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { venueSeeds } from "@/data/venues";
+import { usePublishedVenues } from "@/data/venues";
 
 export function HomePage() {
+  const { venues, loading, error } = usePublishedVenues();
+
   return (
     <>
       <section className="hero">
@@ -31,18 +33,26 @@ export function HomePage() {
           <MapPinned size={24} strokeWidth={1.6} />
         </div>
 
-        <div className="venue-grid">
-          {venueSeeds.map((venue) => (
-            <article className={"venue-card venue-" + venue.visualIdentity} key={venue.id}>
-              <div className="venue-card-art" aria-hidden="true" />
-              <div className="venue-card-content">
-                <span>{venue.visualLabel}</span>
-                <h3>{venue.name}</h3>
-                <p>รูปสถานที่จริงและกิจกรรมจะถูกเพิ่มผ่านระบบ Content/Admin ภายหลัง</p>
-              </div>
-            </article>
-          ))}
-        </div>
+        {loading ? <p className="content-status">กำลังโหลดสถานที่...</p> : null}
+        {error ? <p className="content-status content-error" role="alert">{error}</p> : null}
+
+        {!loading && !error ? (
+          <div className="venue-grid">
+            {venues.map((venue) => (
+              <article
+                className={"venue-card venue-" + venue.visualIdentityKey}
+                key={venue.id}
+              >
+                <div className="venue-card-art" aria-hidden="true" />
+                <div className="venue-card-content">
+                  <span>{venue.visualLabel}</span>
+                  <h3>{venue.name}</h3>
+                  <p>รายละเอียดสถานที่และกิจกรรมจะอัปเดตจากระบบ Admin</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
     </>
   );

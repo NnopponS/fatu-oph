@@ -1,39 +1,53 @@
-export type VenueVisualIdentity =
-  | "azure-dragon"
-  | "white-tiger"
-  | "nine-tailed-fox"
-  | "red-phoenix";
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import { realtimePaths, subscribeRealtime } from "@/services/realtime";
 
-export interface VenueSeed {
+const venueSchema = z.object({
+  name: z.string().min(1),
+  visualIdentityKey: z.enum([
+    "azure-dragon",
+    "white-tiger",
+    "nine-tailed-fox",
+    "red-phoenix",
+  ]),
+  visualLabel: z.string().min(1),
+  displayOrder: z.number().int().nonnegative(),
+  isPublished: z.boolean(),
+});
+
+const venueMapSchema = z.record(venueSchema);
+
+export interface PublicVenue extends z.infer<typeof venueSchema> {
   id: string;
-  name: string;
-  visualIdentity: VenueVisualIdentity;
-  visualLabel: string;
 }
 
-export const venueSeeds: VenueSeed[] = [
-  {
-    id: "theater",
-    name: "โรงละคร",
-    visualIdentity: "azure-dragon",
-    visualLabel: "Azure Dragon",
-  },
-  {
-    id: "faculty-building",
-    name: "ตึกคณะ",
-    visualIdentity: "white-tiger",
-    visualLabel: "White Tiger",
-  },
-  {
-    id: "weaving-building",
-    name: "โรงทอ",
-    visualIdentity: "nine-tailed-fox",
-    visualLabel: "Nine-Tailed Fox",
-  },
-  {
-    id: "sc3",
-    name: "ตึก SC3",
-    visualIdentity: "red-phoenix",
-    visualLabel: "Red Phoenix",
-  },
-];
+export function usePublishedVenues() {
+  const [venues, setVenues] = useState<PublicVenue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(
+    () =>
+      subscribeRealtime<unknown>(realtimePaths.public.venues, (value) => {
+        const parsed = venueMapSchema.safeParse(value ?? {});
+
+        if (!parsed.success) {
+          setError("ข้อมูลสถานที่ไม่ถูกต้อง กรุณาลองใหม่ภายหลัง");
+          setLoading(false);
+          return;
+        }
+
+        setVenues(
+          Object.entries(parsed.data)
+            .map(([id, venue]) => ({ id, ...venue }))
+            .filter((venue) => venue.isPublished)
+            .sort((a, b) => a.displayOrder - b.displayOrder),
+        );
+        setError(null);
+        setLoading(false);
+      }),
+    [],
+  );
+
+  return { venues, loading, error };
+}

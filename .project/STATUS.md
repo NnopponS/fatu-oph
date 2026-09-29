@@ -2,7 +2,7 @@
 
 Date: 2026-09-29
 
-Phase: Firebase infrastructure is provisioned and verified. Vercel provisioning is the next external setup step.
+Phase: Firebase infrastructure is complete and the Phase 1 pre-Vercel foundation is underway. Vercel provisioning is the next external infrastructure step.
 
 ## Repository state
 
@@ -103,6 +103,19 @@ Legacy reference files are excluded from active lint/build scope and must not be
 - Admin configures point enablement, value and completion/repeat rules
 - adding/removing an activity must not require developer work or deployment
 - point history is auditable and visitors cannot directly grant themselves authoritative points
+
+## Current implementation progress
+
+- Home and Explore now read published venue records from Realtime Database instead of hard-coded venue arrays
+- live venue records are runtime-validated before rendering
+- loading and Firebase-data error states exist on visitor venue surfaces
+- /admin/login now uses Firebase Email/Password Authentication
+- /admin verifies the authenticated user's RTDB staff role before rendering
+- Admin sign-out works
+- the Admin shell is intentionally minimal until dynamic Activity CRUD is implemented
+- the operational v1 participant/pass, trusted point mutation, repeat-rule, and prize-redemption contract is documented in .project/CONTENT_AND_ADMIN.md
+
+Phase 0 still needs the visual/wireframe lock and final registration-field decisions. These do not block Vercel provisioning.
 
 ## Next external setup
 

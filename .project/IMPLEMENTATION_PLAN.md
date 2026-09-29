@@ -17,7 +17,7 @@ Confirmed:
 - new activities must not require development or deployment
 - Vercel + Firebase only
 - Google Flow is used for selected decorative/immersive scenes
-- current external prerequisite is owner setup of Vercel and Firebase
+- Firebase infrastructure is provisioned and verified; Vercel provisioning is the only remaining external infrastructure prerequisite
 
 Tasks:
 
@@ -27,9 +27,11 @@ Tasks:
 - define visual prompt sheet for four venue identities
 - define five planned Flow shots: home + four venue scenes
 - define where real venue images/video/landmarks appear alongside generated media
-- finalize Firebase schema and Security Rules draft
+- Firebase base paths and production Security Rules are implemented and deployed; refine path validation only as features are added
 - finalize dynamic activity schema
+- finalize participant identity/pass contract
 - finalize point transaction/duplicate prevention/repeat-rule contract
+- finalize trusted Vercel server mutation contract for points, audit, and redemption
 - define admin roles and event-day point/reward workflow
 
 Exit:
@@ -60,11 +62,10 @@ Build:
 
 External prerequisite:
 
+- Firebase project, Web App, Email/Password Auth, Realtime Database, deployed Rules, initial Admin role, and public seed are already complete
 - Vercel project/access ready
-- Firebase project ready
-- Firebase Web App config ready
-- Auth and Realtime Database enabled
-- `VITE_FIREBASE_DATABASE_URL` configured
+- Vercel production tracks `main`
+- Firebase environment variables configured in Vercel
 - public Vercel Blob store connected when dynamic uploads are needed
 
 Exit:

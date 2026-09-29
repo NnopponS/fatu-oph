@@ -150,6 +150,48 @@ Important protections:
 - reversing points should create a traceable reversal rather than silently overwriting history
 - prize redemption must verify the authoritative point balance
 
+## Operational v1 contract
+
+Use this contract unless the event team later changes registration requirements.
+
+Participant identity:
+
+- visitors do not receive Firebase Auth staff accounts
+- a trusted registration/pass endpoint creates an opaque participant id
+- the participant receives a random pass token/QR credential
+- store only a one-way token lookup/hash server-side; do not store a reusable plaintext pass token in public Firebase data
+- registration fields beyond the operational minimum remain configurable and should not be invented in source code
+
+Trusted mutations:
+
+- Vercel server functions use Firebase Admin SDK for score-sensitive writes
+- staff requests carry a Firebase ID token and the server verifies the staff role
+- visitor/pass requests carry the opaque pass credential and the server resolves it to a participant
+- clients never write point transactions, cached totals, audit entries, or redemption state directly
+
+Point grant flow:
+
+1. server validates participant/pass, staff role when required, published activity, point enablement, and completion method
+2. build an idempotency/grant key from participant + activity + configured grant scope
+3. claim the completion/grant key with an RTDB transaction so duplicate concurrent scans cannot both win
+4. append the immutable point transaction and update the cached balance
+5. append audit metadata for manual/high-impact actions
+6. retries reuse the same idempotency key rather than creating another award
+
+Repeat modes:
+
+- once: one successful grant per participant/activity
+- per-session: one successful grant per participant/activity/session id
+- repeat-limited: server-maintained counter must remain below the configured limit
+- manual-only: only authorized staff/admin can initiate the grant
+
+Prize redemption:
+
+- redemption is a trusted server operation
+- verify participant balance, published prize rule, claim limit, and stock before accepting
+- use an idempotent claim key so double taps/scans cannot double redeem
+- successful redemption records a claim and any corresponding point deduction/transaction; never silently overwrite history
+
 ## Suggested Realtime Database shape
 
 ```text

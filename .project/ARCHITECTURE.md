@@ -23,7 +23,7 @@ Recommended implementation stack:
 
 - React + TypeScript + Vite
 - React Router
-- Tailwind CSS
+- project-owned CSS variables/components (native CSS first; no Tailwind dependency unless a concrete need appears)
 - accessible component primitives
 - Framer Motion for lightweight interface transitions
 - project-owned SVG/icon assets or Lucide icons

@@ -70,16 +70,21 @@ The public app must render activities from Firebase data rather than hard-coded 
 - Google Flow is used for selected authored animation/video scenes in the visitor experience.
 - Flow outputs are pre-rendered media assets with still-image fallbacks; Flow is not a runtime backend dependency.
 
-## Current external prerequisite
+## Current infrastructure state
 
-Before implementation starts, project owner will prepare:
+Firebase is provisioned and verified:
 
-- Vercel project/access
-- Firebase project
-- Firebase Web App configuration
-- Firebase Authentication
-- Realtime Database
-- Vercel Blob store for dynamic admin media
-- required deployment/environment access
+- Firebase Web App configuration is wired
+- Email/Password Authentication is enabled
+- Realtime Database is live in Singapore
+- production Security Rules are deployed from the repository
+- the initial Admin role exists
+- reproducible public seed data exists in `firebase/seed/public.json`
+
+Remaining external setup:
+
+- create/connect the Vercel project to `main`
+- configure Firebase environment variables in Vercel
+- create a public Vercel Blob store when dynamic Admin media upload is enabled
 
 Implementation must consume environment configuration and must not hard-code secrets.
