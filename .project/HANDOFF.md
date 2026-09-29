@@ -1,92 +1,69 @@
 # Build Handoff
 
-## Repository and branch
+## Branch contract
 
-Work in repository `NnopponS/fatu-oph`.
+Work in NnopponS/fatu-oph.
+- main = FATU Open House 2026
+- 2025 = preserved legacy app
+- 2026 = transition/reference only
 
-- `main`: active FATU Open House 2026 development and production branch
-- `2025`: preserved Open House 2025 archive
-- `2026`: temporary transition/reference branch only
+## Product contracts
 
-Implement new 2026 work from `main` and merge back into `main`.
-
-The active 2026 baseline has Lovable, pirate UI, Supabase and old active assets removed. Selected old patterns are isolated under `references/legacy`.
-
-## Read first
-
-1. .project/BRIEF.md
-2. .project/ARCHITECTURE.md
-3. .project/UI_SYSTEM.md
-4. .project/CONTENT_AND_ADMIN.md
-5. .project/AI_AND_MEDIA.md
-6. .project/REUSE_MANIFEST.md
-7. .project/IMPLEMENTATION_PLAN.md
-8. references/ui
-9. references/legacy only when a specific proven workflow is useful
-
-## Real location naming contract
-
-Public location names:
-
-- โรงละคร
-- ตึกคณะ
-- โรงทอ
-- ตึก SC3
-
-Visual identities:
-
+Real venue names remain primary:
 - โรงละคร -> Azure Dragon
 - ตึกคณะ -> White Tiger
 - โรงทอ -> Nine-Tailed Fox
 - ตึก SC3 -> Red Phoenix
 
-Visual identity is presentation metadata only. Never replace a physical venue name with a fantasy place name.
+Activities are dynamic Firebase content. Ordinary new activities must never require a code deployment.
 
-## Dynamic activity and points contract
+Visitors never write authoritative points or operational records directly.
 
-Activities are Firebase runtime data managed by Admin.
+## Current core state
 
-Admin must be able to create/edit/publish/unpublish/archive activities, assign a real venue, manage content/media/schedule/capacity/registration, enable or disable points, set point values and completion/repeat rules, and review/correct auditable point transactions.
+The functional core is implemented:
+- public event/activity/venue/schedule/map/prize/FAQ/pass/check-in pages
+- participant opaque pass registration and recovery
+- Admin CMS and role-based operations
+- QR activity completion
+- authoritative trusted-server points, adjustment/reversal and redemption
+- audit and staff management
+- media UI/API ready for Vercel Blob
+- event-data assistant
 
-Do not create one-off application code for ordinary new activities.
+Firebase production Rules are deployed and /operations is server-only.
 
-Visitors must never directly write authoritative score transactions.
+## Verification commands
 
-## Technical constraints
+Run:
+- npm run check
+- npm run smoke:api
+- npm audit --omit=dev
 
-- mobile browser first
-- Vercel deployment from `main`
-- Firebase Authentication + Realtime Database for application data
-- Vercel `public/media` for fixed authored assets
-- Vercel Blob for dynamic admin-managed media
-- trusted server-side validation for score-sensitive operations
-- no Supabase in active 2026 runtime
-- no Lovable runtime/tagger/branding
-- no pirate visual language
-- no emoji in final UI
-- no client-exposed AI or privileged server credentials
-- Google Flow is pre-rendered media with poster/static fallback
-- animation never blocks navigation or core information
+The emulator smoke test intentionally pins firebase-tools@14.17.0 because the local machine has Java 17; current firebase-tools 15 requires Java 21. Production Firebase Rules deploys can continue using firebase-tools 15.
 
-## Current prerequisite
+## Remaining prerequisite: Vercel
 
-Firebase setup is complete and verified: Auth exists, the Admin role is seeded, Realtime Database rules are deployed from the repository, and the public bootstrap is reproducible from `firebase/seed/public.json`.
+Vercel CLI is not authenticated yet.
 
-The remaining infrastructure step is Vercel: connect production to `main`, add Firebase environment variables, create a public Vercel Blob store for dynamic media, and redeploy. Use `.env.example` as the environment contract and never commit runtime secrets.
+Production needs:
+- Vercel project connected to main
+- VITE_FIREBASE_* environment variables from .env.example
+- FIREBASE_DATABASE_URL
+- FIREBASE_ADMIN_PROJECT_ID
+- FIREBASE_ADMIN_CLIENT_EMAIL
+- FIREBASE_ADMIN_PRIVATE_KEY
+- public Vercel Blob store / BLOB_READ_WRITE_TOKEN
 
-## Next implementation work
+After Vercel deployment, run one real production smoke pass before event use.
 
-Current foundation already includes live Firebase venue reads plus Firebase-authenticated Admin login/role guarding.
+## Next phase
 
-Next sequence:
+Do not add decorative animation now. Next phase is visual/media polish:
+- reference-driven design lock
+- real venue photos
+- generated art/Google Flow
+- motion/reduced-motion
+- mobile visual QA
 
-- provision Vercel production from main, environment variables, and public Blob storage
-- inspect/tag reference screenshots and lock mobile wireframes/design tokens
-- finalize registration fields while keeping the participant/pass contract already documented
-- implement the generic Activity schema + Firebase adapter + Admin CRUD
-- add Venue editing on top of the same generic content pattern
-- add Firebase Admin SDK only in Vercel server code for trusted points/audit/redemption mutations
-- implement points/check-in after the trusted server endpoint exists
-- add media upload only after Vercel Blob is connected
-
-When reusing old code, copy the smallest useful logic pattern from `references/legacy` and rewrite it to the 2026 contracts rather than restoring legacy files into `src`.
+When reusing 2025 code, take only the smallest proven pattern from references/legacy and rewrite it for the 2026 contracts.

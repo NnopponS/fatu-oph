@@ -2,131 +2,98 @@
 
 Date: 2026-09-29
 
-Phase: Firebase infrastructure is complete and the Phase 1 pre-Vercel foundation is underway. Vercel provisioning is the next external infrastructure step.
+Phase: Core functional system implemented and verified locally. Decorative animation/visual polish is intentionally deferred. Production Vercel provisioning is the remaining external runtime step.
 
-## Repository state
+## Repository
 
 - Repository: NnopponS/fatu-oph
-- `2025` preserves the previous Open House 2025 application.
-- `main` is the active FATU Open House 2026 development/production branch.
-- `2026` remains only as a temporary transition/reference branch.
-- The active 2026 app is a fresh React/Vite baseline, not the old pirate/Lovable UI.
-- Production build and lint pass.
-- Production dependency audit has no known vulnerabilities.
+- main: active 2026 development/production branch
+- 2025: preserved Open House 2025 archive
+- 2026: transition/reference branch only
 
-## Firebase status
+## Firebase production
 
-Project:
+- project: fatu-oph-2026
+- Realtime Database: asia-southeast1
+- Email/Password Auth enabled
+- initial Admin role configured
+- database.rules.json is the source of truth and latest rules are deployed
+- /public is anonymous-read and Admin/Editor-write
+- /operations is denied to every browser client; trusted server APIs use Firebase Admin SDK
+- public seed remains reproducible from firebase/seed/public.json
 
-- Firebase project: `fatu-oph-2026`
-- project state verified ACTIVE through Firebase CLI
-- Realtime Database instance: `fatu-oph-2026-default-rtdb`
-- region: `asia-southeast1`
-- web SDK is wired to the production database URL
+## Core system implemented
 
-Authentication:
+Visitor:
+- Home, Explore, Venue detail, Activity detail
+- Schedule derived from dynamic activity times
+- Map/directions using real venue names
+- participant registration + opaque pass
+- pass QR download, recovery credential and restore flow
+- activity QR scanner + manual code fallback
+- points history and current balance
+- prizes catalog
+- FAQ, About and event-data assistant
 
-- Email/Password authentication is enabled
-- the initial Admin authentication account exists, is enabled, and uses the password provider
-- the corresponding RTDB role is stored in the required object form: `{ "role": "admin" }`
-- no password or Auth export file is retained in the repository
+Admin:
+- Firebase Auth + role guard
+- roles: admin, editor, staff, viewer
+- Activities CRUD with venue, schedule, registration/capacity, points and repeat/completion rules
+- Venue CRUD
+- Prize CRUD
+- FAQ + announcements
+- Activity QR generation, rotation and PNG download
+- participant search/pass scan
+- event entry check-in
+- staff activity completion
+- point adjustment and Admin-only reversal
+- prize redemption
+- participant CSV export
+- staff account creation/role/disable controls
+- audit viewer
+- media upload/delete UI ready for Vercel Blob
 
-Realtime Database:
+Trusted APIs:
+- participant registration/me
+- opaque pass hashing; plaintext pass token is never stored server-side
+- QR check-in
+- atomic duplicate/repeat point protection per participant
+- authoritative point ledger and cached total
+- staff adjustments and reversal audit
+- prize claim limit/stock handling with point debit/refund
+- Admin role enforcement
+- rate limits for public mutation endpoints
+- event-data assistant including personal point lookup when a valid pass is present
 
-- `database.rules.json` is the repository source of truth
-- rules were syntax-checked and deployed successfully through Firebase CLI
-- anonymous root reads are denied
-- anonymous `/admin` reads are denied
-- anonymous writes are denied
-- `/public` reads are allowed
-- score-sensitive `pointTransactions`, `pointTotals`, and `audit` reject client writes and are reserved for future trusted server operations
-- staff/admin client writes are limited to event-operation paths such as participants, registrations, passes, check-ins, activity completions, and prize claims
+## Verification
 
-Verified permission probe:
+- npm run check: pass
+- API TypeScript check: pass
+- ESLint: pass
+- npm audit --omit=dev: 0 vulnerabilities
+- npm run smoke:api: pass against Firebase Auth + RTDB emulators
+- smoke coverage includes public/admin/editor Rules, opaque pass, QR points, duplicate prevention, participant detail, entry check-in idempotency, staff adjustment, staff completion, prize redemption/claim limit, reversal, content audit, staff creation and assistant behavior
+- latest production Realtime Database Rules deployed successfully
 
-- public read -> HTTP 200
-- root read -> HTTP 401
-- admin read -> HTTP 401
-- anonymous public write -> HTTP 401
-- denied write probe left no data behind
+## Remaining external runtime setup
 
-Seed data:
+Vercel CLI is currently logged out. Before production end-to-end use:
 
-- reproducible public bootstrap lives at `firebase/seed/public.json`
-- site name/year/theme are seeded
-- four confirmed real venues are seeded and published
-- known prize names are seeded as unpublished placeholders; stock, point requirements, and redemption mechanics remain unset until confirmed
-- activities remain dynamic and are not hard-coded or pre-seeded
+- authenticate/connect Vercel
+- production branch = main
+- configure client Firebase environment variables
+- configure FIREBASE_DATABASE_URL
+- configure Firebase Admin service-account environment variables
+- create/connect public Vercel Blob and BLOB_READ_WRITE_TOKEN
+- deploy and run production smoke tests for Auth, server APIs, camera/QR and Blob upload
 
-## Active architecture
+## Deferred phase
 
-- Firebase Authentication for Admin/Staff identity
-- Firebase Realtime Database for application/event data
-- no Firebase Cloud Storage
-- no SQL Connect
-- no Supabase
-- fixed media will deploy with Vercel from `public/media`
-- dynamic Admin-managed media will use Vercel Blob
-- Realtime Database stores media URL/metadata only, never binary/Base64 files
+Per project-owner direction, decorative animation and visual polish are next phase:
+- final reference-driven visual lock
+- real venue imagery
+- Google Flow scenes
+- motion/transitions
+- final mobile visual hardening
 
-## Removed from active 2026 code
-
-- Lovable metadata and lovable-tagger
-- pirate components, fonts, styling, logos and animations
-- old placeholder/logo assets
-- Supabase runtime, functions and migrations
-- tracked legacy .env
-- old 2025 hard-coded activity/content implementation
-- old Tailwind pirate design-system configuration
-
-## Preserved only as legacy references
-
-Selected 2025 implementation patterns live under `references/legacy` for later review/rewrite:
-
-- QR scanner/check-in
-- location/activity admin CRUD
-- participant admin patterns
-- auth context
-- check-in signing/crypto
-- Firebase adapter/data service
-- Excel export
-- selected route/content patterns
-
-Legacy reference files are excluded from active lint/build scope and must not be copied blindly into production.
-
-## Confirmed product decisions
-
-- Theme: ตะลุยแดนมังกร (จีน)
-- Visitor-facing real locations: โรงละคร, ตึกคณะ, โรงทอ, ตึก SC3
-- Azure Dragon, White Tiger, Nine-Tailed Fox and Red Phoenix are visual identities only
-- activities are dynamic Admin-managed data
-- Admin configures point enablement, value and completion/repeat rules
-- adding/removing an activity must not require developer work or deployment
-- point history is auditable and visitors cannot directly grant themselves authoritative points
-
-## Current implementation progress
-
-- Home and Explore now read published venue records from Realtime Database instead of hard-coded venue arrays
-- live venue records are runtime-validated before rendering
-- loading and Firebase-data error states exist on visitor venue surfaces
-- /admin/login now uses Firebase Email/Password Authentication
-- /admin verifies the authenticated user's RTDB staff role before rendering
-- Admin sign-out works
-- the Admin shell is intentionally minimal until dynamic Activity CRUD is implemented
-- the operational v1 participant/pass, trusted point mutation, repeat-rule, and prize-redemption contract is documented in .project/CONTENT_AND_ADMIN.md
-
-Phase 0 still needs the visual/wireframe lock and final registration-field decisions. These do not block Vercel provisioning.
-
-## Next external setup
-
-Firebase is complete enough to proceed.
-
-Next:
-
-- connect Vercel production to `main`
-- configure Firebase environment variables in Vercel
-- create a public Vercel Blob store for dynamic media
-- let Vercel provide `BLOB_READ_WRITE_TOKEN`
-- redeploy and perform an end-to-end production smoke test
-
-After Vercel is ready, continue Phase 0/1 implementation for Admin, dynamic activities, points/check-in, prizes, media and visitor pages.
+No decorative work should block core operation.

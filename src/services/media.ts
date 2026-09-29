@@ -75,3 +75,21 @@ export async function uploadAdminMedia(
   const id = await pushRealtime(realtimePaths.public.media, draft);
   return { id, ...draft };
 }
+
+export async function deleteAdminMedia(mediaId: string) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Admin sign-in is required.");
+
+  const idToken = await user.getIdToken();
+  const response = await fetch("/api/media/delete", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ mediaId }),
+  });
+  const data = (await response.json()) as { ok?: boolean; error?: string };
+  if (!response.ok) throw new Error(data.error || "ลบไฟล์ไม่สำเร็จ");
+  return data;
+}

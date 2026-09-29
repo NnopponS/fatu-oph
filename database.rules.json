@@ -9,35 +9,10 @@
     },
 
     "operations": {
-      ".read": "auth != null && root.child('admin/roles').child(auth.uid).child('role').exists()",
-
-      "participants": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
-      "registrations": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
-      "passes": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
-      "checkins": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
+      ".read": false,
+      ".write": false,
       "activityCompletions": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
-      "prizeClaims": {
-        ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
-      },
-
-      "pointTransactions": {
-        ".write": false
-      },
-      "pointTotals": {
-        ".write": false
-      },
-      "audit": {
-        ".write": false
+        ".indexOn": ["participantId"]
       }
     },
 

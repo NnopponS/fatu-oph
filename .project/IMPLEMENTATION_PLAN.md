@@ -4,6 +4,18 @@ This document defines the build sequence.
 
 Read .project/BRIEF.md first.
 
+## Current execution status — 2026-09-29
+
+- Firebase infrastructure and production Rules: complete
+- Phase 1 application foundation: complete in code; Vercel production provisioning remains external
+- Phase 2 core visitor experience: functional core implemented
+- Phase 3 dynamic activities + authoritative points engine: implemented and emulator-verified
+- Phase 4 Admin CMS + operations: functional core implemented
+- Phase 5 registration/pass/QR/redemption: implemented and emulator-verified
+- Phase 7 event-data assistant: functional implementation complete without a paid model dependency
+- Phase 6 decorative animation/Google Flow: intentionally deferred to the next phase by project owner
+- Phase 8 production/device hardening and Phase 9 launch remain after Vercel deployment and final event content
+
 ## Phase 0: requirement and design lock
 
 Goal: convert the supplied references and confirmed brief into a precise build contract.

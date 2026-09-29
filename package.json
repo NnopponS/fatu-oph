@@ -7,11 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "typecheck:api": "tsc -p tsconfig.api.json",
+    "check": "npm run build && npm run typecheck:api && npm run lint",
+    "smoke:api": "npx -y firebase-tools@14.17.0 emulators:exec --only auth,database --project demo-fatu-oph-2026 \"npx tsx scripts/api-smoke.ts\"",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
     "firebase": "^12.3.0",
+    "firebase-admin": "^14.5.0",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "react": "^18.3.1",
@@ -22,6 +26,7 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@types/node": "^22.16.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^4.3.3",
@@ -29,8 +34,14 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4",
+    "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^8.3.1"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }
