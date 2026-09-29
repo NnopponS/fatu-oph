@@ -1,15 +1,15 @@
 # FATU Open House 2026
 
-Active development branch for FATU Open House 2026.
+Main development baseline for FATU Open House 2026.
 
 Theme: ตะลุยแดนมังกร
 
 ## Branch model
 
-- main preserves the 2025 application and its history.
-- 2026 is the active 2026 product branch.
-- New 2026 feature work should branch from 2026 and merge back into 2026.
-- Vercel production for the 2026 site should use the 2026 branch until the team explicitly changes the release strategy.
+- `main` is the active FATU Open House 2026 development and production branch.
+- `2025` preserves the previous Open House 2025 application as an archive/snapshot.
+- The existing `2026` branch may remain temporarily as a transition/reference branch, but new work should branch from `main` and merge back into `main`.
+- Vercel production should track `main`.
 
 ## 2026 direction
 
@@ -24,7 +24,7 @@ Removed from the active application:
 - committed environment file
 - old 2025 hard-coded content
 
-Kept only as references under references/legacy:
+Kept only as references under `references/legacy`:
 
 - selected QR/check-in patterns
 - selected Firebase data patterns
@@ -50,10 +50,10 @@ Activities and point rules will be dynamic Firebase data managed through Admin. 
 
 ## Local development
 
-Run npm install, then npm run dev.
+Run `npm install`, then `npm run dev`.
 
-Copy .env.example to .env.local after the 2026 Firebase project is ready. Never commit real credentials.
+Copy `.env.example` to `.env.local` after the 2026 Firebase project is ready. Never commit real credentials.
 
 ## Planning
 
-Read .project/BRIEF.md and .project/IMPLEMENTATION_PLAN.md before broad feature work.
+Read `.project/BRIEF.md` and `.project/IMPLEMENTATION_PLAN.md` before broad feature work.

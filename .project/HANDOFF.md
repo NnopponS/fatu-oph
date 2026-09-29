@@ -2,14 +2,15 @@
 
 ## Repository and branch
 
-Work in repository NnopponS/fatu-oph.
+Work in repository `NnopponS/fatu-oph`.
 
-- main: preserved 2025 legacy
-- 2026: active FATU Open House 2026 baseline
+- `main`: active FATU Open House 2026 development and production branch
+- `2025`: preserved Open House 2025 archive
+- `2026`: temporary transition/reference branch only
 
-Do not implement 2026 work on main.
+Implement new 2026 work from `main` and merge back into `main`.
 
-The 2026 branch already has a clean buildable React/Vite shell with Lovable, pirate UI, Supabase and old active assets removed. Selected old patterns are isolated under references/legacy.
+The active 2026 baseline has Lovable, pirate UI, Supabase and old active assets removed. Selected old patterns are isolated under `references/legacy`.
 
 ## Read first
 
@@ -54,7 +55,7 @@ Visitors must never directly write authoritative score transactions.
 ## Technical constraints
 
 - mobile browser first
-- Vercel deployment
+- Vercel deployment from `main`
 - Firebase Authentication + Realtime Database + Storage
 - trusted server-side validation for score-sensitive operations
 - no Supabase in active 2026 runtime
@@ -69,7 +70,7 @@ Visitors must never directly write authoritative score transactions.
 
 Project owner is preparing Vercel and Firebase.
 
-When ready, use .env.example as the client configuration contract and put real values in local/Vercel environment variables only.
+When ready, use `.env.example` as the client configuration contract and put real values in local/Vercel environment variables only.
 
 ## Next implementation work
 
@@ -85,4 +86,4 @@ Complete Phase 0 before broad feature implementation:
 - define trusted mutation path
 - produce exact Phase 1 checklist
 
-When reusing old code, copy the smallest useful logic pattern from references/legacy and rewrite it to the 2026 contracts rather than restoring legacy files into src.
+When reusing old code, copy the smallest useful logic pattern from `references/legacy` and rewrite it to the 2026 contracts rather than restoring legacy files into `src`.
