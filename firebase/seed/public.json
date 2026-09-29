@@ -1,0 +1,77 @@
+{
+  "site": {
+    "name": "FATU Open House 2026",
+    "eventYear": 2026,
+    "theme": "ตะลุยแดนมังกร",
+    "faculty": "Faculty of Fine and Applied Arts, Thammasat University"
+  },
+  "venues": {
+    "theater": {
+      "name": "โรงละคร",
+      "visualIdentityKey": "azure-dragon",
+      "visualLabel": "Azure Dragon",
+      "displayOrder": 1,
+      "isPublished": true
+    },
+    "faculty-building": {
+      "name": "ตึกคณะ",
+      "visualIdentityKey": "white-tiger",
+      "visualLabel": "White Tiger",
+      "displayOrder": 2,
+      "isPublished": true
+    },
+    "weaving-building": {
+      "name": "โรงทอ",
+      "visualIdentityKey": "nine-tailed-fox",
+      "visualLabel": "Nine-Tailed Fox",
+      "displayOrder": 3,
+      "isPublished": true
+    },
+    "sc3": {
+      "name": "ตึก SC3",
+      "visualIdentityKey": "red-phoenix",
+      "visualLabel": "Red Phoenix",
+      "displayOrder": 4,
+      "isPublished": true
+    }
+  },
+  "prizes": {
+    "giant-doll": {
+      "name": "รางวัลใหญ่ตุ๊กตายักษ์",
+      "displayOrder": 1,
+      "isPublished": false
+    },
+    "small-doll": {
+      "name": "รางวัลรองตุ๊กตาเล็ก",
+      "displayOrder": 2,
+      "isPublished": false
+    },
+    "hairpin": {
+      "name": "ปิ่นปักผม",
+      "displayOrder": 3,
+      "isPublished": false
+    },
+    "woven-tassel": {
+      "name": "พู่ห้อยทอสับ",
+      "displayOrder": 4,
+      "isPublished": false
+    },
+    "hand-fan": {
+      "name": "พัดมือ",
+      "displayOrder": 5,
+      "isPublished": false
+    },
+    "red-envelope": {
+      "name": "ซองแดง (ส่วนลดอาหาร)",
+      "displayOrder": 6,
+      "isPublished": false
+    }
+  },
+  "settings": {
+    "schemaVersion": 1,
+    "media": {
+      "fixedProvider": "vercel-static",
+      "dynamicProvider": "vercel-blob"
+    }
+  }
+}

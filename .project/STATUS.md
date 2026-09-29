@@ -2,17 +2,72 @@
 
 Date: 2026-09-29
 
-Phase: Firebase Web SDK + Auth/Realtime Database client layer + Vercel media layer are implemented on main; dashboard provisioning remains.
+Phase: Firebase infrastructure is provisioned and verified. Vercel provisioning is the next external setup step.
 
 ## Repository state
 
 - Repository: NnopponS/fatu-oph
 - `2025` preserves the previous Open House 2025 application.
 - `main` is the active FATU Open House 2026 development/production branch.
-- `2026` may remain temporarily as a transition/reference branch.
+- `2026` remains only as a temporary transition/reference branch.
 - The active 2026 app is a fresh React/Vite baseline, not the old pirate/Lovable UI.
-- Production build and lint pass on the new baseline.
-- Known npm audit vulnerabilities were resolved during bootstrap.
+- Production build and lint pass.
+- Production dependency audit has no known vulnerabilities.
+
+## Firebase status
+
+Project:
+
+- Firebase project: `fatu-oph-2026`
+- project state verified ACTIVE through Firebase CLI
+- Realtime Database instance: `fatu-oph-2026-default-rtdb`
+- region: `asia-southeast1`
+- web SDK is wired to the production database URL
+
+Authentication:
+
+- Email/Password authentication is enabled
+- the initial Admin authentication account exists, is enabled, and uses the password provider
+- the corresponding RTDB role is stored in the required object form: `{ "role": "admin" }`
+- no password or Auth export file is retained in the repository
+
+Realtime Database:
+
+- `database.rules.json` is the repository source of truth
+- rules were syntax-checked and deployed successfully through Firebase CLI
+- anonymous root reads are denied
+- anonymous `/admin` reads are denied
+- anonymous writes are denied
+- `/public` reads are allowed
+- score-sensitive `pointTransactions`, `pointTotals`, and `audit` reject client writes and are reserved for future trusted server operations
+- staff/admin client writes are limited to event-operation paths such as participants, registrations, passes, check-ins, activity completions, and prize claims
+
+Verified permission probe:
+
+- public read -> HTTP 200
+- root read -> HTTP 401
+- admin read -> HTTP 401
+- anonymous public write -> HTTP 401
+- denied write probe left no data behind
+
+Seed data:
+
+- reproducible public bootstrap lives at `firebase/seed/public.json`
+- site name/year/theme are seeded
+- four confirmed real venues are seeded and published
+- known prize names are seeded as unpublished placeholders; stock, point requirements, and redemption mechanics remain unset until confirmed
+- activities remain dynamic and are not hard-coded or pre-seeded
+
+## Active architecture
+
+- Firebase Authentication for Admin/Staff identity
+- Firebase Realtime Database for application/event data
+- no Firebase Cloud Storage
+- no SQL Connect
+- no Supabase
+- fixed media will deploy with Vercel from `public/media`
+- dynamic Admin-managed media will use Vercel Blob
+- Realtime Database stores media URL/metadata only, never binary/Base64 files
 
 ## Removed from active 2026 code
 
@@ -48,25 +103,17 @@ Legacy reference files are excluded from active lint/build scope and must not be
 - Admin configures point enablement, value and completion/repeat rules
 - adding/removing an activity must not require developer work or deployment
 - point history is auditable and visitors cannot directly grant themselves authoritative points
-- Firebase Authentication + Realtime Database for application data; no Supabase, SQL Connect, or Firebase Cloud Storage in the 2026 runtime
-- fixed media deploys with Vercel; dynamic admin media uses Vercel Blob
 
-## Current external prerequisite
+## Next external setup
 
-Firebase Web App config is already wired locally for project `fatu-oph-2026`.
-Realtime Database is created in `asia-southeast1` and the production database URL is wired into the app.
+Firebase is complete enough to proceed.
 
-Firebase Email/Password Authentication is enabled and the Realtime Database rules have been updated in Firebase Console.
+Next:
 
-Project owner still needs to:
-
-- ensure `/admin/roles/Nb6XJYQMY2fhNsEcwEr5tufjIqr2/role` is set to `admin`
 - connect Vercel production to `main`
+- configure Firebase environment variables in Vercel
 - create a public Vercel Blob store for dynamic media
-- add the Firebase/Vercel environment variables to Vercel
+- let Vercel provide `BLOB_READ_WRITE_TOKEN`
+- redeploy and perform an end-to-end production smoke test
 
-Never commit real credentials. Use `.env.example` only as the variable contract.
-
-## Next work
-
-Complete Phase 0 design/data/security lock, then connect Firebase/Vercel during Phase 1. Real venue images will be supplied separately by the project owner.
+After Vercel is ready, continue Phase 0/1 implementation for Admin, dynamic activities, points/check-in, prizes, media and visitor pages.

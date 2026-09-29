@@ -70,7 +70,9 @@ Visitors must never directly write authoritative score transactions.
 
 ## Current prerequisite
 
-Firebase Web App configuration is already wired locally. Before runtime integration is complete, set `VITE_FIREBASE_DATABASE_URL`, enable Email/Password Auth, connect Vercel production to `main`, and create a public Vercel Blob store. Use `.env.example` as the environment contract and never commit runtime secrets.
+Firebase setup is complete and verified: Auth exists, the Admin role is seeded, Realtime Database rules are deployed from the repository, and the public bootstrap is reproducible from `firebase/seed/public.json`.
+
+The remaining infrastructure step is Vercel: connect production to `main`, add Firebase environment variables, create a public Vercel Blob store for dynamic media, and redeploy. Use `.env.example` as the environment contract and never commit runtime secrets.
 
 ## Next implementation work
 
