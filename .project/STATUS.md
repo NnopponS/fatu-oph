@@ -56,10 +56,11 @@ Legacy reference files are excluded from active lint/build scope and must not be
 Firebase Web App config is already wired locally for project `fatu-oph-2026`.
 Realtime Database is created in `asia-southeast1` and the production database URL is wired into the app.
 
+Firebase Email/Password Authentication is enabled and the Realtime Database rules have been updated in Firebase Console.
+
 Project owner still needs to:
 
-- enable Firebase Email/Password Authentication
-- deploy `database.rules.json` after Firebase CLI/dashboard authorization is available
+- ensure `/admin/roles/Nb6XJYQMY2fhNsEcwEr5tufjIqr2/role` is set to `admin`
 - connect Vercel production to `main`
 - create a public Vercel Blob store for dynamic media
 - add the Firebase/Vercel environment variables to Vercel
