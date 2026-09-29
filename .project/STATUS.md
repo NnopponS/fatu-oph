@@ -2,7 +2,7 @@
 
 Date: 2026-09-29
 
-Phase: clean 2026 baseline prepared for main; Vercel/Firebase environment setup remains the external prerequisite for backend implementation.
+Phase: Firebase Web SDK + Auth/Realtime Database client layer + Vercel media layer are implemented on main; dashboard provisioning remains.
 
 ## Repository state
 
@@ -48,18 +48,20 @@ Legacy reference files are excluded from active lint/build scope and must not be
 - Admin configures point enablement, value and completion/repeat rules
 - adding/removing an activity must not require developer work or deployment
 - point history is auditable and visitors cannot directly grant themselves authoritative points
-- Firebase-only backend; no Supabase in 2026 runtime
+- Firebase Authentication + Realtime Database for application data; no Supabase, SQL Connect, or Firebase Cloud Storage in the 2026 runtime
+- fixed media deploys with Vercel; dynamic admin media uses Vercel Blob
 
 ## Current external prerequisite
 
-Project owner is preparing:
+Firebase Web App config is already wired locally for project `fatu-oph-2026`.
 
-- Vercel project/access with `main` selected as the production branch
-- Firebase project + Web App configuration
-- Firebase Authentication
-- Realtime Database
-- Storage
-- deployment/environment access
+Project owner still needs to:
+
+- create/enable Firebase Realtime Database and provide its database URL
+- enable Firebase Email/Password Authentication
+- connect Vercel production to `main`
+- create a public Vercel Blob store for dynamic media
+- add the Firebase/Vercel environment variables to Vercel
 
 Never commit real credentials. Use `.env.example` only as the variable contract.
 

@@ -46,7 +46,15 @@ Visitor-facing locations use their real names:
 
 Azure Dragon, White Tiger, Nine-Tailed Fox and Red Phoenix are visual identities only.
 
-Activities and point rules will be dynamic Firebase data managed through Admin. Adding or removing an activity must not require a new deployment.
+Activities and point rules are dynamic Realtime Database data managed through Admin. Adding or removing an activity must not require a new deployment.
+
+Backend split:
+
+- Firebase Authentication: Admin/Staff sign-in
+- Firebase Realtime Database: venues, activities, participants, check-ins, points, prizes, audit and media metadata
+- Vercel `public/media`: fixed authored images/video
+- Vercel Blob: dynamic Admin-uploaded media
+- No Firebase Cloud Storage, SQL Connect, or Supabase in the 2026 runtime
 
 ## Local development
 

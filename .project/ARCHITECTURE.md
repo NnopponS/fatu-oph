@@ -43,15 +43,16 @@ Vercel hosts:
 
 Core visitor pages must remain usable if AI or decorative animation is unavailable.
 
-### Firebase only
+### Backend split
 
-Firebase is the only application backend platform.
+Firebase Authentication and Realtime Database are the application data/auth backend. Vercel hosts the web/API runtime and media delivery. Binary media is not stored in Realtime Database.
 
 Use:
 
 - Firebase Authentication: staff/admin identity
 - Firebase Realtime Database: venues, activities, schedules, point configuration, participant operations, prize configuration, settings, and approved assistant knowledge
-- Firebase Storage: real venue media, generated artwork, Flow video exports, poster/fallback images
+- Vercel deployment assets (`public/media`): fixed venue media, generated artwork, Flow exports, and poster fallbacks
+- Vercel Blob: dynamic admin-managed images/video; Firebase stores only URL/metadata
 - Firebase Security Rules: public read only for published content; authenticated writes only for authorized roles
 
 For point-granting, prize redemption, or any operation where client-controlled writes could alter score, use a trusted server-side path such as Vercel server functions with Firebase Admin SDK or another Firebase trusted server mechanism. Do not allow visitors to author authoritative point transactions directly.
@@ -63,7 +64,7 @@ Do not use Supabase.
 Visitor browser
 -> Vercel static app
 -> Firebase Realtime Database for published content
--> Firebase Storage/CDN URLs for images/video
+-> Vercel static asset or Vercel Blob URLs for images/video
 
 Visitor completion/check-in action
 -> trusted server endpoint or authorized staff action
@@ -81,7 +82,7 @@ Admin browser
 -> Firebase Auth
 -> Admin workspace
 -> Firebase Realtime Database / trusted operational endpoints
--> Firebase Storage
+-> Vercel static assets / Vercel Blob
 
 ## Content domains
 

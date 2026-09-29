@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "public": {
+      ".read": true,
+      ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'editor')"
+    },
+
+    "operations": {
+      ".read": "auth != null && root.child('admin/roles').child(auth.uid).child('role').exists()",
+      ".write": "auth != null && (root.child('admin/roles').child(auth.uid).child('role').val() === 'admin' || root.child('admin/roles').child(auth.uid).child('role').val() === 'staff')"
+    },
+
+    "admin": {
+      ".read": false,
+      ".write": false,
+      "roles": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('admin/roles').child(auth.uid).child('role').val() === 'admin')",
+          ".write": "auth != null && root.child('admin/roles').child(auth.uid).child('role').val() === 'admin'",
+          "role": {
+            ".validate": "newData.val() === 'admin' || newData.val() === 'editor' || newData.val() === 'staff' || newData.val() === 'viewer'"
+          }
+        }
+      }
+    }
+  }
+}

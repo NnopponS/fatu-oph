@@ -52,7 +52,7 @@ Build:
 - Firebase SDK
 - Firebase Auth for staff/admin
 - Realtime Database content adapter
-- Firebase Storage media adapter
+- Vercel static-media + Blob media adapter
 - Vercel project/config
 - environment configuration
 - reusable image/video media component with poster fallback
@@ -63,7 +63,9 @@ External prerequisite:
 - Vercel project/access ready
 - Firebase project ready
 - Firebase Web App config ready
-- Auth, Realtime Database, and Storage enabled
+- Auth and Realtime Database enabled
+- `VITE_FIREBASE_DATABASE_URL` configured
+- public Vercel Blob store connected when dynamic uploads are needed
 
 Exit:
 
@@ -138,7 +140,7 @@ Build:
 Exit:
 
 - staff can create a brand-new activity, attach it to a venue, configure points, publish it, and operate it without developer involvement
-- media lives in Firebase Storage
+- fixed media lives with the Vercel deployment and dynamic admin media lives in Vercel Blob
 - no Supabase dependency exists
 
 ## Phase 5: registration, pass, QR, and redemption

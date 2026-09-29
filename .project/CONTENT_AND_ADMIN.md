@@ -208,8 +208,9 @@ Prize configuration is editable in admin. The currently known prize names can be
 
 ```text
 id
-storagePath
-publicUrl
+provider
+url
+pathname
 posterMediaId
 altText
 focalPointX
@@ -231,13 +232,14 @@ Recommended `kind` values:
 
 Recommended `source` values:
 
-- uploaded
+- vercel-static
+- vercel-blob
 - generated-image
 - google-flow
 
 Keep crop/focal-point metadata so one master image can support mobile hero, cards, and desktop layouts.
 
-## Firebase-only administration
+## Firebase-authenticated administration
 
 Use Firebase Authentication for staff/admin.
 

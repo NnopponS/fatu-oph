@@ -73,8 +73,8 @@ For each venue asset:
 5. ensure artwork contains no embedded words/logos/UI
 6. export a high-resolution master
 7. create optimized mobile/desktop derivatives
-8. upload to Firebase Storage
-9. register media metadata in Firebase
+8. place fixed media in `public/media` or upload dynamic media to Vercel Blob
+9. register media URL/metadata in Firebase Realtime Database
 10. Admin can select/replace it without code edits
 
 ### Base visual prompt

@@ -58,10 +58,10 @@ The public app must render activities from Firebase data rather than hard-coded 
 ## Fixed technical decisions
 
 - Deploy on Vercel.
-- Use Firebase only for application backend services.
-- Firebase Authentication for staff/admin.
-- Firebase Realtime Database for app/event data.
-- Firebase Storage for images and video assets.
+- Firebase Authentication is used for staff/admin identity.
+- Firebase Realtime Database is the application/event database.
+- Fixed authored media is deployed from `public/media` with Vercel.
+- Dynamic admin-managed images/video use Vercel Blob; Realtime Database stores only media URL/metadata.
 - Do not use Supabase anywhere in the new application.
 - Mobile web browser is the primary visitor experience.
 - No emoji in the final UI.
@@ -79,7 +79,7 @@ Before implementation starts, project owner will prepare:
 - Firebase Web App configuration
 - Firebase Authentication
 - Realtime Database
-- Firebase Storage
+- Vercel Blob store for dynamic admin media
 - required deployment/environment access
 
 Implementation must consume environment configuration and must not hard-code secrets.

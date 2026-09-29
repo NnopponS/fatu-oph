@@ -56,7 +56,9 @@ Visitors must never directly write authoritative score transactions.
 
 - mobile browser first
 - Vercel deployment from `main`
-- Firebase Authentication + Realtime Database + Storage
+- Firebase Authentication + Realtime Database for application data
+- Vercel `public/media` for fixed authored assets
+- Vercel Blob for dynamic admin-managed media
 - trusted server-side validation for score-sensitive operations
 - no Supabase in active 2026 runtime
 - no Lovable runtime/tagger/branding
@@ -68,9 +70,7 @@ Visitors must never directly write authoritative score transactions.
 
 ## Current prerequisite
 
-Project owner is preparing Vercel and Firebase.
-
-When ready, use `.env.example` as the client configuration contract and put real values in local/Vercel environment variables only.
+Firebase Web App configuration is already wired locally. Before runtime integration is complete, set `VITE_FIREBASE_DATABASE_URL`, enable Email/Password Auth, connect Vercel production to `main`, and create a public Vercel Blob store. Use `.env.example` as the environment contract and never commit runtime secrets.
 
 ## Next implementation work
 
