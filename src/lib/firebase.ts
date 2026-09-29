@@ -16,7 +16,9 @@ for (const [key, value] of Object.entries(requiredConfig)) {
   }
 }
 
-const databaseURL = import.meta.env.VITE_FIREBASE_DATABASE_URL?.trim();
+const databaseURL =
+  import.meta.env.VITE_FIREBASE_DATABASE_URL?.trim() ||
+  "https://fatu-oph-2026-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 export const firebaseApp =
   getApps()[0] ??
