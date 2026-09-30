@@ -42,20 +42,25 @@ Run:
 
 The emulator smoke test intentionally pins firebase-tools@14.17.0 because the local machine has Java 17; current firebase-tools 15 requires Java 21. Production Firebase Rules deploys can continue using firebase-tools 15.
 
-## Remaining prerequisite: Vercel
+## Remaining prerequisite: Firebase Admin credential
 
-Vercel CLI is not authenticated yet.
+Vercel production is already linked and deployed from main at https://fatu-oph-2026.vercel.app.
 
-Production needs:
-- Vercel project connected to main
-- VITE_FIREBASE_* environment variables from .env.example
+Already complete:
+- VITE_FIREBASE_* environment variables
 - FIREBASE_DATABASE_URL
 - FIREBASE_ADMIN_PROJECT_ID
+- public Vercel Blob store and BLOB_READ_WRITE_TOKEN
+- public deployment protection disabled
+- Singapore Blob region and repository function region config
+
+Still required in Vercel as server-only Secrets:
 - FIREBASE_ADMIN_CLIENT_EMAIL
 - FIREBASE_ADMIN_PRIVATE_KEY
-- public Vercel Blob store / BLOB_READ_WRITE_TOKEN
 
-After Vercel deployment, run one real production smoke pass before event use.
+Generate/download a Firebase Admin service-account JSON for project fatu-oph-2026, then load only client_email and private_key into those two Vercel variables. Do not commit the JSON file.
+
+After those values are present, redeploy and run the final production API, Auth, Blob and camera/QR smoke pass.
 
 ## Next phase
 

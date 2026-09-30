@@ -1,6 +1,6 @@
 # Status
 
-Date: 2026-09-29
+Date: 2026-09-30
 
 Phase: Core functional system implemented and verified locally. Decorative animation/visual polish is intentionally deferred. Production Vercel provisioning is the remaining external runtime step.
 
@@ -75,17 +75,28 @@ Trusted APIs:
 - smoke coverage includes public/admin/editor Rules, opaque pass, QR points, duplicate prevention, participant detail, entry check-in idempotency, staff adjustment, staff completion, prize redemption/claim limit, reversal, content audit, staff creation and assistant behavior
 - latest production Realtime Database Rules deployed successfully
 
-## Remaining external runtime setup
+## Production deployment status
 
-Vercel CLI is currently logged out. Before production end-to-end use:
+Vercel production is provisioned and publicly reachable:
 
-- authenticate/connect Vercel
-- production branch = main
-- configure client Firebase environment variables
-- configure FIREBASE_DATABASE_URL
-- configure Firebase Admin service-account environment variables
-- create/connect public Vercel Blob and BLOB_READ_WRITE_TOKEN
-- deploy and run production smoke tests for Auth, server APIs, camera/QR and Blob upload
+- project: fatu-oph-2026
+- production branch: main
+- production alias: https://fatu-oph-2026.vercel.app
+- Deployment Protection / Vercel Authentication disabled for the public event site
+- Firebase client environment variables configured for Production, Preview and Development
+- FIREBASE_DATABASE_URL and FIREBASE_ADMIN_PROJECT_ID configured
+- public Vercel Blob store fatu-oph-media created in sin1 and connected to all environments
+- Vercel Functions configured in repository for sin1
+- public routes /, /explore and /admin/login smoke-tested with HTTP 200
+
+Remaining production blocker:
+
+- FIREBASE_ADMIN_CLIENT_EMAIL
+- FIREBASE_ADMIN_PRIVATE_KEY
+
+Until those two Firebase service-account values are added, trusted server APIs for registration/pass, points, check-in, staff management and prize redemption return 500 in production. Local/emulator coverage for those flows already passes.
+
+After the Firebase Admin credential is added, redeploy and run the final production API + Blob + camera/QR smoke pass.
 
 ## Deferred phase
 
