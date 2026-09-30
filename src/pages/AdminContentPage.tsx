@@ -36,7 +36,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
   const [message, setMessage] = useState("");
   const [qrImage, setQrImage] = useState("");
 
-  const collection = kind === "activities" ? activities.items : kind === "venues" ? venues.items : kind === "prizes" ? prizes.items : kind === "faq" ? faq.items : announcements.items;
+  const collectionState = kind === "activities" ? activities : kind === "venues" ? venues : kind === "prizes" ? prizes : kind === "faq" ? faq : announcements;
+  const collection = collectionState.items;
   const current = useMemo(() => collection.find((item) => item.id === editingId) as Record<string, unknown> | undefined, [collection, editingId]);
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -155,6 +156,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
     <AdminAccess roles={["admin", "editor"]}>
       <section>
       <div className="admin-heading"><div><span className="section-kicker">CONTENT</span><h1 className="admin-page-title">{title}</h1></div><button className="secondary-button" onClick={() => { setEditingId(""); setQrImage(""); }}>สร้างใหม่</button></div>
+      {collectionState.loading ? <p className="content-status">กำลังโหลดข้อมูล...</p> : null}
+      {collectionState.error ? <p className="form-error" role="alert">{collectionState.error}</p> : null}
       <div className="admin-split">
         <div className="admin-list">
           {collection.map((item) => (
@@ -165,7 +168,7 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
           ))}
         </div>
 
-        <form className="admin-editor" key={editingId || "new"} onSubmit={save}>
+        <form className="admin-editor" key={editingId || "new"} onSubmit={(event) => void save(event).catch((error) => setMessage(error instanceof Error ? error.message : "บันทึกไม่สำเร็จ"))}>
           {kind === "activities" ? <ActivityFields current={current} venues={venues.items} /> : null}
           {kind === "venues" ? <VenueFields current={current} /> : null}
           {kind === "prizes" ? <PrizeFields current={current} /> : null}
@@ -173,11 +176,11 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
           {kind === "announcements" ? <AnnouncementFields current={current} /> : null}
           <div className="action-row">
             <button className="admin-submit" type="submit">บันทึก</button>
-            {editingId ? <button className="secondary-button" type="button" onClick={() => void remove(editingId)}>ลบ</button> : null}
+            {editingId ? <button className="secondary-button" type="button" onClick={() => void remove(editingId).catch((error) => setMessage(error instanceof Error ? error.message : "ลบไม่สำเร็จ"))}>ลบ</button> : null}
             {kind === "activities" && editingId ? (
               <>
-                <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId)}>แสดง QR</button>
-                <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId, true)}>สร้าง QR ใหม่</button>
+                <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId).catch((error) => setMessage(error instanceof Error ? error.message : "โหลด QR ไม่สำเร็จ"))}>แสดง QR</button>
+                <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId, true).catch((error) => setMessage(error instanceof Error ? error.message : "สร้าง QR ไม่สำเร็จ"))}>สร้าง QR ใหม่</button>
               </>
             ) : null}
           </div>
@@ -204,8 +207,9 @@ function Check({ label, name, value }: { label: string; name: string; value?: un
 function TextArea({ label, name, value = "" }: { label: string; name: string; value?: unknown }) {
   return <label><span>{label}</span><textarea name={name} defaultValue={String(value ?? "")} rows={4} /></label>;
 }
-function Select({ label, name, value, options }: { label: string; name: string; value?: unknown; options: Array<[string, string]> }) {
-  return <label><span>{label}</span><select name={name} defaultValue={String(value ?? options[0][0])}>{options.map(([v, l]) => <option value={v} key={v}>{l}</option>)}</select></label>;
+function Select({ label, name, value, options }: { label: string; name: string; value?: unknown; options: Array<[string, string | undefined]> }) {
+  const fallback = options[0]?.[0] ?? "";
+  return <label><span>{label}</span><select name={name} required defaultValue={String(value ?? fallback)}>{options.length === 0 ? <option value="">ยังไม่มีข้อมูลให้เลือก</option> : null}{options.map(([v, l]) => <option value={v} key={v}>{l || v}</option>)}</select></label>;
 }
 
 function ActivityFields({ current = {}, venues }: { current?: Record<string, unknown>; venues: Array<{ id: string; name?: string }> }) {
