@@ -1,5 +1,11 @@
 # Build Handoff
 
+## Durable goal
+
+- goalKey: `fatu-oph.production-bugfix-pass`
+- goalId: `b3da8b32-a447-490c-ae59-7f97239cc2d4`
+- Resume this goal. Do not create a replacement goal while stabilization/mock QA is active.
+
 ## Branch contract
 
 Work in NnopponS/fatu-oph.
@@ -60,6 +66,25 @@ Production APIs passed registration/pass, QR points, duplicate prevention, Admin
 A later real-browser stabilization pass fixed the Admin content empty-options crash, added actionable Auth errors/password reset, hardened async Admin error handling, repaired the stale API smoke harness, and exercised the visitor registration/pass flow in production. Temporary production smoke data was cleaned up afterward.
 
 Before event-day sign-off, log in with the real Admin account and click through Activities, Venues, Prizes, FAQ, Announcements, Operations, Media, Audit and Settings once. The automated Admin API/role suite passes, but temporary Auth-user creation for a full browser Admin sweep is intentionally not used.
+
+## Mock demo dataset
+
+Production currently has a reversible mock dataset so the entire UI can be reviewed with realistic volume:
+- 20 fictional participants
+- 12 activities
+- 6 published mock prizes and 5 completed mock claims
+- point history, check-ins, completions, prize runtime and audit rows
+- 8 FAQ items and 3 announcements
+- 4 venue SVG mock visuals and 6 prize SVG mock visuals
+
+Commands:
+- `npm run mock:generate`
+- `npm run mock:seed`
+- `npm run mock:clear`
+
+The seed script merges per collection and uses `mock-*` IDs so non-mock participants/content are preserved. The four canonical venue records are temporarily enriched with mock descriptions/media and are restored to the baseline by `mock:clear`.
+
+Mock pass for visitor-side history review: `FATU-MOCK-PASS-2026-20-DEMO-ONLY`.
 
 The downloaded Firebase Admin JSON has been deleted from the local Downloads folder. If the Vercel Secrets ever need to be replaced, generate a new service-account key rather than reusing the deleted file.
 

@@ -582,26 +582,35 @@ function generate() {
   console.log("Demo pass token for mock-p20:", demoPassTokens["mock-p20"]);
 }
 
-function npxCommand() {
-  return process.platform === "win32" ? "npx.cmd" : "npx";
+function firebaseCommand(args) {
+  const result = process.platform === "win32"
+    ? spawnSync(
+        "cmd.exe",
+        ["/d", "/s", "/c", ["npx", "-y", "firebase-tools@15.32.0", ...args].join(" ")],
+        { cwd: root, stdio: "inherit" },
+      )
+    : spawnSync(
+        "npx",
+        ["-y", "firebase-tools@15.32.0", ...args],
+        { cwd: root, stdio: "inherit" },
+      );
+
+  if (result.error) {
+    console.error(result.error);
+    process.exit(1);
+  }
+  if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
 function firebaseUpdate(dbPath, file) {
-  const result = spawnSync(
-    npxCommand(),
-    ["-y", "firebase-tools@15.32.0", "database:update", dbPath, file, "--force", "--project", project],
-    { cwd: root, stdio: "inherit", shell: false },
-  );
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  firebaseCommand(["database:update", dbPath, file, "--force", "--project", project]);
 }
 
 function firebaseSet(dbPath, data) {
-  const result = spawnSync(
-    npxCommand(),
-    ["-y", "firebase-tools@15.32.0", "database:set", dbPath, "--data", JSON.stringify(data), "--force", "--project", project],
-    { cwd: root, stdio: "inherit", shell: false },
-  );
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  const tempFile = path.join(seedDir, "set-value.tmp.json");
+  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2) + "\\n");
+  firebaseCommand(["database:set", dbPath, tempFile, "--force", "--project", project]);
+  fs.rmSync(tempFile, { force: true });
 }
 
 function seed() {

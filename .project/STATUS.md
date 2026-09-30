@@ -4,6 +4,12 @@ Date: 2026-09-30
 
 Phase: Functional stabilization and production bug-fix pass. Decorative animation/visual polish remains deferred until Admin and visitor runtime behavior is stable.
 
+## Durable goal
+
+- goalKey: `fatu-oph.production-bugfix-pass`
+- goalId: `b3da8b32-a447-490c-ae59-7f97239cc2d4`
+- Rule: resume this goal; do not create a replacement goal while production stabilization / mock QA is still active.
+
 ## Repository
 
 - Repository: NnopponS/fatu-oph
@@ -120,7 +126,29 @@ Verification in this pass:
 
 Authenticated Admin UI route-by-route browser automation is still gated by having a valid Admin login session. Server-side Admin operations and role boundaries are covered by the passing emulator/API smoke suite; after an owner logs in successfully, the remaining Admin pages should still receive one manual click-through before event-day sign-off.
 
-Current empty states such as no published schedule, prizes or FAQ are content state, not runtime failures.
+## Mock demo environment active
+
+Production currently contains an intentionally reversible mock dataset for full-system review:
+
+- 20 fictional participants under `mock-p01` ... `mock-p20`
+- 12 published mock activities across the four real venue IDs
+- 6 published mock prizes with configured stock/point costs
+- 5 completed mock prize claims
+- point transactions, QR/staff completions, event check-ins, prize runtime and audit rows
+- 8 FAQ entries and 3 announcements including a visible DEMO MODE notice
+- four venue mock visuals and six prize mock visuals under `public/media/mock`
+- production browser verification passed for Home, Explore, Schedule, Rewards and FAQ; all venue/prize images loaded successfully
+- demo participant `mock-p20` resolves through the trusted participant API with point history and a completed prize claim
+
+Reproducible controls:
+- `npm run mock:generate` regenerates the files
+- `npm run mock:seed` safely merges only the mock IDs plus the four canonical venue records
+- `npm run mock:clear` removes mock IDs and restores the canonical venue/site baseline
+- seed logic merges per collection and must never replace whole `/public` or `/operations`
+
+Demo Pass recovery token (mock-only): `FATU-MOCK-PASS-2026-20-DEMO-ONLY`
+
+Real content should replace this dataset before event launch. Do not mistake mock participants or reward claims for real visitors.
 
 ## Deferred phase
 
