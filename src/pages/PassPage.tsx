@@ -139,12 +139,16 @@ export function PassPage() {
             <button
               className="text-button"
               type="button"
-              onClick={() =>
+              onClick={() => {
+                if (!navigator.clipboard) {
+                  setError("เบราว์เซอร์นี้ไม่รองรับการคัดลอกอัตโนมัติ กรุณาบันทึก QR แทน");
+                  return;
+                }
                 void navigator.clipboard
                   .writeText(`FATU26PASS:${pass.token}`)
                   .then(() => window.alert("คัดลอกรหัสกู้คืนแล้ว เก็บรหัสนี้เป็นความลับ"))
-                  .catch(() => setError("คัดลอกอัตโนมัติไม่ได้ กรุณาบันทึก QR แทน"))
-              }
+                  .catch(() => setError("คัดลอกอัตโนมัติไม่ได้ กรุณาบันทึก QR แทน"));
+              }}
             >
               คัดลอกรหัสกู้คืน
             </button>
