@@ -55,12 +55,16 @@ export function AdminOperationsPage() {
   const [message, setMessage] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
 
+  function showError(error: unknown) {
+    setMessage(error instanceof Error ? error.message : "ทำรายการไม่สำเร็จ");
+  }
+
   async function refresh() {
     const result = await adminAction<{ participants: ParticipantRow[] }>("participants");
     setParticipants(result.participants);
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => { void refresh().catch(showError); }, []);
 
   useEffect(() => {
     if (!selectedId) {
@@ -206,22 +210,22 @@ export function AdminOperationsPage() {
                 <p>{selected.phone} {selected.email}</p>
                 <strong className="score-number">{detail?.pointTotal ?? selected.pointTotal}</strong><small> คะแนน</small>
                 <p>{detail?.entryCheckin ? `เช็กอินเข้างานแล้ว · ${detail.entryCheckin.createdAt || ""}` : "ยังไม่ได้เช็กอินเข้างาน"}</p>
-                <button className="secondary-button" type="button" onClick={() => void entryCheckin()}>
+                <button className="secondary-button" type="button" onClick={() => void entryCheckin().catch(showError)}>
                   {detail?.entryCheckin ? "บันทึกเช็กอินแล้ว" : "เช็กอินเข้างาน"}
                 </button>
               </div>
-              <form className="admin-form" onSubmit={complete}>
+              <form className="admin-form" onSubmit={(event) => void complete(event).catch(showError)}>
                 <h3>ยืนยันจบกิจกรรม</h3>
                 <label><span>กิจกรรม</span><select name="activityId" required>{activities.items.map((activity) => <option value={activity.id} key={activity.id}>{activity.title}{activity.pointsEnabled ? ` · +${activity.pointsAwarded}` : ""}</option>)}</select></label>
                 <button className="admin-submit">บันทึกการเข้าร่วม</button>
               </form>
-              <form className="admin-form" onSubmit={adjust}>
+              <form className="admin-form" onSubmit={(event) => void adjust(event).catch(showError)}>
                 <h3>ปรับคะแนน</h3>
                 <label><span>จำนวน (+/-)</span><input name="points" type="number" required /></label>
                 <label><span>เหตุผล</span><input name="reason" required minLength={2} /></label>
                 <button className="admin-submit">บันทึกการปรับแต้ม</button>
               </form>
-              <form className="admin-form" onSubmit={redeem}>
+              <form className="admin-form" onSubmit={(event) => void redeem(event).catch(showError)}>
                 <h3>แลกรางวัล</h3>
                 <label><span>ของรางวัล</span><select name="prizeId" required>{prizes.items.map((prize) => <option value={prize.id} key={prize.id}>{prize.name} · {prize.pointsRequired} แต้ม</option>)}</select></label>
                 <button className="admin-submit">ยืนยันการแลก</button>
@@ -238,7 +242,7 @@ export function AdminOperationsPage() {
                     <div className="history-actions">
                       <strong className={tx.points >= 0 ? "positive" : "negative"}>{tx.points > 0 ? "+" : ""}{tx.points}</strong>
                       {session.role === "admin" && !tx.reversedAt && tx.source !== "prize-redemption" && tx.source !== "prize-refund" && tx.source !== "reversal" ? (
-                        <button className="text-button danger-text" type="button" onClick={() => void reverseTransaction(tx.id)}>ย้อนรายการ</button>
+                        <button className="text-button danger-text" type="button" onClick={() => void reverseTransaction(tx.id).catch(showError)}>ย้อนรายการ</button>
                       ) : null}
                     </div>
                   </div>
