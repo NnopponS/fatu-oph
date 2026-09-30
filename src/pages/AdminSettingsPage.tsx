@@ -73,15 +73,23 @@ export function AdminSettingsPage() {
   }
 
   async function setRole(uid: string, role: StaffRow["role"]) {
-    await adminAction("setRole", { uid, role });
-    setMessage("อัปเดตสิทธิ์แล้ว");
-    await refresh();
+    try {
+      await adminAction("setRole", { uid, role });
+      setMessage("อัปเดตสิทธิ์แล้ว");
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "อัปเดตสิทธิ์ไม่สำเร็จ");
+    }
   }
 
   async function setDisabled(uid: string, disabled: boolean) {
-    await adminAction("setStaffDisabled", { uid, disabled });
-    setMessage(disabled ? "ปิดบัญชีแล้ว" : "เปิดบัญชีแล้ว");
-    await refresh();
+    try {
+      await adminAction("setStaffDisabled", { uid, disabled });
+      setMessage(disabled ? "ปิดบัญชีแล้ว" : "เปิดบัญชีแล้ว");
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "อัปเดตบัญชีไม่สำเร็จ");
+    }
   }
 
   return (
