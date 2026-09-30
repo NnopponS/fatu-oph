@@ -55,7 +55,11 @@ Production runtime now includes:
 - public deployment protection disabled
 - Singapore Blob region and repository function region config
 
-Final production smoke passed for visitor routes, registration/pass, QR points, duplicate prevention, Admin participant operations, event check-in, point adjustment/reversal, prize redemption/claim limit, and Blob upload/delete. Temporary production smoke data was cleaned up afterward.
+Production APIs passed registration/pass, QR points, duplicate prevention, Admin participant operations, event check-in, point adjustment/reversal, prize redemption/claim limit, and Blob upload/delete.
+
+A later real-browser stabilization pass fixed the Admin content empty-options crash, added actionable Auth errors/password reset, hardened async Admin error handling, repaired the stale API smoke harness, and exercised the visitor registration/pass flow in production. Temporary production smoke data was cleaned up afterward.
+
+Before event-day sign-off, log in with the real Admin account and click through Activities, Venues, Prizes, FAQ, Announcements, Operations, Media, Audit and Settings once. The automated Admin API/role suite passes, but temporary Auth-user creation for a full browser Admin sweep is intentionally not used.
 
 The downloaded Firebase Admin JSON has been deleted from the local Downloads folder. If the Vercel Secrets ever need to be replaced, generate a new service-account key rather than reusing the deleted file.
 
