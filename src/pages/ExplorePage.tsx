@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { useActivities, useVenues } from "@/data/content";
+import { resolveMediaUrl, useActivities, useMedia, useVenues } from "@/data/content";
 
 export function ExplorePage() {
   const venues = useVenues();
   const activities = useActivities();
+  const media = useMedia();
 
   return (
     <section className="page-section">
@@ -15,9 +16,11 @@ export function ExplorePage() {
       <div className="venue-list">
         {venues.items.map((venue, index) => {
           const count = activities.items.filter((activity) => activity.venueId === venue.id).length;
+          const cover = resolveMediaUrl(venue.coverMediaId || "", media.items);
           return (
             <Link className="venue-list-item venue-list-link" to={`/venue/${venue.id}`} key={venue.id}>
               <span className="venue-index">{String(index + 1).padStart(2, "0")}</span>
+              {cover ? <img className="venue-list-thumb" src={cover} alt="" aria-hidden="true" /> : null}
               <div><span className="venue-identity">{venue.visualLabel}</span><h2>{venue.name}</h2><p>{venue.description || "ดูรายละเอียดสถานที่"} · {count} กิจกรรม</p></div>
             </Link>
           );

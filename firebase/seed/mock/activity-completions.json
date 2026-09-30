@@ -1,0 +1,240 @@
+{
+  "mock-completion-04-2": {
+    "participantId": "mock-p04",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:20:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-05-2": {
+    "participantId": "mock-p05",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:23:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-06-2": {
+    "participantId": "mock-p06",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:26:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-07-2": {
+    "participantId": "mock-p07",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:29:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-08-2": {
+    "participantId": "mock-p08",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:32:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-09-2": {
+    "participantId": "mock-p09",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:35:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-10-2": {
+    "participantId": "mock-p10",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:38:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-10-4": {
+    "participantId": "mock-p10",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:00:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-11-2": {
+    "participantId": "mock-p11",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:41:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-11-4": {
+    "participantId": "mock-p11",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:03:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-12-2": {
+    "participantId": "mock-p12",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:44:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-12-4": {
+    "participantId": "mock-p12",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:06:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-13-2": {
+    "participantId": "mock-p13",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:47:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-13-4": {
+    "participantId": "mock-p13",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:09:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-14-2": {
+    "participantId": "mock-p14",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:50:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-14-4": {
+    "participantId": "mock-p14",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:12:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-15-2": {
+    "participantId": "mock-p15",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:53:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-15-4": {
+    "participantId": "mock-p15",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:15:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-16-2": {
+    "participantId": "mock-p16",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:56:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-16-4": {
+    "participantId": "mock-p16",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:18:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-16-6": {
+    "participantId": "mock-p16",
+    "activityId": "mock-textile-lab",
+    "pointsAdded": 25,
+    "createdAt": "2026-09-30T04:40:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-17-2": {
+    "participantId": "mock-p17",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:59:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-17-4": {
+    "participantId": "mock-p17",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:21:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-17-6": {
+    "participantId": "mock-p17",
+    "activityId": "mock-textile-lab",
+    "pointsAdded": 25,
+    "createdAt": "2026-09-30T04:43:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-18-2": {
+    "participantId": "mock-p18",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:02:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-18-4": {
+    "participantId": "mock-p18",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:24:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-18-6": {
+    "participantId": "mock-p18",
+    "activityId": "mock-textile-lab",
+    "pointsAdded": 25,
+    "createdAt": "2026-09-30T04:46:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-19-2": {
+    "participantId": "mock-p19",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:05:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-19-4": {
+    "participantId": "mock-p19",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:27:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-19-6": {
+    "participantId": "mock-p19",
+    "activityId": "mock-textile-lab",
+    "pointsAdded": 25,
+    "createdAt": "2026-09-30T04:49:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-20-2": {
+    "participantId": "mock-p20",
+    "activityId": "mock-stage-behind-scenes",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T02:08:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-20-4": {
+    "participantId": "mock-p20",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T03:30:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-20-6": {
+    "participantId": "mock-p20",
+    "activityId": "mock-textile-lab",
+    "pointsAdded": 25,
+    "createdAt": "2026-09-30T04:52:00.000Z",
+    "staffId": "mock-staff-01"
+  },
+  "mock-completion-20-8": {
+    "participantId": "mock-p20",
+    "activityId": "mock-material-hunt",
+    "pointsAdded": 15,
+    "createdAt": "2026-09-30T05:14:00.000Z",
+    "staffId": "mock-staff-01"
+  }
+}

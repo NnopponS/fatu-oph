@@ -1,12 +1,13 @@
 import { ArrowRight, MapPinned, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useActivities, useAnnouncements, useSite, useVenues } from "@/data/content";
+import { resolveMediaUrl, useActivities, useAnnouncements, useMedia, useSite, useVenues } from "@/data/content";
 
 export function HomePage() {
   const site = useSite();
   const venues = useVenues();
   const activities = useActivities();
   const announcements = useAnnouncements();
+  const media = useMedia();
 
   return (
     <>
@@ -29,12 +30,15 @@ export function HomePage() {
         {venues.loading ? <p className="content-status">กำลังโหลดสถานที่...</p> : null}
         {venues.error ? <p className="content-status content-error">{venues.error}</p> : null}
         <div className="venue-grid">
-          {venues.items.map((venue) => (
-            <Link className={"venue-card venue-" + venue.visualIdentityKey} key={venue.id} to={`/venue/${venue.id}`}>
-              <div className="venue-card-art" aria-hidden="true" />
-              <div className="venue-card-content"><span>{venue.visualLabel}</span><h3>{venue.name}</h3><p>{venue.description || "ดูสถานที่และกิจกรรม"}</p></div>
-            </Link>
-          ))}
+          {venues.items.map((venue) => {
+            const cover = resolveMediaUrl(venue.coverMediaId || "", media.items);
+            return (
+              <Link className={"venue-card venue-" + venue.visualIdentityKey} key={venue.id} to={`/venue/${venue.id}`}>
+                {cover ? <img className="venue-card-image" src={cover} alt="" aria-hidden="true" /> : <div className="venue-card-art" aria-hidden="true" />}
+                <div className="venue-card-content"><span>{venue.visualLabel}</span><h3>{venue.name}</h3><p>{venue.description || "ดูสถานที่และกิจกรรม"}</p></div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

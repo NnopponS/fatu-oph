@@ -1,0 +1,58 @@
+{
+  "theater": {
+    "name": "โรงละคร",
+    "visualIdentityKey": "azure-dragon",
+    "visualLabel": "Azure Dragon",
+    "description": "พื้นที่เวทีหลักสำหรับการแสดง Showcase และกิจกรรมรวมของ Open House",
+    "directions": "จากจุดลงทะเบียน เดินตามป้ายโรงละครประมาณ 3-5 นาที",
+    "landmarkNotes": "มองหาป้ายโรงละครและธงสีฟ้าของจุดมังกรฟ้า",
+    "mapUrl": "https://www.google.com/maps/search/?api=1&query=โรงละคร+มหาวิทยาลัยธรรมศาสตร์+รังสิต",
+    "latitude": null,
+    "longitude": null,
+    "coverMediaId": "mock-venue-theater",
+    "displayOrder": 1,
+    "isPublished": true
+  },
+  "faculty-building": {
+    "name": "ตึกคณะ",
+    "visualIdentityKey": "white-tiger",
+    "visualLabel": "White Tiger",
+    "description": "ศูนย์ข้อมูลหลัก พบอาจารย์ รุ่นพี่ นิทรรศการหลักสูตร และผลงานนักศึกษา",
+    "directions": "จากจุดลงทะเบียน เดินเข้าพื้นที่คณะตามป้ายสีขาว ใช้เวลาประมาณ 2-4 นาที",
+    "landmarkNotes": "จุดพยัคฆ์ขาวอยู่บริเวณอาคารคณะและโต๊ะประชาสัมพันธ์",
+    "mapUrl": "https://www.google.com/maps/search/?api=1&query=คณะศิลปกรรมศาสตร์+มหาวิทยาลัยธรรมศาสตร์+รังสิต",
+    "latitude": null,
+    "longitude": null,
+    "coverMediaId": "mock-venue-faculty-building",
+    "displayOrder": 2,
+    "isPublished": true
+  },
+  "weaving-building": {
+    "name": "โรงทอ",
+    "visualIdentityKey": "nine-tailed-fox",
+    "visualLabel": "Nine-Tailed Fox",
+    "description": "พื้นที่ Workshop งานสิ่งทอ วัสดุ และงานสร้างสรรค์แบบลงมือทำ",
+    "directions": "เดินต่อจากตึกคณะตามป้ายจิ้งจอกเก้าหางประมาณ 4-6 นาที",
+    "landmarkNotes": "สังเกตพื้นที่ Workshop และป้ายสีเขียวบริเวณโรงทอ",
+    "mapUrl": "https://www.google.com/maps/search/?api=1&query=โรงทอ+คณะศิลปกรรมศาสตร์+มหาวิทยาลัยธรรมศาสตร์+รังสิต",
+    "latitude": null,
+    "longitude": null,
+    "coverMediaId": "mock-venue-weaving-building",
+    "displayOrder": 3,
+    "isPublished": true
+  },
+  "sc3": {
+    "name": "ตึก SC3",
+    "visualIdentityKey": "red-phoenix",
+    "visualLabel": "Red Phoenix",
+    "description": "พื้นที่เรียนรวมสำหรับ Demo, Talk และกิจกรรมทดลองคลาส",
+    "directions": "จากตึกคณะเดินตามทางเชื่อมไป SC3 ประมาณ 6-8 นาที",
+    "landmarkNotes": "มองหาป้าย SC3 และธงสีแดงของจุดหงส์แดง",
+    "mapUrl": "https://www.google.com/maps/search/?api=1&query=SC3+มหาวิทยาลัยธรรมศาสตร์+รังสิต",
+    "latitude": null,
+    "longitude": null,
+    "coverMediaId": "mock-venue-sc3",
+    "displayOrder": 4,
+    "isPublished": true
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "mock-hand-fan": {
+    "name": "พัดมือลายมังกร",
+    "description": "ของรางวัลระดับเริ่มต้น เหมาะสำหรับผู้ที่ร่วมกิจกรรม 2-3 จุด",
+    "imageMediaId": "mock-prize-hand-fan",
+    "stock": 80,
+    "pointsRequired": 35,
+    "claimLimit": 1,
+    "displayOrder": 1,
+    "isPublished": true
+  },
+  "mock-red-envelope": {
+    "name": "ซองแดงส่วนลดอาหาร",
+    "description": "คูปองส่วนลดอาหารภายในงานสำหรับผู้สะสมแต้ม",
+    "imageMediaId": "mock-prize-red-envelope",
+    "stock": 120,
+    "pointsRequired": 45,
+    "claimLimit": 1,
+    "displayOrder": 2,
+    "isPublished": true
+  },
+  "mock-tassel": {
+    "name": "พู่ห้อยทอสับ",
+    "description": "ของที่ระลึกงานฝีมือธีม Open House",
+    "imageMediaId": "mock-prize-tassel",
+    "stock": 50,
+    "pointsRequired": 60,
+    "claimLimit": 1,
+    "displayOrder": 3,
+    "isPublished": true
+  },
+  "mock-hairpin": {
+    "name": "ปิ่นปักผม",
+    "description": "ของรางวัลระดับกลางสำหรับผู้ร่วมกิจกรรมหลายฐาน",
+    "imageMediaId": "mock-prize-hairpin",
+    "stock": 40,
+    "pointsRequired": 75,
+    "claimLimit": 1,
+    "displayOrder": 4,
+    "isPublished": true
+  },
+  "mock-small-doll": {
+    "name": "ตุ๊กตาเล็ก",
+    "description": "รางวัลสำหรับผู้สะสมแต้มระดับสูง",
+    "imageMediaId": "mock-prize-small-doll",
+    "stock": 20,
+    "pointsRequired": 110,
+    "claimLimit": 1,
+    "displayOrder": 5,
+    "isPublished": true
+  },
+  "mock-giant-doll": {
+    "name": "ตุ๊กตายักษ์",
+    "description": "รางวัลใหญ่สำหรับผู้พิชิตภารกิจหลายพื้นที่",
+    "imageMediaId": "mock-prize-giant-doll",
+    "stock": 5,
+    "pointsRequired": 170,
+    "claimLimit": 1,
+    "displayOrder": 6,
+    "isPublished": true
+  }
+}

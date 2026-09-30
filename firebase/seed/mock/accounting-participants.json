@@ -1,0 +1,997 @@
+{
+  "mock-p01": {
+    "pointTotal": 0,
+    "grantCounts": {},
+    "transactions": {},
+    "claims": {}
+  },
+  "mock-p02": {
+    "pointTotal": 20,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1
+    },
+    "transactions": {
+      "mock-tx-02-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:03:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p03": {
+    "pointTotal": 20,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1
+    },
+    "transactions": {
+      "mock-tx-03-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:06:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p04": {
+    "pointTotal": 35,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1
+    },
+    "transactions": {
+      "mock-tx-04-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:09:00.000Z"
+      },
+      "mock-tx-04-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:20:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p05": {
+    "pointTotal": 35,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1
+    },
+    "transactions": {
+      "mock-tx-05-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:12:00.000Z"
+      },
+      "mock-tx-05-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:23:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p06": {
+    "pointTotal": 35,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1
+    },
+    "transactions": {
+      "mock-tx-06-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:15:00.000Z"
+      },
+      "mock-tx-06-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:26:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p07": {
+    "pointTotal": 55,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1
+    },
+    "transactions": {
+      "mock-tx-07-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:18:00.000Z"
+      },
+      "mock-tx-07-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:29:00.000Z"
+      },
+      "mock-tx-07-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:40:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p08": {
+    "pointTotal": 55,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1
+    },
+    "transactions": {
+      "mock-tx-08-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:21:00.000Z"
+      },
+      "mock-tx-08-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:32:00.000Z"
+      },
+      "mock-tx-08-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:43:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p09": {
+    "pointTotal": 55,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1
+    },
+    "transactions": {
+      "mock-tx-09-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:24:00.000Z"
+      },
+      "mock-tx-09-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:35:00.000Z"
+      },
+      "mock-tx-09-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:46:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p10": {
+    "pointTotal": 80,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1
+    },
+    "transactions": {
+      "mock-tx-10-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:27:00.000Z"
+      },
+      "mock-tx-10-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:38:00.000Z"
+      },
+      "mock-tx-10-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:49:00.000Z"
+      },
+      "mock-tx-10-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:00:00.000Z"
+      },
+      "mock-adjust-10": {
+        "points": 10,
+        "reason": "โบนัสกิจกรรมพิเศษ",
+        "source": "staff-adjustment",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T07:19:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p11": {
+    "pointTotal": 70,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1
+    },
+    "transactions": {
+      "mock-tx-11-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:30:00.000Z"
+      },
+      "mock-tx-11-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:41:00.000Z"
+      },
+      "mock-tx-11-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:52:00.000Z"
+      },
+      "mock-tx-11-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:03:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p12": {
+    "pointTotal": 70,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1
+    },
+    "transactions": {
+      "mock-tx-12-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:33:00.000Z"
+      },
+      "mock-tx-12-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:44:00.000Z"
+      },
+      "mock-tx-12-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:55:00.000Z"
+      },
+      "mock-tx-12-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:06:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p13": {
+    "pointTotal": 80,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1
+    },
+    "transactions": {
+      "mock-tx-13-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:36:00.000Z"
+      },
+      "mock-tx-13-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:47:00.000Z"
+      },
+      "mock-tx-13-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:58:00.000Z"
+      },
+      "mock-tx-13-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:09:00.000Z"
+      },
+      "mock-tx-13-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:20:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p14": {
+    "pointTotal": 75,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1
+    },
+    "transactions": {
+      "mock-tx-14-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:39:00.000Z"
+      },
+      "mock-tx-14-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:50:00.000Z"
+      },
+      "mock-tx-14-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:01:00.000Z"
+      },
+      "mock-tx-14-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:12:00.000Z"
+      },
+      "mock-tx-14-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:23:00.000Z"
+      },
+      "mock-adjust-14": {
+        "points": -5,
+        "reason": "แก้ไขคะแนนตัวอย่าง",
+        "source": "staff-adjustment",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T07:23:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p15": {
+    "pointTotal": 80,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1
+    },
+    "transactions": {
+      "mock-tx-15-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:42:00.000Z"
+      },
+      "mock-tx-15-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:53:00.000Z"
+      },
+      "mock-tx-15-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:04:00.000Z"
+      },
+      "mock-tx-15-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:15:00.000Z"
+      },
+      "mock-tx-15-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:26:00.000Z"
+      }
+    },
+    "claims": {}
+  },
+  "mock-p16": {
+    "pointTotal": 70,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1,
+      "3f5112a6c85639c303b69ddb54958380": 1
+    },
+    "transactions": {
+      "mock-tx-16-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:45:00.000Z"
+      },
+      "mock-tx-16-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:56:00.000Z"
+      },
+      "mock-tx-16-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:07:00.000Z"
+      },
+      "mock-tx-16-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:18:00.000Z"
+      },
+      "mock-tx-16-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:29:00.000Z"
+      },
+      "mock-tx-16-06": {
+        "points": 25,
+        "reason": "เข้าร่วมกิจกรรม Textile Mini Lab",
+        "activityId": "mock-textile-lab",
+        "grantKey": "3f5112a6c85639c303b69ddb54958380",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T04:40:00.000Z"
+      },
+      "mock-redeem-16": {
+        "points": -35,
+        "reason": "แลกรางวัล พัดมือลายมังกร",
+        "source": "prize-redemption",
+        "prizeId": "mock-hand-fan",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:20:00.000Z"
+      }
+    },
+    "claims": {
+      "mock-claim-16": {
+        "prizeId": "mock-hand-fan",
+        "pointsSpent": 35,
+        "status": "completed",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:20:00.000Z"
+      }
+    }
+  },
+  "mock-p17": {
+    "pointTotal": 70,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1,
+      "3f5112a6c85639c303b69ddb54958380": 1
+    },
+    "transactions": {
+      "mock-tx-17-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:48:00.000Z"
+      },
+      "mock-tx-17-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:59:00.000Z"
+      },
+      "mock-tx-17-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:10:00.000Z"
+      },
+      "mock-tx-17-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:21:00.000Z"
+      },
+      "mock-tx-17-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:32:00.000Z"
+      },
+      "mock-tx-17-06": {
+        "points": 25,
+        "reason": "เข้าร่วมกิจกรรม Textile Mini Lab",
+        "activityId": "mock-textile-lab",
+        "grantKey": "3f5112a6c85639c303b69ddb54958380",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T04:43:00.000Z"
+      },
+      "mock-adjust-17": {
+        "points": 10,
+        "reason": "โบนัสกิจกรรมพิเศษ",
+        "source": "staff-adjustment",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T07:26:00.000Z"
+      },
+      "mock-redeem-17": {
+        "points": -45,
+        "reason": "แลกรางวัล ซองแดงส่วนลดอาหาร",
+        "source": "prize-redemption",
+        "prizeId": "mock-red-envelope",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:21:00.000Z"
+      }
+    },
+    "claims": {
+      "mock-claim-17": {
+        "prizeId": "mock-red-envelope",
+        "pointsSpent": 45,
+        "status": "completed",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:21:00.000Z"
+      }
+    }
+  },
+  "mock-p18": {
+    "pointTotal": 75,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1,
+      "3f5112a6c85639c303b69ddb54958380": 1,
+      "519017c2875b1fca98ee8b470ed78616": 1
+    },
+    "transactions": {
+      "mock-tx-18-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:51:00.000Z"
+      },
+      "mock-tx-18-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:02:00.000Z"
+      },
+      "mock-tx-18-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:13:00.000Z"
+      },
+      "mock-tx-18-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:24:00.000Z"
+      },
+      "mock-tx-18-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:35:00.000Z"
+      },
+      "mock-tx-18-06": {
+        "points": 25,
+        "reason": "เข้าร่วมกิจกรรม Textile Mini Lab",
+        "activityId": "mock-textile-lab",
+        "grantKey": "3f5112a6c85639c303b69ddb54958380",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T04:46:00.000Z"
+      },
+      "mock-tx-18-07": {
+        "points": 30,
+        "reason": "เข้าร่วมกิจกรรม Pattern Workshop",
+        "activityId": "mock-pattern-workshop",
+        "grantKey": "519017c2875b1fca98ee8b470ed78616",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T05:57:00.000Z"
+      },
+      "mock-redeem-18": {
+        "points": -60,
+        "reason": "แลกรางวัล พู่ห้อยทอสับ",
+        "source": "prize-redemption",
+        "prizeId": "mock-tassel",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:22:00.000Z"
+      }
+    },
+    "claims": {
+      "mock-claim-18": {
+        "prizeId": "mock-tassel",
+        "pointsSpent": 60,
+        "status": "completed",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:22:00.000Z"
+      }
+    }
+  },
+  "mock-p19": {
+    "pointTotal": 60,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1,
+      "3f5112a6c85639c303b69ddb54958380": 1,
+      "519017c2875b1fca98ee8b470ed78616": 1
+    },
+    "transactions": {
+      "mock-tx-19-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:54:00.000Z"
+      },
+      "mock-tx-19-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:05:00.000Z"
+      },
+      "mock-tx-19-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:16:00.000Z"
+      },
+      "mock-tx-19-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:27:00.000Z"
+      },
+      "mock-tx-19-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:38:00.000Z"
+      },
+      "mock-tx-19-06": {
+        "points": 25,
+        "reason": "เข้าร่วมกิจกรรม Textile Mini Lab",
+        "activityId": "mock-textile-lab",
+        "grantKey": "3f5112a6c85639c303b69ddb54958380",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T04:49:00.000Z"
+      },
+      "mock-tx-19-07": {
+        "points": 30,
+        "reason": "เข้าร่วมกิจกรรม Pattern Workshop",
+        "activityId": "mock-pattern-workshop",
+        "grantKey": "519017c2875b1fca98ee8b470ed78616",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T05:00:00.000Z"
+      },
+      "mock-redeem-19": {
+        "points": -75,
+        "reason": "แลกรางวัล ปิ่นปักผม",
+        "source": "prize-redemption",
+        "prizeId": "mock-hairpin",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:23:00.000Z"
+      }
+    },
+    "claims": {
+      "mock-claim-19": {
+        "prizeId": "mock-hairpin",
+        "pointsSpent": 75,
+        "status": "completed",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:23:00.000Z"
+      }
+    }
+  },
+  "mock-p20": {
+    "pointTotal": 40,
+    "grantCounts": {
+      "0c9f0d182603d338020826337a31f95b": 1,
+      "f80d412856d89275b58a62f5bf5e3d67": 1,
+      "138dd31321b3394f3413dae0cb68280a": 1,
+      "ca8c66127914084e809b1d2204edb816": 1,
+      "365245a84aefc5831e41229fc4257831": 1,
+      "3f5112a6c85639c303b69ddb54958380": 1,
+      "519017c2875b1fca98ee8b470ed78616": 1,
+      "2a317031ca36b90b0f2ac58ee2f2a5db": 1
+    },
+    "transactions": {
+      "mock-tx-20-01": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Opening Showcase",
+        "activityId": "mock-opening-show",
+        "grantKey": "0c9f0d182603d338020826337a31f95b",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T02:57:00.000Z"
+      },
+      "mock-tx-20-02": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Behind the Stage",
+        "activityId": "mock-stage-behind-scenes",
+        "grantKey": "f80d412856d89275b58a62f5bf5e3d67",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T02:08:00.000Z"
+      },
+      "mock-tx-20-03": {
+        "points": 20,
+        "reason": "เข้าร่วมกิจกรรม Portfolio Talk",
+        "activityId": "mock-portfolio-talk",
+        "grantKey": "138dd31321b3394f3413dae0cb68280a",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T03:19:00.000Z"
+      },
+      "mock-tx-20-04": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Major Discovery",
+        "activityId": "mock-major-discovery",
+        "grantKey": "ca8c66127914084e809b1d2204edb816",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T03:30:00.000Z"
+      },
+      "mock-tx-20-05": {
+        "points": 10,
+        "reason": "เข้าร่วมกิจกรรม Student Gallery Walk",
+        "activityId": "mock-student-gallery",
+        "grantKey": "365245a84aefc5831e41229fc4257831",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T04:41:00.000Z"
+      },
+      "mock-tx-20-06": {
+        "points": 25,
+        "reason": "เข้าร่วมกิจกรรม Textile Mini Lab",
+        "activityId": "mock-textile-lab",
+        "grantKey": "3f5112a6c85639c303b69ddb54958380",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T04:52:00.000Z"
+      },
+      "mock-tx-20-07": {
+        "points": 30,
+        "reason": "เข้าร่วมกิจกรรม Pattern Workshop",
+        "activityId": "mock-pattern-workshop",
+        "grantKey": "519017c2875b1fca98ee8b470ed78616",
+        "source": "activity-qr",
+        "createdAt": "2026-09-30T05:03:00.000Z"
+      },
+      "mock-tx-20-08": {
+        "points": 15,
+        "reason": "เข้าร่วมกิจกรรม Material Hunt",
+        "activityId": "mock-material-hunt",
+        "grantKey": "2a317031ca36b90b0f2ac58ee2f2a5db",
+        "source": "staff-completion",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T05:14:00.000Z"
+      },
+      "mock-redeem-20": {
+        "points": -110,
+        "reason": "แลกรางวัล ตุ๊กตาเล็ก",
+        "source": "prize-redemption",
+        "prizeId": "mock-small-doll",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:24:00.000Z"
+      }
+    },
+    "claims": {
+      "mock-claim-20": {
+        "prizeId": "mock-small-doll",
+        "pointsSpent": 110,
+        "status": "completed",
+        "staffId": "mock-staff-01",
+        "createdAt": "2026-09-30T08:24:00.000Z"
+      }
+    }
+  }
+}

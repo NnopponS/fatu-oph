@@ -1,0 +1,62 @@
+{
+  "mock-opening-show": {
+    "token": "mock-qr-token-01-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-stage-behind-scenes": {
+    "token": "mock-qr-token-02-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-portfolio-talk": {
+    "token": "mock-qr-token-03-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-major-discovery": {
+    "token": "mock-qr-token-04-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-student-gallery": {
+    "token": "mock-qr-token-05-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-textile-lab": {
+    "token": "mock-qr-token-06-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-pattern-workshop": {
+    "token": "mock-qr-token-07-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-material-hunt": {
+    "token": "mock-qr-token-08-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-class-demo": {
+    "token": "mock-qr-token-09-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-creative-tech": {
+    "token": "mock-qr-token-10-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-student-life-talk": {
+    "token": "mock-qr-token-11-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  },
+  "mock-final-quest": {
+    "token": "mock-qr-token-12-2026",
+    "updatedAt": "2026-09-30T12:00:00.000Z",
+    "updatedBy": "mock-seed"
+  }
+}

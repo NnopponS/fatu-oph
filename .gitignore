@@ -10,6 +10,7 @@ dist-ssr/
 !.env.example
 .vercel/
 *.local
+firebase/seed/mock/demo-pass-tokens.json
 
 # Logs
 logs/

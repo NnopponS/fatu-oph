@@ -1,0 +1,23 @@
+{
+  "mock-announcement-data": {
+    "title": "DEMO MODE · ข้อมูลจำลอง",
+    "body": "กิจกรรม ผู้เข้าร่วม คะแนน และของรางวัลในระบบตอนนี้เป็น Mock Data สำหรับตรวจภาพรวมก่อนใส่ข้อมูลจริง",
+    "level": "important",
+    "isPublished": true,
+    "displayOrder": 1
+  },
+  "mock-announcement-checkin": {
+    "title": "ทดลอง Flow สะสมแต้มได้แล้ว",
+    "body": "สร้าง Pass แล้วทดลองเปิดหน้ากิจกรรมและหน้า Check-in เพื่อดูเส้นทางใช้งานจริง",
+    "level": "info",
+    "isPublished": true,
+    "displayOrder": 2
+  },
+  "mock-announcement-prize": {
+    "title": "ของรางวัลตัวอย่างเปิดครบ 6 แบบ",
+    "body": "ตั้งแต่พัดมือจนถึงตุ๊กตายักษ์ เพื่อใช้ตรวจ UI, stock และ redemption flow",
+    "level": "info",
+    "isPublished": true,
+    "displayOrder": 3
+  }
+}

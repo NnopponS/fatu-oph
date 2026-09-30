@@ -1,0 +1,38 @@
+{
+  "mock-hand-fan": {
+    "configuredStock": 80,
+    "claimedCount": 1,
+    "stockRemaining": 79,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  },
+  "mock-red-envelope": {
+    "configuredStock": 120,
+    "claimedCount": 1,
+    "stockRemaining": 119,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  },
+  "mock-tassel": {
+    "configuredStock": 50,
+    "claimedCount": 1,
+    "stockRemaining": 49,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  },
+  "mock-hairpin": {
+    "configuredStock": 40,
+    "claimedCount": 1,
+    "stockRemaining": 39,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  },
+  "mock-small-doll": {
+    "configuredStock": 20,
+    "claimedCount": 1,
+    "stockRemaining": 19,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  },
+  "mock-giant-doll": {
+    "configuredStock": 5,
+    "claimedCount": 0,
+    "stockRemaining": 5,
+    "updatedAt": "2026-09-30T15:00:00.000Z"
+  }
+}

@@ -13,6 +13,9 @@
     "typecheck:api": "tsc -p tsconfig.api.json",
     "check": "npm run build && npm run typecheck:api && npm run lint",
     "smoke:api": "npx -y firebase-tools@14.17.0 emulators:exec --only auth,database --project demo-fatu-oph-2026 \"npx tsx scripts/api-smoke.ts\"",
+    "mock:generate": "node scripts/mock-demo.mjs generate",
+    "mock:seed": "node scripts/mock-demo.mjs seed",
+    "mock:clear": "node scripts/mock-demo.mjs clear",
     "preview": "vite preview"
   },
   "dependencies": {

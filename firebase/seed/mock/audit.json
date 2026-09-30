@@ -1,0 +1,108 @@
+{
+  "mock-audit-01": {
+    "type": "event-checkin",
+    "participantId": "mock-p06",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T02:07:00.000Z"
+  },
+  "mock-audit-02": {
+    "type": "event-checkin",
+    "participantId": "mock-p07",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T03:14:00.000Z"
+  },
+  "mock-audit-03": {
+    "type": "activity-completion",
+    "participantId": "mock-p08",
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T03:21:00.000Z"
+  },
+  "mock-audit-04": {
+    "type": "event-checkin",
+    "participantId": "mock-p09",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T04:28:00.000Z"
+  },
+  "mock-audit-05": {
+    "type": "prize-redemption",
+    "participantId": "mock-p10",
+    "prizeId": "mock-hand-fan",
+    "pointsSpent": 35,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T04:35:00.000Z"
+  },
+  "mock-audit-06": {
+    "type": "activity-completion",
+    "participantId": "mock-p11",
+    "activityId": "mock-pattern-workshop",
+    "pointsAdded": 30,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T05:42:00.000Z"
+  },
+  "mock-audit-07": {
+    "type": "event-checkin",
+    "participantId": "mock-p12",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T05:49:00.000Z"
+  },
+  "mock-audit-08": {
+    "type": "event-checkin",
+    "participantId": "mock-p13",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T06:56:00.000Z"
+  },
+  "mock-audit-09": {
+    "type": "activity-completion",
+    "participantId": "mock-p14",
+    "activityId": "mock-creative-tech",
+    "pointsAdded": 25,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T06:03:00.000Z"
+  },
+  "mock-audit-10": {
+    "type": "prize-redemption",
+    "participantId": "mock-p15",
+    "prizeId": "mock-hand-fan",
+    "pointsSpent": 35,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T07:10:00.000Z"
+  },
+  "mock-audit-11": {
+    "type": "event-checkin",
+    "participantId": "mock-p16",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T07:17:00.000Z"
+  },
+  "mock-audit-12": {
+    "type": "activity-completion",
+    "participantId": "mock-p17",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T08:24:00.000Z"
+  },
+  "mock-audit-13": {
+    "type": "event-checkin",
+    "participantId": "mock-p18",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T08:31:00.000Z"
+  },
+  "mock-audit-14": {
+    "type": "event-checkin",
+    "participantId": "mock-p19",
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T09:38:00.000Z"
+  },
+  "mock-audit-15": {
+    "type": "prize-redemption",
+    "participantId": "mock-p20",
+    "prizeId": "mock-hand-fan",
+    "pointsSpent": 35,
+    "activityId": "mock-major-discovery",
+    "pointsAdded": 15,
+    "staffId": "mock-staff-01",
+    "createdAt": "2026-09-30T09:45:00.000Z"
+  }
+}

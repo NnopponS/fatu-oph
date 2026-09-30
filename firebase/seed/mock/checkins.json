@@ -1,0 +1,310 @@
+{
+  "mock-checkin-02-1": {
+    "participantId": "mock-p02",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:03:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-03-1": {
+    "participantId": "mock-p03",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:06:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-04-1": {
+    "participantId": "mock-p04",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:09:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-05-1": {
+    "participantId": "mock-p05",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:12:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-06-1": {
+    "participantId": "mock-p06",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:15:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-07-1": {
+    "participantId": "mock-p07",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:18:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-07-3": {
+    "participantId": "mock-p07",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:40:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-08-1": {
+    "participantId": "mock-p08",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:21:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-08-3": {
+    "participantId": "mock-p08",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:43:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-09-1": {
+    "participantId": "mock-p09",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:24:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-09-3": {
+    "participantId": "mock-p09",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:46:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-10-1": {
+    "participantId": "mock-p10",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:27:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-10-3": {
+    "participantId": "mock-p10",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:49:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-11-1": {
+    "participantId": "mock-p11",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:30:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-11-3": {
+    "participantId": "mock-p11",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:52:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-12-1": {
+    "participantId": "mock-p12",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:33:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-12-3": {
+    "participantId": "mock-p12",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:55:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-13-1": {
+    "participantId": "mock-p13",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:36:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-13-3": {
+    "participantId": "mock-p13",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:58:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-13-5": {
+    "participantId": "mock-p13",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:20:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-14-1": {
+    "participantId": "mock-p14",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:39:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-14-3": {
+    "participantId": "mock-p14",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:01:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-14-5": {
+    "participantId": "mock-p14",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:23:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-15-1": {
+    "participantId": "mock-p15",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:42:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-15-3": {
+    "participantId": "mock-p15",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:04:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-15-5": {
+    "participantId": "mock-p15",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:26:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-16-1": {
+    "participantId": "mock-p16",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:45:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-16-3": {
+    "participantId": "mock-p16",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:07:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-16-5": {
+    "participantId": "mock-p16",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:29:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-17-1": {
+    "participantId": "mock-p17",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:48:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-17-3": {
+    "participantId": "mock-p17",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:10:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-17-5": {
+    "participantId": "mock-p17",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:32:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-18-1": {
+    "participantId": "mock-p18",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:51:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-18-3": {
+    "participantId": "mock-p18",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:13:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-18-5": {
+    "participantId": "mock-p18",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:35:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-18-7": {
+    "participantId": "mock-p18",
+    "activityId": "mock-pattern-workshop",
+    "pointsAdded": 30,
+    "createdAt": "2026-09-30T05:57:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-19-1": {
+    "participantId": "mock-p19",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:54:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-19-3": {
+    "participantId": "mock-p19",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:16:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-19-5": {
+    "participantId": "mock-p19",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:38:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-19-7": {
+    "participantId": "mock-p19",
+    "activityId": "mock-pattern-workshop",
+    "pointsAdded": 30,
+    "createdAt": "2026-09-30T05:00:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-20-1": {
+    "participantId": "mock-p20",
+    "activityId": "mock-opening-show",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T02:57:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-20-3": {
+    "participantId": "mock-p20",
+    "activityId": "mock-portfolio-talk",
+    "pointsAdded": 20,
+    "createdAt": "2026-09-30T03:19:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-20-5": {
+    "participantId": "mock-p20",
+    "activityId": "mock-student-gallery",
+    "pointsAdded": 10,
+    "createdAt": "2026-09-30T04:41:00.000Z",
+    "method": "qr"
+  },
+  "mock-checkin-20-7": {
+    "participantId": "mock-p20",
+    "activityId": "mock-pattern-workshop",
+    "pointsAdded": 30,
+    "createdAt": "2026-09-30T05:03:00.000Z",
+    "method": "qr"
+  }
+}

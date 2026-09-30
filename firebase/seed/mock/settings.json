@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "media": {
+    "fixedProvider": "vercel-static",
+    "dynamicProvider": "vercel-blob"
+  }
+}
