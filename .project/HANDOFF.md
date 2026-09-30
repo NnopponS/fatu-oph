@@ -42,25 +42,22 @@ Run:
 
 The emulator smoke test intentionally pins firebase-tools@14.17.0 because the local machine has Java 17; current firebase-tools 15 requires Java 21. Production Firebase Rules deploys can continue using firebase-tools 15.
 
-## Remaining prerequisite: Firebase Admin credential
+## Production runtime complete
 
-Vercel production is already linked and deployed from main at https://fatu-oph-2026.vercel.app.
+Vercel production is linked and deployed from main at https://fatu-oph-2026.vercel.app.
 
-Already complete:
+Production runtime now includes:
 - VITE_FIREBASE_* environment variables
 - FIREBASE_DATABASE_URL
 - FIREBASE_ADMIN_PROJECT_ID
+- FIREBASE_ADMIN_CLIENT_EMAIL and FIREBASE_ADMIN_PRIVATE_KEY stored as server-only Vercel Secrets
 - public Vercel Blob store and BLOB_READ_WRITE_TOKEN
 - public deployment protection disabled
 - Singapore Blob region and repository function region config
 
-Still required in Vercel as server-only Secrets:
-- FIREBASE_ADMIN_CLIENT_EMAIL
-- FIREBASE_ADMIN_PRIVATE_KEY
+Final production smoke passed for visitor routes, registration/pass, QR points, duplicate prevention, Admin participant operations, event check-in, point adjustment/reversal, prize redemption/claim limit, and Blob upload/delete. Temporary production smoke data was cleaned up afterward.
 
-Generate/download a Firebase Admin service-account JSON for project fatu-oph-2026, then load only client_email and private_key into those two Vercel variables. Do not commit the JSON file.
-
-After those values are present, redeploy and run the final production API, Auth, Blob and camera/QR smoke pass.
+The downloaded Firebase Admin JSON has been deleted from the local Downloads folder. If the Vercel Secrets ever need to be replaced, generate a new service-account key rather than reusing the deleted file.
 
 ## Next phase
 

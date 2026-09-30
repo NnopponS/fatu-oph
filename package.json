@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -15,7 +18,7 @@
   "dependencies": {
     "@vercel/blob": "^2.8.0",
     "firebase": "^12.3.0",
-    "firebase-admin": "^14.5.0",
+    "firebase-admin": "13.6.0",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "react": "^18.3.1",

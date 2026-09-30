@@ -87,16 +87,14 @@ Vercel production is provisioned and publicly reachable:
 - FIREBASE_DATABASE_URL and FIREBASE_ADMIN_PROJECT_ID configured
 - public Vercel Blob store fatu-oph-media created in sin1 and connected to all environments
 - Vercel Functions configured in repository for sin1
-- public routes /, /explore and /admin/login smoke-tested with HTTP 200
+- public routes /, /explore, /activities, /schedule, /map, /prizes, /faq, /about and /admin/login smoke-tested with HTTP 200
+- FIREBASE_ADMIN_CLIENT_EMAIL and FIREBASE_ADMIN_PRIVATE_KEY are configured as server-only Vercel Secrets
+- production trusted API smoke passed for registration, pass lookup, QR point grant, duplicate prevention, Admin participant read, event check-in idempotency, staff point adjustment, staff completion idempotency, prize redemption, claim limit, point reversal, Vercel Blob upload/delete and final participant state
+- unauthorized Admin and media operations are rejected as expected
+- temporary production smoke users/content/participants were removed after verification
+- the downloaded Firebase service-account JSON was deleted from the local Downloads folder after the Secrets were installed
 
-Remaining production blocker:
-
-- FIREBASE_ADMIN_CLIENT_EMAIL
-- FIREBASE_ADMIN_PRIVATE_KEY
-
-Until those two Firebase service-account values are added, trusted server APIs for registration/pass, points, check-in, staff management and prize redemption return 500 in production. Local/emulator coverage for those flows already passes.
-
-After the Firebase Admin credential is added, redeploy and run the final production API + Blob + camera/QR smoke pass.
+Functional production phase is complete. No core runtime blocker remains before the visual/animation phase.
 
 ## Deferred phase
 

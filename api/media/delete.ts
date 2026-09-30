@@ -10,7 +10,7 @@ import {
 
 const schema = z.object({ mediaId: z.string().min(1).max(200) });
 
-export default async function handler(request: Request) {
+export async function POST(request: Request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {

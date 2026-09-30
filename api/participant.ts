@@ -14,7 +14,7 @@ const meSchema = z.object({
   passToken: z.string().min(20),
 });
 
-export default async function handler(request: Request) {
+export async function POST(request: Request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
