@@ -1,7 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { auth } from "@/lib/firebase";
-import { getStaffRole, signInAdmin, signOutAdmin } from "@/services/auth";
+import {
+  getAdminAuthErrorMessage,
+  getStaffRole,
+  sendAdminPasswordReset,
+  signInAdmin,
+  signOutAdmin,
+} from "@/services/auth";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
@@ -9,6 +15,7 @@ export function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   if (auth.currentUser) {
     return <Navigate to="/admin" replace />;
@@ -18,6 +25,7 @@ export function AdminLoginPage() {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
+    setNotice(null);
 
     try {
       const credential = await signInAdmin(email.trim(), password);
@@ -30,11 +38,28 @@ export function AdminLoginPage() {
       }
 
       navigate("/admin", { replace: true });
-    } catch {
+    } catch (loginError) {
       await signOutAdmin().catch(() => undefined);
-      setError("เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน");
+      setError(getAdminAuthErrorMessage(loginError));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function resetPassword() {
+    const target = email.trim();
+    setError(null);
+    setNotice(null);
+    if (!target) {
+      setError("กรอกอีเมล Admin ก่อนขอรีเซ็ตรหัสผ่าน");
+      return;
+    }
+
+    try {
+      await sendAdminPasswordReset(target);
+      setNotice("ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว หากอีเมลนี้มีบัญชี Admin กรุณาตรวจกล่องจดหมาย");
+    } catch (resetError) {
+      setError(getAdminAuthErrorMessage(resetError));
     }
   }
 
@@ -72,9 +97,13 @@ export function AdminLoginPage() {
           </label>
 
           {error ? <p className="form-error" role="alert">{error}</p> : null}
+          {notice ? <p className="success-message" role="status">{notice}</p> : null}
 
           <button className="admin-submit" disabled={submitting} type="submit">
             {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+          </button>
+          <button className="text-button" disabled={submitting} onClick={() => void resetPassword()} type="button">
+            ลืมรหัสผ่าน / ส่งลิงก์รีเซ็ต
           </button>
         </form>
       </section>
