@@ -7,7 +7,7 @@ process.env.FIREBASE_ADMIN_PROJECT_ID = "demo-fatu-oph-2026";
 process.env.FIREBASE_DATABASE_URL =
   "https://demo-fatu-oph-2026-default-rtdb.firebaseio.com";
 
-const [{ default: participantHandler }, { default: checkinHandler }, { default: adminHandler }, { default: assistantHandler }, server] =
+const [participantModule, checkinModule, adminModule, assistantModule, server] =
   await Promise.all([
     import("../api/participant.ts"),
     import("../api/checkin.ts"),
@@ -15,6 +15,11 @@ const [{ default: participantHandler }, { default: checkinHandler }, { default: 
     import("../api/assistant.ts"),
     import("../api/_lib/server.ts"),
   ]);
+
+const participantHandler = participantModule.POST;
+const checkinHandler = checkinModule.POST;
+const adminHandler = adminModule.POST;
+const assistantHandler = assistantModule.POST;
 
 const { adminDb } = server;
 
