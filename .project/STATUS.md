@@ -2,7 +2,7 @@
 
 Date: 2026-09-30
 
-Phase: Core functional system implemented and verified locally. Decorative animation/visual polish is intentionally deferred. Production Vercel provisioning is the remaining external runtime step.
+Phase: Functional stabilization and production bug-fix pass. Decorative animation/visual polish remains deferred until Admin and visitor runtime behavior is stable.
 
 ## Repository
 
@@ -94,7 +94,33 @@ Vercel production is provisioned and publicly reachable:
 - temporary production smoke users/content/participants were removed after verification
 - the downloaded Firebase service-account JSON was deleted from the local Downloads folder after the Secrets were installed
 
-Functional production phase is complete. No core runtime blocker remains before the visual/animation phase.
+## 2026-09-30 production stabilization pass
+
+Issues reproduced from real browser usage and fixed:
+
+- Admin Activities/Content no longer crashes while venue options are still loading; empty select options now render a safe placeholder instead of reading `options[0][0]`
+- Admin content screens now expose Firebase load/parse errors instead of silently rendering an empty editor
+- Admin content save/delete/QR actions surface rejected API/Firebase operations to the user instead of leaving unhandled promise rejections
+- Admin login now maps Firebase Auth failures to actionable Thai messages
+- Admin login includes a password-reset flow; the success message does not disclose whether an email exists
+- Admin Operations and Staff settings surface async action failures instead of silently failing
+- Admin Media sorting tolerates older records without `createdAt`
+- Pass clipboard fallback no longer throws on browsers without Clipboard API
+- `scripts/api-smoke.ts` now imports the current named Vercel `POST` handlers rather than stale default exports
+
+Verification in this pass:
+
+- `npm run check`: pass
+- `npm run smoke:api`: pass after repairing the stale test harness
+- `npm audit --omit=dev`: 0 vulnerabilities
+- real production browser registration created a participant pass, rendered its QR and showed a 0 starting balance; the temporary participant/pass records were deleted afterward
+- invalid Admin credentials now show `อีเมลหรือรหัสผ่านไม่ถูกต้อง` in the UI instead of an unexplained failure
+- Admin password-reset UI was exercised successfully
+- public visitor routes render in the production browser without runtime blank screens
+
+Authenticated Admin UI route-by-route browser automation is still gated by having a valid Admin login session. Server-side Admin operations and role boundaries are covered by the passing emulator/API smoke suite; after an owner logs in successfully, the remaining Admin pages should still receive one manual click-through before event-day sign-off.
+
+Current empty states such as no published schedule, prizes or FAQ are content state, not runtime failures.
 
 ## Deferred phase
 
