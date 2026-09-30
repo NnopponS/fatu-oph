@@ -11,7 +11,7 @@ export function AdminMediaPage() {
   useEffect(
     () =>
       subscribeRealtime<Record<string, Omit<MediaRecord, "id">> | null>(realtimePaths.public.media, (value) => {
-        setItems(Object.entries(value || {}).map(([id, media]) => ({ id, ...media })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+        setItems(Object.entries(value || {}).map(([id, media]) => ({ id, ...media })).sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))));
       }),
     [],
   );
