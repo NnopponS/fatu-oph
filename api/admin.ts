@@ -74,6 +74,39 @@ const disableSchema = z.object({
   disabled: z.boolean(),
 });
 
+const approveStaffSchema = z.object({
+  action: z.literal("approveStaff"),
+  uid: z.string().min(1),
+  role: z.enum(["admin", "editor", "staff", "viewer"]),
+});
+
+const rejectStaffSchema = z.object({
+  action: z.literal("rejectStaff"),
+  uid: z.string().min(1),
+  reason: z.string().max(200).optional().default(""),
+});
+
+const saveRegistrationConfigSchema = z.object({
+  action: z.literal("saveRegistrationConfig"),
+  academicTracks: z.array(z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+  })).min(1),
+  grades: z.array(z.string().min(1)).min(1),
+  consentText: z.string().min(1),
+});
+
+const saveSiteConfigSchema = z.object({
+  action: z.literal("saveSiteConfig"),
+  heroTitle: z.string().min(1),
+  heroSubtitle: z.string().optional().default(""),
+  heroDescription: z.string().optional().default(""),
+  heroCtaText: z.string().optional().default(""),
+  heroSecondaryCtaText: z.string().optional().default(""),
+  activeAnnouncement: z.string().optional().default(""),
+  theme: z.record(z.unknown()).optional().default({}),
+});
+
 async function appendAudit(entry: Record<string, unknown>) {
   const id = adminDb.ref("operations/audit").push().key;
   if (id) await adminDb.ref(`operations/audit/${id}`).set({ ...entry, createdAt: new Date().toISOString() });
@@ -515,6 +548,99 @@ export async function POST(request: Request) {
         pointTotal: Number(accountSnap.val()?.pointTotal || 0),
         stockRemaining: Number(stockResult.snapshot.val()?.stockRemaining || 0),
       });
+    }
+
+    if (body.action === "staffApplications") {
+      if (actor.role !== "admin") return json({ error: "ไม่มีสิทธิ์จัดการ Staff" }, 403);
+      const snap = await adminDb.ref("operations/staffApplications").get();
+      const raw = snap.val() || {};
+      const applications = Object.entries(raw).map(([uid, val]) => ({
+        uid,
+        ...(val as Record<string, unknown>),
+      })).sort((a, b) => String((b as Record<string, unknown>).appliedAt || "").localeCompare(String((a as Record<string, unknown>).appliedAt || "")));
+      return json({ applications });
+    }
+
+    if (body.action === "approveStaff") {
+      if (actor.role !== "admin") return json({ error: "ไม่มีสิทธิ์จัดการ Staff" }, 403);
+      const input = approveStaffSchema.parse(body);
+      const approvedAt = new Date().toISOString();
+
+      const appSnap = await adminDb.ref(`operations/staffApplications/${input.uid}`).get();
+      const app = appSnap.val() || {};
+
+      await adminDb.ref().update({
+        [`admin/roles/${input.uid}`]: {
+          role: input.role,
+          approvedBy: actor.uid,
+          approvedAt,
+        },
+        [`operations/staffApplications/${input.uid}/status`]: "approved",
+        [`operations/staffApplications/${input.uid}/approvedAt`]: approvedAt,
+        [`operations/staffApplications/${input.uid}/approvedBy`]: actor.uid,
+        [`operations/staffApplications/${input.uid}/role`]: input.role,
+      });
+
+      if (app.username) {
+        await adminDb.ref(`operations/usernames/${app.username}/role`).set(input.role);
+      }
+
+      await adminAuth.setCustomUserClaims(input.uid, { role: input.role });
+      await appendAudit({
+        type: "staff-approval",
+        staffId: actor.uid,
+        targetUid: input.uid,
+        role: input.role,
+      });
+
+      return json({ ok: true });
+    }
+
+    if (body.action === "rejectStaff") {
+      if (actor.role !== "admin") return json({ error: "ไม่มีสิทธิ์จัดการ Staff" }, 403);
+      const input = rejectStaffSchema.parse(body);
+      const rejectedAt = new Date().toISOString();
+
+      await adminDb.ref().update({
+        [`admin/roles/${input.uid}`]: {
+          role: "rejected",
+          rejectedBy: actor.uid,
+          rejectedAt,
+          reason: input.reason,
+        },
+        [`operations/staffApplications/${input.uid}/status`]: "rejected",
+        [`operations/staffApplications/${input.uid}/rejectedAt`]: rejectedAt,
+        [`operations/staffApplications/${input.uid}/rejectedBy`]: actor.uid,
+        [`operations/staffApplications/${input.uid}/rejectionReason`]: input.reason,
+      });
+
+      await adminAuth.setCustomUserClaims(input.uid, { role: "rejected" });
+      await appendAudit({
+        type: "staff-rejection",
+        staffId: actor.uid,
+        targetUid: input.uid,
+        reason: input.reason,
+      });
+
+      return json({ ok: true });
+    }
+
+    if (body.action === "saveRegistrationConfig") {
+      if (actor.role !== "admin" && actor.role !== "editor") return json({ error: "ไม่มีสิทธิ์ตั้งค่าแบบฟอร์ม" }, 403);
+      const input = saveRegistrationConfigSchema.parse(body);
+      const { action: _action, ...configData } = input;
+      await adminDb.ref("public/registrationConfig").set(configData);
+      await appendAudit({ type: "config-registration-save", staffId: actor.uid });
+      return json({ ok: true });
+    }
+
+    if (body.action === "saveSiteConfig") {
+      if (actor.role !== "admin" && actor.role !== "editor") return json({ error: "ไม่มีสิทธิ์ตั้งค่าเว็บไซต์" }, 403);
+      const input = saveSiteConfigSchema.parse(body);
+      const { action: _action, ...siteData } = input;
+      await adminDb.ref("public/site").update(siteData);
+      await appendAudit({ type: "config-site-save", staffId: actor.uid });
+      return json({ ok: true });
     }
 
     if (body.action === "audit") {

@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="phBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#300705" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#450a0a" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#1c0303" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="phWing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="50%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#991b1b" />
+    </linearGradient>
+    <linearGradient id="phGold" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+    <linearGradient id="phPlume" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="30%" stop-color="#f97316" />
+      <stop offset="70%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#7f1d1d" />
+    </linearGradient>
+    <filter id="phGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes phFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-16px) rotate(1deg); }
+    }
+    @keyframes wingFlapL {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-5deg); }
+    }
+    @keyframes wingFlapR {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(5deg); }
+    }
+    @keyframes plumeSway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(4deg); }
+    }
+    .ph-mascot { animation: phFloat 4.4s ease-in-out infinite; transform-origin: 300px 300px; }
+    .ph-wing-l { animation: wingFlapL 2.8s ease-in-out infinite alternate; transform-origin: 220px 280px; }
+    .ph-wing-r { animation: wingFlapR 2.8s ease-in-out infinite alternate; transform-origin: 380px 280px; }
+    .ph-plumes { animation: plumeSway 3.6s ease-in-out infinite alternate; transform-origin: 300px 420px; }
+  </style>
+
+  <!-- Aureole Disc -->
+  <circle cx="300" cy="300" r="260" fill="url(#phBg)" stroke="url(#phGold)" stroke-width="4" opacity="0.9" />
+  <circle cx="300" cy="300" r="248" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="8 6" opacity="0.6" />
+
+  <!-- Solar Radiance / Flames in Background -->
+  <g opacity="0.35" filter="url(#phGlow)">
+    <circle cx="300" cy="280" r="140" fill="#dc2626" />
+    <circle cx="300" cy="280" r="90" fill="#f59e0b" />
+  </g>
+
+  <!-- Phoenix Character Group -->
+  <g class="ph-mascot">
+    <!-- Flowing Celestial Tail Plumes (Long cascading ribbons with eyelets) -->
+    <g class="ph-plumes">
+      <!-- Left Plume -->
+      <path d="M 280,410 C 240,450 170,480 140,540 C 130,560 150,570 170,550 C 210,510 270,460 290,410 Z" 
+            fill="url(#phPlume)" stroke="url(#phGold)" stroke-width="2" />
+      <circle cx="150" cy="545" r="9" fill="url(#phGold)" />
+      <circle cx="150" cy="545" r="4" fill="#7f1d1d" />
+
+      <!-- Center Plume (Longest) -->
+      <path d="M 300,415 C 290,470 300,520 300,580 C 310,590 320,580 320,560 C 320,510 315,465 310,415 Z" 
+            fill="url(#phPlume)" stroke="url(#phGold)" stroke-width="2" />
+      <circle cx="305" cy="565" r="10" fill="url(#phGold)" />
+      <circle cx="305" cy="565" r="5" fill="#7f1d1d" />
+
+      <!-- Right Plume -->
+      <path d="M 320,410 C 360,450 430,480 460,540 C 470,560 450,570 430,550 C 390,510 330,460 310,410 Z" 
+            fill="url(#phPlume)" stroke="url(#phGold)" stroke-width="2" />
+      <circle cx="450" cy="545" r="9" fill="url(#phGold)" />
+      <circle cx="450" cy="545" r="4" fill="#7f1d1d" />
+    </g>
+
+    <!-- Magnificent Spreading Left Wing -->
+    <g class="ph-wing-l">
+      <!-- Primary Feathers -->
+      <path d="M 230,280 C 170,220 90,170 40,180 C 60,220 120,270 190,320 Z" 
+            fill="url(#phWing)" stroke="url(#phGold)" stroke-width="2.5" />
+      <path d="M 210,290 C 150,250 80,220 50,240 C 75,270 130,310 180,340 Z" 
+            fill="#b91c1c" stroke="url(#phGold)" stroke-width="1.8" />
+      <path d="M 200,310 C 150,290 100,280 80,300 C 110,325 150,345 180,360 Z" 
+            fill="#991b1b" stroke="url(#phGold)" stroke-width="1.5" />
+    </g>
+
+    <!-- Magnificent Spreading Right Wing -->
+    <g class="ph-wing-r">
+      <!-- Primary Feathers -->
+      <path d="M 370,280 C 430,220 510,170 560,180 C 540,220 480,270 410,320 Z" 
+            fill="url(#phWing)" stroke="url(#phGold)" stroke-width="2.5" />
+      <path d="M 390,290 C 450,250 520,220 550,240 C 525,270 470,310 420,340 Z" 
+            fill="#b91c1c" stroke="url(#phGold)" stroke-width="1.8" />
+      <path d="M 400,310 C 450,290 500,280 520,300 C 490,325 450,345 420,360 Z" 
+            fill="#991b1b" stroke="url(#phGold)" stroke-width="1.5" />
+    </g>
+
+    <!-- Slender Phoenix Body & Breast -->
+    <path d="M 260,390 C 240,320 260,250 300,240 C 340,250 360,320 340,390 C 325,420 275,420 260,390 Z" 
+          fill="url(#phWing)" stroke="url(#phGold)" stroke-width="2.5" />
+    
+    <!-- Golden Solar Breast Shield -->
+    <path d="M 280,265 C 290,260 310,260 320,265 C 335,300 330,350 300,380 C 270,350 265,300 280,265 Z" 
+          fill="url(#phGold)" stroke="#b45309" stroke-width="1.5" />
+
+    <!-- Phoenix Head & Imperial Crown Crest -->
+    <g transform="translate(300, 190)">
+      <!-- Head Base -->
+      <ellipse cx="0" cy="15" rx="22" ry="26" fill="#dc2626" stroke="url(#phGold)" stroke-width="2" />
+      
+      <!-- Crown Crest Feathers (3 majestic flame feathers) -->
+      <path d="M -8,-5 C -25,-35 -40,-60 -25,-75 C -10,-70 -5,-45 0,-10" fill="url(#phGold)" stroke="#ca8a04" stroke-width="1.5" />
+      <circle cx="-25" cy="-75" r="4" fill="#dc2626" />
+
+      <path d="M 0,-10 C 0,-45 0,-85 10,-95 C 15,-80 10,-50 5,-10" fill="url(#phGold)" stroke="#ca8a04" stroke-width="2" />
+      <circle cx="10" cy="-95" r="5" fill="#f97316" />
+
+      <path d="M 8,-5 C 25,-35 40,-60 25,-75 C 10,-70 5,-45 0,-10" fill="url(#phGold)" stroke="#ca8a04" stroke-width="1.5" />
+      <circle cx="25" cy="-75" r="4" fill="#dc2626" />
+
+      <!-- Sharp Regal Beak -->
+      <polygon points="12,12 38,18 14,24" fill="url(#phGold)" stroke="#ca8a04" stroke-width="1.5" />
+
+      <!-- Ruby & Gold Keen Eyes -->
+      <circle cx="6" cy="12" r="6" fill="#fef08a" stroke="#b45309" stroke-width="1.5" />
+      <circle cx="7" cy="12" r="3" fill="#7f1d1d" />
+      <circle cx="8" cy="10" r="1.5" fill="#ffffff" />
+    </g>
+  </g>
+
+  <!-- Title Ribbon at Bottom -->
+  <g transform="translate(300, 535)">
+    <rect x="-140" y="-22" width="280" height="44" rx="10" fill="#450a0a" stroke="url(#phGold)" stroke-width="2" />
+    <text x="0" y="7" font-family="'Cinzel', 'Noto Serif Thai', serif" font-size="18" font-weight="bold" fill="#fef08a" text-anchor="middle" letter-spacing="2">
+      RED PHOENIX • จูเชวี่ย
+    </text>
+  </g>
+</svg>

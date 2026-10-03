@@ -24,7 +24,7 @@
           ".read": "auth != null && (auth.uid === $uid || root.child('admin/roles').child(auth.uid).child('role').val() === 'admin')",
           ".write": "auth != null && root.child('admin/roles').child(auth.uid).child('role').val() === 'admin'",
           "role": {
-            ".validate": "!newData.exists() || newData.val() === 'admin' || newData.val() === 'editor' || newData.val() === 'staff' || newData.val() === 'viewer'"
+            ".validate": "!newData.exists() || newData.val() === 'admin' || newData.val() === 'editor' || newData.val() === 'staff' || newData.val() === 'staff_pending' || newData.val() === 'viewer' || newData.val() === 'rejected'"
           },
           "$other": {
             ".validate": false

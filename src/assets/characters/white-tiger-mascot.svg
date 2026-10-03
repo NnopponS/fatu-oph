@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="wtBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181b" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#27272a" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#09090b" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="wtFur" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#f4f4f5" />
+      <stop offset="100%" stop-color="#d4d4d8" />
+    </linearGradient>
+    <linearGradient id="wtGold" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <linearGradient id="wtSilver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#cbd5e1" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+    <filter id="wtGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes wtFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes wtEyesGlow {
+      0%, 100% { filter: drop-shadow(0 0 4px #eab308); }
+      50% { filter: drop-shadow(0 0 12px #fef08a); }
+    }
+    @keyframes wtTail {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(8deg); }
+    }
+    .wt-mascot { animation: wtFloat 4.8s ease-in-out infinite; transform-origin: 300px 300px; }
+    .wt-eyes { animation: wtEyesGlow 3s ease-in-out infinite; }
+    .wt-tail { animation: wtTail 3.5s ease-in-out infinite alternate; transform-origin: 430px 420px; }
+  </style>
+
+  <!-- Aureole Disc -->
+  <circle cx="300" cy="300" r="260" fill="url(#wtBg)" stroke="url(#wtGold)" stroke-width="4" opacity="0.9" />
+  <circle cx="300" cy="300" r="248" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="10 6" opacity="0.5" />
+
+  <!-- Mountain Peaks & Silver Mist Silhouette -->
+  <g opacity="0.45">
+    <polygon points="120,470 200,320 280,470" fill="#27272a" />
+    <polygon points="240,480 340,300 440,480" fill="#3f3f46" />
+    <polygon points="380,470 460,350 540,470" fill="#27272a" />
+    <!-- Mist waves -->
+    <path d="M 80,460 Q 200,420 320,460 T 540,450" fill="none" stroke="#e4e4e7" stroke-width="3" opacity="0.4" />
+  </g>
+
+  <!-- White Tiger Character Group -->
+  <g class="wt-mascot">
+    <!-- Tail (Curling high with stripes) -->
+    <g class="wt-tail">
+      <path d="M 430,380 C 470,360 510,320 515,260 C 518,220 495,190 465,195 C 445,198 440,220 455,230 C 475,240 485,270 460,320 C 445,350 420,370 410,380 Z" 
+            fill="url(#wtFur)" stroke="#27272a" stroke-width="2" />
+      <!-- Tail Stripes -->
+      <path d="M 505,290 Q 515,280 500,270" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+      <path d="M 490,250 Q 500,235 480,230" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+      <path d="M 465,205 Q 460,215 450,215" stroke="url(#wtGold)" stroke-width="5" stroke-linecap="round" fill="none" />
+    </g>
+
+    <!-- Powerful Muscular Body -->
+    <path d="M 210,450 C 180,420 180,360 210,320 C 235,285 280,275 340,290 C 400,305 440,350 435,420 C 430,460 380,475 320,470 C 260,465 230,465 210,450 Z" 
+          fill="url(#wtFur)" stroke="#d4d4d8" stroke-width="2" />
+
+    <!-- Tiger Body Stripes (Fierce Onyx & Gold) -->
+    <path d="M 250,330 Q 280,350 270,390" stroke="#18181b" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path d="M 300,320 Q 330,345 325,385" stroke="#18181b" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path d="M 350,325 Q 380,355 370,400" stroke="#18181b" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path d="M 390,345 Q 415,370 405,410" stroke="url(#wtGold)" stroke-width="5" stroke-linecap="round" fill="none" />
+
+    <!-- Front Paws with Golden Claws (Martial Stance) -->
+    <g transform="translate(200, 430)">
+      <path d="M 0,0 L 25,35 L -10,38 L -20,10 Z" fill="url(#wtFur)" stroke="#a1a1aa" stroke-width="1.5" />
+      <polygon points="10,35 15,48 5,42" fill="url(#wtGold)" />
+      <polygon points="22,33 30,46 18,40" fill="url(#wtGold)" />
+      <polygon points="-2,35 -5,48 -8,40" fill="url(#wtGold)" />
+    </g>
+    <g transform="translate(360, 440)">
+      <path d="M 0,0 L 25,35 L -10,38 L -15,10 Z" fill="url(#wtFur)" stroke="#a1a1aa" stroke-width="1.5" />
+      <polygon points="10,35 15,48 5,42" fill="url(#wtGold)" />
+      <polygon points="22,33 30,46 18,40" fill="url(#wtGold)" />
+      <polygon points="-2,35 -5,48 -8,40" fill="url(#wtGold)" />
+    </g>
+
+    <!-- Tiger Noble Head -->
+    <g transform="translate(230, 160)">
+      <!-- Head Shape -->
+      <path d="M 10,60 C 5,10 40,-20 90,-20 C 140,-20 175,10 170,60 C 165,110 135,130 90,130 C 45,130 15,110 10,60 Z" 
+            fill="url(#wtFur)" stroke="#e4e4e7" stroke-width="2" />
+      
+      <!-- Regal Tiger Ears -->
+      <polygon points="25,-5 10,-45 55,-25" fill="#f4f4f5" stroke="#18181b" stroke-width="2" />
+      <polygon points="25,-8 18,-35 45,-22" fill="#71717a" />
+      <polygon points="155,-5 170,-45 125,-25" fill="#f4f4f5" stroke="#18181b" stroke-width="2" />
+      <polygon points="155,-8 162,-35 135,-22" fill="#71717a" />
+
+      <!-- Imperial 'King' (王) Mark on Forehead -->
+      <g stroke="url(#wtGold)" stroke-width="4.5" stroke-linecap="round" fill="none">
+        <line x1="72" y1="-2" x2="108" y2="-2" />
+        <line x1="77" y1="12" x2="103" y2="12" />
+        <line x1="68" y1="26" x2="112" y2="26" />
+        <line x1="90" y1="-2" x2="90" y2="26" />
+      </g>
+
+      <!-- Fierce Head & Cheek Markings -->
+      <path d="M 40,40 Q 20,45 25,65" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+      <path d="M 35,70 Q 15,75 22,95" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+      <path d="M 140,40 Q 160,45 155,65" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+      <path d="M 145,70 Q 165,75 158,95" stroke="#18181b" stroke-width="6" stroke-linecap="round" fill="none" />
+
+      <!-- Piercing Golden Eyes -->
+      <g class="wt-eyes">
+        <polygon points="50,48 72,42 66,56" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+        <ellipse cx="60" cy="48" rx="4" ry="6" fill="#18181b" />
+        <polygon points="130,48 108,42 114,56" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+        <ellipse cx="120" cy="48" rx="4" ry="6" fill="#18181b" />
+      </g>
+
+      <!-- Snout & Whiskers -->
+      <path d="M 70,80 C 70,70 110,70 110,80 C 110,95 90,105 90,105 C 90,105 70,95 70,80 Z" fill="#e4e4e7" />
+      <polygon points="82,82 98,82 90,92" fill="#e11d48" />
+      <!-- Whiskers -->
+      <line x1="65" y1="88" x2="15" y2="82" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+      <line x1="65" y1="94" x2="18" y2="98" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+      <line x1="115" y1="88" x2="165" y2="82" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+      <line x1="115" y1="94" x2="162" y2="98" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Celestial Jade & Gold Armor Collar -->
+    <path d="M 270,270 Q 320,295 370,270 L 380,290 Q 320,320 260,290 Z" fill="url(#wtGold)" stroke="#854d0e" stroke-width="2" />
+    <circle cx="320" cy="300" r="14" fill="#0d9488" stroke="url(#wtGold)" stroke-width="3" filter="url(#wtGlow)" />
+  </g>
+
+  <!-- Title Ribbon at Bottom -->
+  <g transform="translate(300, 535)">
+    <rect x="-140" y="-22" width="280" height="44" rx="10" fill="#18181b" stroke="url(#wtGold)" stroke-width="2" />
+    <text x="0" y="7" font-family="'Cinzel', 'Noto Serif Thai', serif" font-size="18" font-weight="bold" fill="#fef08a" text-anchor="middle" letter-spacing="2">
+      WHITE TIGER • ไป๋หู่
+    </text>
+  </g>
+</svg>

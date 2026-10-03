@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <!-- Top Left Corner -->
+  <path d="M 20 60 L 20 20 L 60 20" stroke="#00f2fe" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 6px #00f2fe)"/>
+  <path d="M 28 40 L 28 28 L 40 28" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+  <!-- Top Right Corner -->
+  <path d="M 240 20 L 280 20 L 280 60" stroke="#00f2fe" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 6px #00f2fe)"/>
+  <path d="M 260 28 L 272 28 L 272 40" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bottom Left Corner -->
+  <path d="M 20 240 L 20 280 L 60 280" stroke="#00f2fe" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 6px #00f2fe)"/>
+  <path d="M 28 260 L 28 272 L 40 272" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bottom Right Corner -->
+  <path d="M 240 280 L 280 280 L 280 240" stroke="#00f2fe" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 6px #00f2fe)"/>
+  <path d="M 260 272 L 272 272 L 272 260" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Subtle Center Dragon Target Reticle -->
+  <circle cx="150" cy="150" r="50" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+  <circle cx="150" cy="150" r="28" stroke="#d4af37" stroke-width="1" opacity="0.4"/>
+  <circle cx="150" cy="150" r="6" fill="#00f2fe" opacity="0.8"/>
+</svg>

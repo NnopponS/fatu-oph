@@ -1,41 +1,36 @@
-import { CalendarDays, Compass, Gift, MapPinned, Ticket } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
-
-const navItems = [
-  { to: "/", label: "หน้าหลัก", icon: Compass, end: true },
-  { to: "/explore", label: "สำรวจ", icon: MapPinned, end: false },
-  { to: "/schedule", label: "ตาราง", icon: CalendarDays, end: false },
-  { to: "/pass", label: "บัตร", icon: Ticket, end: false },
-  { to: "/prizes", label: "รางวัล", icon: Gift, end: false },
-];
+import React from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { TopHeader } from "@/components/TopHeader";
+import { BottomNavBar } from "@/components/BottomNavBar";
+import { OpeningExperience } from "@/components/OpeningExperience";
+import { PageTransition } from "@/components/PageTransition";
+import { CelestialDust } from "@/components/CelestialDust";
 
 export function AppShell() {
+  const location = useLocation();
+
+  // Hide chrome for immersive scanner and auth pages if routed under shell
+  const isScanPage = location.pathname === "/scan";
+
   return (
-    <div className="app-shell">
-      <header className="site-header">
-        <NavLink to="/" className="brand" aria-label="FATU Open House 2026">
-          <span className="brand-mark" aria-hidden="true">FATU</span>
-          <span>
-            <strong>OPEN HOUSE 2026</strong>
-            <small>Faculty of Fine and Applied Arts</small>
-          </span>
-        </NavLink>
-        <div className="header-links">
-          <Link to="/faq">ข้อมูล</Link>
-          <Link to="/assistant">ผู้ช่วย</Link>
-        </div>
-      </header>
-
-      <main className="main-content"><Outlet /></main>
-
-      <nav className="bottom-nav" aria-label="เมนูหลัก">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
-          <NavLink className={({ isActive }) => "nav-item" + (isActive ? " nav-item-active" : "")} end={end} key={to} to={to}>
-            <Icon size={20} strokeWidth={1.8} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
-      </nav>
+    <div className="mobile-viewport">
+      <CelestialDust count={20} />
+      <OpeningExperience />
+      {!isScanPage && <TopHeader />}
+      <main
+        style={{
+          flex: 1,
+          paddingBottom: isScanPage ? 0 : "calc(var(--nav-bottom-height, 68px) + 16px)",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
+      </main>
+      {!isScanPage && <BottomNavBar />}
     </div>
   );
 }

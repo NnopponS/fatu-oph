@@ -88,13 +88,30 @@ Mock pass for visitor-side history review: `FATU-MOCK-PASS-2026-20-DEMO-ONLY`.
 
 The downloaded Firebase Admin JSON has been deleted from the local Downloads folder. If the Vercel Secrets ever need to be replaced, generate a new service-account key rather than reusing the deleted file.
 
-## Next phase
+## Motion & Animation System (Anime.js v4 & Three.js 3D WebGL)
 
-Do not add decorative animation now. Next phase is visual/media polish:
-- reference-driven design lock
-- real venue photos
-- generated art/Google Flow
-- motion/reduced-motion
-- mobile visual QA
+The motion architecture combines **Anime.js v4** (`animejs@4.5.0`) for UI layout & DOM animations with **Three.js** (`three@0.182.0`) for ethereal, mobile-optimized 3D Chinese Mythology WebGL visuals:
+- Central Utility: [`src/lib/anime.ts`](file:///D:/Project/fatu-openhouse/src/lib/anime.ts) providing `useAnimeScope`, `MOTION_TOKENS`, `safeAnimate`, and `prefersReducedMotion()`.
+- 3D Mythic Realm Spatial Scene: [`src/components/MythicRealmScene3D.tsx`](file:///D:/Project/fatu-openhouse/src/components/MythicRealmScene3D.tsx) procedurally rendering the 4 cardinal sacred realms (North: Theatre/Dragon, West: Faculty/Tiger, South: Weaving/Fox, East: SC3/Phoenix), central Daotai altar, interactive 3D mystery chest, and dynamic camera swooping.
+- 3D Celestial Gate Subsystem: [`src/components/CelestialGate3D.tsx`](file:///D:/Project/fatu-openhouse/src/components/CelestialGate3D.tsx) rendering procedural celestial astrolabe rings (浑天仪), Dragon Pearl core, Bagua notches, and swirling Qi vortex stardust particles with real-time touch/pointer drag interaction.
+- Roleplay Opening Story Experience: [`src/components/OpeningExperience.tsx`](file:///D:/Project/fatu-openhouse/src/components/OpeningExperience.tsx) features a gamified 4-act prologue where visitors adopt an apprentice martial artist persona, choose their affinity realm with live 3D camera targeting, receive an exciting briefing on event rules with a 3D treasure box, and inscribe their *"ใบเบิกทางจอมยุทธ์"* with a cinnabar seal stamp.
+- Home Hero Section: [`src/pages/HomePage.tsx`](file:///D:/Project/fatu-openhouse/src/pages/HomePage.tsx) features interactive 3D Celestial Gate with a toggle button between 3D WebGL and 2D Dragon Art, plus a personalized affinity realm badge in the hero banner.
+- Pass Identity Page: [`src/pages/PassPage.tsx`](file:///D:/Project/fatu-openhouse/src/pages/PassPage.tsx) showcases the 3D Dragon Soul Pearl rank card and 3D preview gate.
+- About Faculty Page: [`src/pages/AboutPage.tsx`](file:///D:/Project/fatu-openhouse/src/pages/AboutPage.tsx) showcases the 3D Celestial Astrolabe centerpiece.
+- Route Page Transition: [`src/components/PageTransition.tsx`](file:///D:/Project/fatu-openhouse/src/components/PageTransition.tsx) integrated in [`AppShell.tsx`](file:///D:/Project/fatu-openhouse/src/components/AppShell.tsx) with automatic scroll reset and card staggering (`out(3)`).
+- Upgraded Loading Screen: [`src/components/ThemedLoading.tsx`](file:///D:/Project/fatu-openhouse/src/components/ThemedLoading.tsx) with rotating dragon seal, breathing scale, golden halo ring, and staggered Taoist pearls.
+- Mythological Animated Components: [`src/components/AnimatedMythology.tsx`](file:///D:/Project/fatu-openhouse/src/components/AnimatedMythology.tsx) with `<AnimatedSealStamp />` and `<FloatingMythologyAura />`.
+- Performance & Mobile Safeguards: 0 external 3D asset downloads, pixel ratio capped at 2, automatic render pause offscreen via `IntersectionObserver`, full memory disposal on unmount, and graceful 2D fallback for reduced motion / non-WebGL environments.
+- Full Reference Guide: See [`.project/MOTION_GUIDE.md`](file:///D:/Project/fatu-openhouse/.project/MOTION_GUIDE.md) for full API patterns, token tables, and instructions.
 
-When reusing 2025 code, take only the smallest proven pattern from references/legacy and rewrite it for the 2026 contracts.
+## Verification commands
+
+Run:
+- `npm run check` (Vite build + API typecheck + ESLint: 0 errors, 0 warnings)
+- `npm run smoke:api`
+- `npm run preview` (Local production preview at port 4173)
+- `node scripts/test-threejs-animation.mjs` (Automated browser screenshot & console error audit)
+
+When continuing work, follow `.project/MOTION_GUIDE.md` for any new motion features and ensure `npm run check` maintains 0 errors and 0 warnings.
+
+

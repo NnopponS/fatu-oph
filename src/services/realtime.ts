@@ -21,6 +21,7 @@ export const realtimePaths = {
     assistantKnowledge: "public/assistantKnowledge",
     media: "public/media",
     settings: "public/settings",
+    registrationConfig: "public/registrationConfig",
   },
   operations: {
     participants: "operations/participants",

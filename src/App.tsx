@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ComponentType } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
+import { ThemedLoading } from "@/components/ThemedLoading";
 import { ExplorePage } from "@/pages/ExplorePage";
 import { HomePage } from "@/pages/HomePage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -14,6 +15,7 @@ function lazyNamed<P = Record<string, never>>(
   }));
 }
 
+// User-facing pages
 const AboutPage = lazyNamed(() => import("@/pages/AboutPage"), "AboutPage");
 const ActivityPage = lazyNamed(() => import("@/pages/ActivityPage"), "ActivityPage");
 const AssistantPage = lazyNamed(() => import("@/pages/AssistantPage"), "AssistantPage");
@@ -24,7 +26,22 @@ const PassPage = lazyNamed(() => import("@/pages/PassPage"), "PassPage");
 const PrizesPage = lazyNamed(() => import("@/pages/PrizesPage"), "PrizesPage");
 const SchedulePage = lazyNamed(() => import("@/pages/SchedulePage"), "SchedulePage");
 const VenuePage = lazyNamed(() => import("@/pages/VenuePage"), "VenuePage");
+const ScanPage = lazyNamed(() => import("@/pages/ScanPage"), "ScanPage");
+const LuckyDrawPage = lazyNamed(() => import("@/pages/LuckyDrawPage"), "LuckyDrawPage");
+const SurveyPage = lazyNamed(() => import("@/pages/SurveyPage"), "SurveyPage");
 
+// Auth pages
+const LoginPage = lazyNamed(() => import("@/pages/LoginPage"), "LoginPage");
+const RegisterPage = lazyNamed(() => import("@/pages/RegisterPage"), "RegisterPage");
+const ForgotPasswordPage = lazyNamed(() => import("@/pages/ForgotPasswordPage"), "ForgotPasswordPage");
+
+// Staff pages
+const StaffLoginPage = lazyNamed(() => import("@/pages/StaffLoginPage"), "StaffLoginPage");
+const StaffRegisterPage = lazyNamed(() => import("@/pages/StaffRegisterPage"), "StaffRegisterPage");
+const StaffPendingPage = lazyNamed(() => import("@/pages/StaffPendingPage"), "StaffPendingPage");
+const StaffDashboardPage = lazyNamed(() => import("@/pages/StaffDashboardPage"), "StaffDashboardPage");
+
+// Admin pages
 const AdminLoginPage = lazyNamed(() => import("@/pages/AdminLoginPage"), "AdminLoginPage");
 const AdminPageModule = () => import("@/pages/AdminPage");
 const AdminLayout = lazyNamed(AdminPageModule, "AdminLayout");
@@ -37,14 +54,11 @@ const AdminMediaPage = lazyNamed(() => import("@/pages/AdminMediaPage"), "AdminM
 const AdminAuditPage = lazyNamed(() => import("@/pages/AdminAuditPage"), "AdminAuditPage");
 const AdminSettingsPage = lazyNamed(() => import("@/pages/AdminSettingsPage"), "AdminSettingsPage");
 
-function Loading() {
-  return <div className="route-loading">กำลังโหลด...</div>;
-}
-
 export default function App() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<ThemedLoading fullscreen message="กำลังเปิดตำนานแดนมังกร..." />}>
       <Routes>
+        {/* Main User Experience under AppShell */}
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
           <Route path="explore" element={<ExplorePage />} />
@@ -53,13 +67,30 @@ export default function App() {
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="map" element={<MapPage />} />
           <Route path="prizes" element={<PrizesPage />} />
+          <Route path="rewards" element={<PrizesPage />} />
+          <Route path="lucky-draw" element={<LuckyDrawPage />} />
+          <Route path="survey" element={<SurveyPage />} />
           <Route path="pass" element={<PassPage />} />
+          <Route path="profile" element={<PassPage />} />
+          <Route path="scan" element={<ScanPage />} />
           <Route path="checkin" element={<CheckinPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="assistant" element={<AssistantPage />} />
           <Route path="about" element={<AboutPage />} />
         </Route>
 
+        {/* Dedicated Standalone Auth Flows */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+
+        {/* Staff Portal Flows */}
+        <Route path="staff/login" element={<StaffLoginPage />} />
+        <Route path="staff/register" element={<StaffRegisterPage />} />
+        <Route path="staff/pending" element={<StaffPendingPage />} />
+        <Route path="staff/dashboard" element={<StaffDashboardPage />} />
+
+        {/* Admin CMS */}
         <Route path="admin/login" element={<AdminLoginPage />} />
         <Route path="admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
@@ -75,6 +106,7 @@ export default function App() {
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
 
+        {/* 404 & Redirects */}
         <Route path="404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>

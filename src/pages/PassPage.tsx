@@ -1,203 +1,489 @@
-import { useEffect, useState, type FormEvent } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import QRCode from "qrcode";
-import { useSite } from "@/data/content";
-import { clearPass, loadPass, savePass, type SavedPass } from "@/lib/pass";
-import { loadParticipant, registerParticipant, type ParticipantView } from "@/services/api";
+import {
+  User,
+  School,
+  GraduationCap,
+  Sparkles,
+  QrCode,
+  CheckCircle2,
+  Calendar,
+  Clock,
+  ChevronRight,
+  LogOut,
+  Award,
+  Shield,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVenues } from "@/data/content";
+import { AnimatedSealStamp } from "@/components/AnimatedMythology";
+import { CelestialGate3D } from "@/components/CelestialGate3D";
+
+const REALM_STAMPS: Record<
+  string,
+  {
+    name: string;
+    sealTitle: string;
+    venueName: string;
+    image: string;
+    themeColor: string;
+  }
+> = {
+  "azure-dragon": {
+    name: "มังกรฟ้า",
+    sealTitle: "ตรามังกรฟ้า",
+    venueName: "โรงละคร",
+    image: "/src/assets/mythology/azure-dragon.svg",
+    themeColor: "#1b8a9e",
+  },
+  "white-tiger": {
+    name: "พยัคฆ์ขาว",
+    sealTitle: "ตราพยัคฆ์ขาว",
+    venueName: "ตึกคณะ",
+    image: "/src/assets/mythology/white-tiger.svg",
+    themeColor: "#cda34f",
+  },
+  "nine-tailed-fox": {
+    name: "จิ้งจอก 9 หาง",
+    sealTitle: "ตราจิ้งจอก 9 หาง",
+    venueName: "โรงทอ",
+    image: "/src/assets/mythology/nine-tailed-fox.svg",
+    themeColor: "#ba55d3",
+  },
+  "red-phoenix": {
+    name: "หงส์แดง",
+    sealTitle: "ตราหงส์แดง",
+    venueName: "ตึก SC3",
+    image: "/src/assets/mythology/red-phoenix.svg",
+    themeColor: "#d93838",
+  },
+};
 
 export function PassPage() {
-  const site = useSite();
-  const [pass, setPass] = useState<SavedPass | null>(() => loadPass());
-  const [profile, setProfile] = useState<ParticipantView | null>(null);
-  const [qrUrl, setQrUrl] = useState("");
-  const [restoreCode, setRestoreCode] = useState("");
-  const [loading, setLoading] = useState(Boolean(pass));
-  const [error, setError] = useState<string | null>(null);
+  const { firebaseUser, profile, logout } = useAuth();
+  const venues = useVenues();
+  const [passportQr, setPassportQr] = useState<string>("");
 
+  const isParticipantLoggedIn = Boolean(firebaseUser && profile?.username);
+
+  // Generate Passport QR Data URL
   useEffect(() => {
-    if (!pass) return;
-    setLoading(true);
-    void loadParticipant(pass.token)
-      .then(setProfile)
-      .catch((err) => setError(err instanceof Error ? err.message : "โหลดบัตรไม่สำเร็จ"))
-      .finally(() => setLoading(false));
-    void QRCode.toDataURL(`FATU26PASS:${pass.token}`, { width: 360, margin: 2 }).then(setQrUrl);
-  }, [pass]);
-
-  async function register(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    setError(null);
-    setLoading(true);
-    try {
-      const result = await registerParticipant({
-        displayName: String(data.get("displayName") || ""),
-        school: String(data.get("school") || ""),
-        phone: String(data.get("phone") || ""),
-        email: String(data.get("email") || ""),
-      });
-      const saved = { participantId: result.participantId, token: result.passToken, displayName: result.displayName };
-      savePass(saved);
-      setPass(saved);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "ลงทะเบียนไม่สำเร็จ");
-    } finally {
-      setLoading(false);
+    if (firebaseUser?.uid) {
+      const payload = `FATU26PASS:${firebaseUser.uid}`;
+      void QRCode.toDataURL(payload, {
+        width: 280,
+        margin: 1,
+        color: {
+          dark: "#3b0606",
+          light: "#fcfaf4",
+        },
+      }).then(setPassportQr);
     }
-  }
+  }, [firebaseUser]);
 
-  async function restore() {
-    const token = restoreCode.trim().replace(/^FATU26PASS:/, "");
-    if (token.length < 20) {
-      setError("รหัสกู้คืนไม่ถูกต้อง");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await loadParticipant(token);
-      const saved = {
-        participantId: data.participant.id,
-        token,
-        displayName: data.participant.displayName,
-      };
-      savePass(saved);
-      setPass(saved);
-      setProfile(data);
-      setRestoreCode("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "กู้คืนบัตรไม่สำเร็จ");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (!pass) {
-    if (!site.loading && site.item?.registrationOpen === false) {
-      return (
-        <section className="page-section">
-          <span className="section-kicker">PASS</span>
-          <h1 className="page-title">ยังไม่เปิดลงทะเบียน</h1>
-          <p className="page-lead">ทีมงานยังไม่ได้เปิดระบบสร้างบัตรผู้เข้าร่วม กรุณาตรวจสอบอีกครั้งภายหลัง</p>
-        </section>
-      );
-    }
-
+  if (!isParticipantLoggedIn) {
     return (
-      <section className="page-section">
-        <span className="section-kicker">PASS</span>
-        <h1 className="page-title">ลงทะเบียนผู้เข้าร่วม</h1>
-        <p className="page-lead">กรอกข้อมูลพื้นฐานเพื่อสร้างบัตร Open House สำหรับสะสมแต้มและรับรางวัล</p>
-        <form className="visitor-form" onSubmit={register}>
-          <label><span>ชื่อ-นามสกุล *</span><input name="displayName" required minLength={2} /></label>
-          <label><span>โรงเรียน / สถาบัน</span><input name="school" /></label>
-          <label><span>เบอร์โทรศัพท์</span><input name="phone" inputMode="tel" /></label>
-          <label><span>อีเมล</span><input name="email" type="email" /></label>
-          {error ? <p className="form-error">{error}</p> : null}
-          <button className="primary-button button-reset" disabled={loading} type="submit">
-            {loading ? "กำลังสร้างบัตร..." : "สร้างบัตร Open House"}
-          </button>
-        </form>
+      <div style={{ padding: "40px 16px", textAlign: "center" }}>
+        <div
+          className="ivory-card"
+          style={{ padding: "36px 20px", border: "2px solid var(--color-gold-500)" }}
+        >
+          <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 8px" }}>
+            <CelestialGate3D size={120} mode="pearl" interactive={true} showParticles={true} />
+          </div>
+          <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-950)", margin: 0 }}>
+            ใบเบิกทางจอมยุทธ์
+          </h1>
+          <p style={{ fontSize: 13, color: "var(--text-dark-secondary)", margin: "8px 0 24px", lineHeight: 1.5 }}>
+            กรุณาเข้าสู่ระบบด้วยชื่อผู้ใช้ของคุณ หรือลงทะเบียนใหม่เพื่อเปิดใช้งานใบเบิกทางสะสมแต้มและตราประทับศักดิ์สิทธิ์
+          </p>
 
-        <div className="prose-card">
-          <h2>มีบัตรจากอุปกรณ์เดิมแล้ว?</h2>
-          <p>วางรหัสกู้คืนของบัตรเพื่อใช้งานต่อบนอุปกรณ์นี้</p>
-          <div className="manual-code">
-            <label>
-              <span>รหัสกู้คืน</span>
-              <input
-                value={restoreCode}
-                onChange={(event) => setRestoreCode(event.target.value)}
-                placeholder="FATU26PASS:..."
-              />
-            </label>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={loading || !restoreCode.trim()}
-              onClick={() => void restore()}
-            >
-              กู้คืนบัตร
-            </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 280, margin: "0 auto" }}>
+            <Link to="/login" className="button-imperial-red" style={{ textDecoration: "none", justifyContent: "center" }}>
+              เข้าสู่ระบบ
+            </Link>
+            <Link to="/register" className="button-gold-outline" style={{ textDecoration: "none", justifyContent: "center" }}>
+              ลงทะเบียนใหม่
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
     );
   }
 
+  // Calculate progress & stamps
+  const visits = profile?.visits || {};
+  const visitedVenueIds = new Set(Object.keys(visits));
+  const totalVenuesCount = venues.items.length || 4;
+  const visitedVenuesCount = venues.items.filter((v) => visitedVenueIds.has(v.id)).length;
+  const completionPercent = Math.round((visitedVenuesCount / Math.max(totalVenuesCount, 1)) * 100);
+
+  const transactions = profile?.transactions || [];
+
   return (
-    <section className="page-section">
-      <span className="section-kicker">MY PASS</span>
-      <h1 className="page-title">{profile?.participant.displayName || pass.displayName}</h1>
-      <p className="page-lead">แสดง QR นี้ให้เจ้าหน้าที่เมื่อจำเป็น และใช้เมนูเช็กอินเพื่อสแกน QR ของกิจกรรม</p>
-
-      <div className="pass-card">
-        {qrUrl ? (
-          <div>
-            <img src={qrUrl} alt="QR บัตรผู้เข้าร่วม FATU Open House" />
-            <a className="text-link" href={qrUrl} download="fatu-open-house-pass.png">บันทึก QR ลงเครื่อง</a>
-            <button
-              className="text-button"
-              type="button"
-              onClick={() => {
-                if (!navigator.clipboard) {
-                  setError("เบราว์เซอร์นี้ไม่รองรับการคัดลอกอัตโนมัติ กรุณาบันทึก QR แทน");
-                  return;
-                }
-                void navigator.clipboard
-                  .writeText(`FATU26PASS:${pass.token}`)
-                  .then(() => window.alert("คัดลอกรหัสกู้คืนแล้ว เก็บรหัสนี้เป็นความลับ"))
-                  .catch(() => setError("คัดลอกอัตโนมัติไม่ได้ กรุณาบันทึก QR แทน"));
-              }}
-            >
-              คัดลอกรหัสกู้คืน
-            </button>
-          </div>
-        ) : null}
-        <div>
-          <span>คะแนนปัจจุบัน</span>
-          <strong className="score-number">{profile?.pointTotal ?? 0}</strong>
-          <small>คะแนน</small>
-        </div>
-      </div>
-
-      {loading ? <p>กำลังอัปเดตข้อมูล...</p> : null}
-      {error ? <p className="form-error">{error}</p> : null}
-
-      {profile?.claims.length ? (
-        <div className="prose-card">
-          <h2>รางวัลที่แลกแล้ว</h2>
-          {profile.claims.map((claim) => (
-            <div className="history-row" key={claim.id}>
-              <span>{claim.prizeName}</span>
-              <strong>-{claim.pointsSpent}</strong>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="prose-card">
-        <h2>ประวัติคะแนนล่าสุด</h2>
-        {profile?.transactions.length ? profile.transactions.slice(0, 8).map((tx) => (
-          <div className="history-row" key={tx.id}>
-            <span>{tx.reason}</span>
-            <strong className={tx.points >= 0 ? "positive" : "negative"}>{tx.points > 0 ? "+" : ""}{tx.points}</strong>
-          </div>
-        )) : <p>ยังไม่มีรายการคะแนน</p>}
-      </div>
-
-      <button
-        className="text-button danger-text"
-        type="button"
-        onClick={() => {
-          clearPass();
-          setPass(null);
-          setProfile(null);
-          setQrUrl("");
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "0 16px 30px" }}>
+      {/* ========================================================================= */}
+      {/* 1. PARTICIPANT PASS IDENTITY CARD (Reference 6)                           */}
+      {/* ========================================================================= */}
+      <div
+        className="ivory-card"
+        style={{
+          marginTop: 8,
+          padding: "24px 20px",
+          position: "relative",
+          border: "2px solid var(--color-gold-500)",
+          boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
         }}
       >
-        ลบบัตรออกจากอุปกรณ์นี้
-      </button>
-    </section>
+        {/* Background watermark */}
+        <div style={{ position: "absolute", top: -10, right: -10, opacity: 0.05, pointerEvents: "none" }}>
+          <img src="/src/assets/decorations/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
+        </div>
+
+        {/* Top Pass Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid rgba(205, 163, 79, 0.4)",
+            paddingBottom: 12,
+            marginBottom: 16,
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--color-gold-700)", letterSpacing: "0.1em" }}>
+              OFFICIAL EXPEDITION PASS · 通关文牒
+            </span>
+            <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-red-950)", marginTop: 2 }}>
+              ใบเบิกทางจอมยุทธ์ 2026
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "4px 10px",
+              background: "rgba(125, 18, 18, 0.1)",
+              border: "1px solid var(--color-red-700)",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: 800,
+              color: "var(--color-red-800)",
+            }}
+          >
+            NO. {profile?.username?.toUpperCase() || "PASS"}
+          </div>
+        </div>
+
+        {/* Identity Details */}
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-950)", margin: 0 }}>
+              {profile?.displayName || profile?.username}
+            </h2>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-gold-700)", marginTop: 2 }}>
+              @{profile?.username}
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "var(--text-dark-secondary)" }}>
+              {profile?.school && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <School style={{ width: 14, height: 14, color: "var(--color-gold-600)" }} />
+                  <span>{profile.school}</span>
+                </div>
+              )}
+              {profile?.academicTrack && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <GraduationCap style={{ width: 14, height: 14, color: "var(--color-gold-600)" }} />
+                  <span>{profile.academicTrack} {profile.grade ? `(${profile.grade})` : ""}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Personal QR Code */}
+          {passportQr && (
+            <div style={{ textAlign: "center", flexShrink: 0 }}>
+              <div
+                style={{
+                  padding: 4,
+                  background: "#ffffff",
+                  borderRadius: 10,
+                  border: "1px solid rgba(205, 163, 79, 0.5)",
+                  display: "inline-block",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+              >
+                <img src={passportQr} alt="Expedition Pass QR" style={{ width: 84, height: 84, display: "block" }} />
+              </div>
+              <div style={{ fontSize: 9, color: "var(--text-dark-muted)", marginTop: 4, fontWeight: 600 }}>
+                รหัสประจำตัว
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Points & Stats Footer */}
+        <div
+          style={{
+            marginTop: 16,
+            paddingTop: 12,
+            borderTop: "1px dashed rgba(205, 163, 79, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 11, color: "var(--text-dark-muted)" }}>แต้มสะสมทั้งหมด</span>
+            <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-red-900)" }}>
+              {profile?.pointTotal ?? 0}{" "}
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-gold-700)" }}>แต้ม</span>
+            </div>
+          </div>
+
+          <div style={{ textAlign: "right" }}>
+            <span style={{ fontSize: 11, color: "var(--text-dark-muted)" }}>พิชิตแดนศักดิ์สิทธิ์</span>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-jade-900)" }}>
+              {visitedVenuesCount} / {totalVenuesCount}{" "}
+              <span style={{ fontSize: 12, fontWeight: 600 }}>แดน</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 1.5 3D CELESTIAL DRAGON PEARL RANK CARD                                  */}
+      {/* ========================================================================= */}
+      <div
+        className="ivory-card"
+        style={{
+          padding: "14px 18px",
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          border: "1.5px solid var(--color-gold-500)",
+          boxShadow: "0 4px 16px rgba(179, 134, 40, 0.15)",
+        }}
+      >
+        <div style={{ width: 84, height: 84, flexShrink: 0, display: "grid", placeItems: "center" }}>
+          <CelestialGate3D size={84} mode="pearl" interactive={true} showParticles={true} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Sparkles style={{ width: 12, height: 12, color: "var(--color-gold-600)" }} />
+            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--color-gold-700)", letterSpacing: "0.08em" }}>
+              มุกมังกรสวรรค์ประจำตัว · CELESTIAL PEARL
+            </span>
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-red-950)", marginTop: 2 }}>
+            {visitedVenuesCount >= 4
+              ? "ปรมาจารย์สี่แดนศักดิ์สิทธิ์"
+              : visitedVenuesCount >= 2
+              ? "จอมยุทธ์ผู้เกรียงไกร"
+              : "จอมยุทธ์ผู้เริ่มต้น"}
+          </div>
+          <p style={{ fontSize: 11, color: "var(--text-dark-secondary)", margin: "2px 0 0", lineHeight: 1.4 }}>
+            หมุน 3D มุกมังกรเพื่อเสริมพลังปราณ สะสมให้ครบ 4 แดนเพื่อปลดล็อกตราสวรรค์ขั้นสูงสุด
+          </p>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. 4 MYTHOLOGICAL REALM STAMPS MATRIX (Reference 6)                       */}
+      {/* ========================================================================= */}
+      <div className="card-mythology" style={{ padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div>
+            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--color-gold-400)", letterSpacing: "0.08em" }}>
+              SACRED REALM SEALS
+            </span>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--text-light-primary)", margin: "2px 0 0" }}>
+              4 ตราประทับเทพศักดิ์สิทธิ์
+            </h3>
+          </div>
+
+          <div
+            style={{
+              padding: "4px 10px",
+              borderRadius: 14,
+              background: "rgba(205, 163, 79, 0.15)",
+              border: "1px solid var(--color-gold-500)",
+              color: "var(--color-gold-300)",
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            {completionPercent}% สำเร็จ
+          </div>
+        </div>
+
+        {/* 2x2 Stamp Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {venues.items.map((venue) => {
+            const isVisited = visitedVenueIds.has(venue.id);
+            const stampMeta = REALM_STAMPS[venue.visualIdentityKey] || {
+              name: venue.name,
+              sealTitle: venue.visualLabel || "ตราศักดิ์สิทธิ์",
+              venueName: venue.name,
+              image: "/src/assets/mythology/azure-dragon.svg",
+              themeColor: "#cda34f",
+            };
+
+            const visitRecord = visits[venue.id];
+
+            return (
+              <div
+                key={venue.id}
+                style={{
+                  background: isVisited
+                    ? "radial-gradient(circle, rgba(125, 18, 18, 0.06) 0%, #ffffff 100%)"
+                    : "#ffffff",
+                  border: isVisited ? "1.5px solid var(--color-gold-500)" : "1.5px dashed rgba(205, 163, 79, 0.35)",
+                  borderRadius: 16,
+                  padding: "16px 12px",
+                  textAlign: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                  boxShadow: isVisited ? "0 4px 12px rgba(179, 134, 40, 0.15)" : "0 2px 6px rgba(0,0,0,0.03)",
+                }}
+              >
+                {/* Animated Imperial Seal Stamp (Anime.js v4) */}
+                <AnimatedSealStamp
+                  image={stampMeta.image}
+                  sealTitle={stampMeta.sealTitle}
+                  isVisited={isVisited}
+                  size={68}
+                  triggerKey={venue.id}
+                />
+
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: isVisited ? "var(--color-red-900)" : "var(--text-dark-primary)",
+                  }}
+                >
+                  {stampMeta.sealTitle}
+                </div>
+
+                <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", marginTop: 2 }}>
+                  {venue.name}
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                  {isVisited ? (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#166534",
+                        backgroundColor: "#dcfce7",
+                        padding: "2px 8px",
+                        borderRadius: 10,
+                        border: "1px solid #bbf7d0",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 3,
+                      }}
+                    >
+                      <CheckCircle2 style={{ width: 10, height: 10 }} />
+                      ประทับตราแล้ว
+                    </span>
+                  ) : (
+                    <Link
+                      to={`/venue/${venue.id}`}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "var(--color-gold-600)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      ไปสำรวจแดนนี้ &gt;
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. EXPEDITION HISTORY & TIMELINE                                          */}
+      {/* ========================================================================= */}
+      <div className="card-mythology" style={{ padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <Clock style={{ width: 16, height: 16, color: "var(--color-gold-600)" }} />
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark-primary)", margin: 0 }}>
+            บันทึกการเดินทาง
+          </h3>
+        </div>
+
+        {transactions.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {transactions.map((tx) => (
+              <div
+                key={tx.id}
+                style={{
+                  background: "#fbf8f1",
+                  border: "1px solid var(--border-gold-subtle)",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-dark-primary)" }}>
+                    {tx.activityTitle || "ภารกิจแดนมังกร"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", marginTop: 2 }}>
+                    {tx.venueName || "คณะศิลปกรรมศาสตร์"} · {tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : ""}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: tx.points > 0 ? "var(--color-gold-600)" : "#b91c1c",
+                  }}
+                >
+                  {tx.points > 0 ? `+${tx.points}` : tx.points} แต้ม
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", padding: "20px", color: "var(--text-dark-secondary)", fontSize: 13 }}>
+            ยังไม่มีประวัติการเช็กอิน ออกสำรวจแดนแรกและสแกน QR เพื่อสะสมแต้ม!
+          </div>
+        )}
+      </div>
+
+      {/* Account Logout Action */}
+      <div style={{ textAlign: "center", marginTop: 8 }}>
+        <button
+          onClick={logout}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--text-dark-muted)",
+            fontSize: 13,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <LogOut style={{ width: 14, height: 14 }} />
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
   );
 }

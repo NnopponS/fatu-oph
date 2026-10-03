@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="foxBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a0814" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#3b071a" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#19040c" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="foxFur" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2" />
+      <stop offset="45%" stop-color="#fda4af" />
+      <stop offset="100%" stop-color="#e11d48" />
+    </linearGradient>
+    <linearGradient id="foxGold" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="foxFire" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#e11d48" />
+      <stop offset="50%" stop-color="#fb7185" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+    <radialGradient id="foxOrb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="40%" stop-color="#f43f5e" stop-opacity="0.9" />
+      <stop offset="80%" stop-color="#881337" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#4c0519" stop-opacity="0" />
+    </radialGradient>
+    <filter id="foxGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes foxFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-13px) rotate(-0.5deg); }
+    }
+    @keyframes tailFan1 { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg); } }
+    @keyframes tailFan2 { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-5deg); } }
+    @keyframes fireFloat { 0%, 100% { transform: scale(1) translateY(0px); opacity: 0.85; } 50% { transform: scale(1.15) translateY(-8px); opacity: 1; } }
+    .fox-mascot { animation: foxFloat 4.6s ease-in-out infinite; transform-origin: 300px 300px; }
+    .tail-left { animation: tailFan1 3.8s ease-in-out infinite alternate; transform-origin: 300px 380px; }
+    .tail-right { animation: tailFan2 4.2s ease-in-out infinite alternate; transform-origin: 300px 380px; }
+    .fox-fire { animation: fireFloat 2.4s ease-in-out infinite alternate; }
+  </style>
+
+  <!-- Aureole Disc -->
+  <circle cx="300" cy="300" r="260" fill="url(#foxBg)" stroke="url(#foxGold)" stroke-width="4" opacity="0.9" />
+  <circle cx="300" cy="300" r="248" fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.6" />
+
+  <!-- Mystical Fox Fire Spirit Orbs floating in background -->
+  <g class="fox-fire" filter="url(#foxGlow)">
+    <circle cx="130" cy="180" r="22" fill="url(#foxOrb)" />
+    <circle cx="480" cy="190" r="26" fill="url(#foxOrb)" />
+    <circle cx="160" cy="420" r="18" fill="url(#foxOrb)" />
+    <circle cx="460" cy="400" r="20" fill="url(#foxOrb)" />
+  </g>
+
+  <!-- Fox Mascot Group -->
+  <g class="fox-mascot">
+    <!-- The Nine Luxurious Radiant Tails (Radiating fan) -->
+    <!-- Left Tails -->
+    <g class="tail-left">
+      <!-- Tail 1 -->
+      <path d="M 300,380 C 230,370 130,340 90,260 C 70,220 90,180 120,190 C 160,205 210,280 270,350 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="90,260 70,220 115,200" fill="url(#foxGold)" />
+      <!-- Tail 2 -->
+      <path d="M 300,380 C 220,350 140,280 120,180 C 110,130 140,110 170,130 C 195,150 230,240 280,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="120,180 110,130 155,120" fill="url(#foxGold)" />
+      <!-- Tail 3 -->
+      <path d="M 300,380 C 240,320 180,210 180,110 C 180,60 220,50 245,80 C 265,110 275,210 290,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="180,110 180,60 230,70" fill="url(#foxGold)" />
+      <!-- Tail 4 -->
+      <path d="M 300,380 C 270,300 240,180 260,80 C 270,30 300,30 315,65 C 320,105 310,210 305,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="260,80 270,30 305,45" fill="url(#foxGold)" />
+    </g>
+
+    <!-- Center Master Tail (Tail 5) -->
+    <path d="M 300,380 C 300,280 290,160 300,60 C 305,20 330,20 335,60 C 345,160 330,280 300,380 Z" 
+          fill="url(#foxFur)" stroke="url(#foxGold)" stroke-width="3" />
+    <polygon points="300,60 305,20 335,40" fill="url(#foxGold)" />
+
+    <!-- Right Tails -->
+    <g class="tail-right">
+      <!-- Tail 6 -->
+      <path d="M 300,380 C 330,300 360,180 340,80 C 330,30 300,30 285,65 C 280,105 290,210 295,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="340,80 330,30 295,45" fill="url(#foxGold)" />
+      <!-- Tail 7 -->
+      <path d="M 300,380 C 360,320 420,210 420,110 C 420,60 380,50 355,80 C 335,110 325,210 310,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="420,110 420,60 370,70" fill="url(#foxGold)" />
+      <!-- Tail 8 -->
+      <path d="M 300,380 C 380,350 460,280 480,180 C 490,130 460,110 430,130 C 405,150 370,240 320,340 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="480,180 490,130 445,120" fill="url(#foxGold)" />
+      <!-- Tail 9 -->
+      <path d="M 300,380 C 370,370 470,340 510,260 C 530,220 510,180 480,190 C 440,205 390,280 330,350 Z" 
+            fill="url(#foxFur)" stroke="#fb7185" stroke-width="2" />
+      <polygon points="510,260 530,220 485,200" fill="url(#foxGold)" />
+    </g>
+
+    <!-- Slender Graceful Fox Body -->
+    <path d="M 260,450 C 240,400 250,330 280,300 C 300,280 320,280 340,300 C 370,330 380,400 360,450 C 330,475 285,475 260,450 Z" 
+          fill="url(#foxFur)" stroke="#fda4af" stroke-width="2" />
+    
+    <!-- White Chest Bib -->
+    <path d="M 285,320 C 300,310 320,310 335,320 C 345,355 340,410 310,430 C 280,410 275,355 285,320 Z" fill="#ffffff" />
+
+    <!-- Auspicious Celestial Silk Ribbon (Float sash) -->
+    <path d="M 220,320 C 180,300 170,360 220,380 C 280,400 340,400 400,380 C 450,360 440,300 400,320" 
+          fill="none" stroke="url(#foxGold)" stroke-width="5" stroke-linecap="round" />
+
+    <!-- Elegant Fox Head -->
+    <g transform="translate(250, 180)">
+      <!-- Head Contour -->
+      <path d="M 15,45 C 5,20 20,-10 50,-10 C 80,-10 95,20 85,45 C 80,75 58,110 50,115 C 42,110 20,75 15,45 Z" 
+            fill="url(#foxFur)" stroke="#e11d48" stroke-width="2" />
+
+      <!-- White Cheek Patches -->
+      <path d="M 18,50 C 10,65 25,85 45,105 C 30,85 25,65 18,50 Z" fill="#ffffff" />
+      <path d="M 82,50 C 90,65 75,85 55,105 C 70,85 75,65 82,50 Z" fill="#ffffff" />
+
+      <!-- Big Majestic Fox Ears with Soft Inner Fur -->
+      <polygon points="18,10 -15,-45 35,-20" fill="url(#foxFur)" stroke="#9f1239" stroke-width="2" />
+      <polygon points="15,5 -5,-35 28,-18" fill="#fda4af" />
+      <polygon points="82,10 115,-45 65,-20" fill="url(#foxFur)" stroke="#9f1239" stroke-width="2" />
+      <polygon points="85,5 105,-35 72,-18" fill="#fda4af" />
+
+      <!-- Red Eyeliner & Piercing Violet/Crimson Eyes -->
+      <path d="M 26,46 Q 38,38 42,48" stroke="#be123c" stroke-width="3.5" fill="none" stroke-linecap="round" />
+      <ellipse cx="34" cy="46" rx="4" ry="5.5" fill="#e11d48" />
+      <circle cx="35" cy="44" r="1.5" fill="#ffffff" />
+      
+      <path d="M 74,46 Q 62,38 58,48" stroke="#be123c" stroke-width="3.5" fill="none" stroke-linecap="round" />
+      <ellipse cx="66" cy="46" rx="4" ry="5.5" fill="#e11d48" />
+      <circle cx="65" cy="44" r="1.5" fill="#ffffff" />
+
+      <!-- Cute Tiny Snout -->
+      <polygon points="47,112 53,112 50,118" fill="#1c1917" />
+
+      <!-- Forehead Vermilion Bindi Mark (Huadian) -->
+      <path d="M 50,12 C 45,22 47,30 50,34 C 53,30 55,22 50,12 Z" fill="#e11d48" stroke="url(#foxGold)" stroke-width="1.5" />
+    </g>
+  </g>
+
+  <!-- Title Ribbon at Bottom -->
+  <g transform="translate(300, 535)">
+    <rect x="-140" y="-22" width="280" height="44" rx="10" fill="#3b071a" stroke="url(#foxGold)" stroke-width="2" />
+    <text x="0" y="7" font-family="'Cinzel', 'Noto Serif Thai', serif" font-size="17" font-weight="bold" fill="#fef08a" text-anchor="middle" letter-spacing="2">
+      NINE-TAILED FOX • จิ่วเหว่ยหู
+    </text>
+  </g>
+</svg>

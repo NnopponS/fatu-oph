@@ -126,6 +126,7 @@ export async function grantActivityPoints(input: {
   activity: GrantActivity;
   source: "activity-qr" | "staff-completion";
   staffId?: string;
+  venueId?: string;
 }) {
   const accountRef = adminDb.ref(`operations/accounting/participants/${input.participantId}`);
   const txId = adminDb.ref().push().key || crypto.randomUUID();
@@ -143,21 +144,40 @@ export async function grantActivityPoints(input: {
         ? 1
         : Number.POSITIVE_INFINITY;
   let pointsAdded = 0;
+  let venueCapped = false;
 
   const result = await accountRef.transaction((current) => {
     const next = current || { pointTotal: 0, grantCounts: {}, transactions: {}, claims: {} };
     next.grantCounts ||= {};
     next.transactions ||= {};
-    const count = Number(next.grantCounts[grantKey] || 0);
-    if (count >= limit) return;
+    next.venueGrantCounts ||= {};
 
-    pointsAdded = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+    const count = Number(next.grantCounts[grantKey] || 0);
+    if (count >= limit) return; // duplicate activity checkin
+
+    // Check venue points policy: first activity in venue gets points; subsequent get 0 points
+    if (input.venueId) {
+      const venueCount = Number(next.venueGrantCounts[input.venueId] || 0);
+      if (venueCount >= 1) {
+        venueCapped = true;
+        pointsAdded = 0;
+      } else {
+        next.venueGrantCounts[input.venueId] = 1;
+        pointsAdded = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+      }
+    } else {
+      pointsAdded = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+    }
+
     next.grantCounts[grantKey] = count + 1;
     next.pointTotal = Number(next.pointTotal || 0) + pointsAdded;
     next.transactions[txId] = {
       points: pointsAdded,
-      reason: `เข้าร่วมกิจกรรม ${input.activity.title || input.activityId}`,
+      reason: venueCapped
+        ? `เข้าร่วมกิจกรรม ${input.activity.title || input.activityId} (รับแต้มจากแดนนี้ครบแล้ว)`
+        : `เข้าร่วมกิจกรรม ${input.activity.title || input.activityId}`,
       activityId: input.activityId,
+      venueId: input.venueId || "",
       grantKey,
       source: input.source,
       ...(input.staffId ? { staffId: input.staffId } : {}),
@@ -173,6 +193,7 @@ export async function grantActivityPoints(input: {
     createdAt,
     pointsAdded: result.committed ? pointsAdded : 0,
     pointTotal: Number(account.pointTotal || 0),
+    venueCapped,
   };
 }
 
@@ -185,3 +206,83 @@ export function publicError(error: unknown) {
   console.error(error);
   return json({ error: "เกิดข้อผิดพลาด กรุณาลองใหม่" }, 500);
 }
+
+export function normalizeUsername(input: string): string {
+  return input.trim().toLowerCase();
+}
+
+export const RESERVED_USERNAMES = new Set([
+  "admin",
+  "administrator",
+  "staff",
+  "support",
+  "root",
+  "system",
+  "moderator",
+  "oph",
+  "fatu",
+  "null",
+  "undefined",
+  "official",
+  "help",
+  "security",
+  "api",
+  "dev",
+  "developer",
+  "guest",
+]);
+
+export function isValidUsername(username: string): boolean {
+  return /^[a-z0-9_.-]{3,30}$/.test(username) && !RESERVED_USERNAMES.has(username);
+}
+
+export async function verifyFirebasePassword(email: string, password: string): Promise<boolean> {
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || "";
+  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  const url = authHost
+    ? `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`
+    : `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, returnSecureToken: true }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("verifyFirebasePassword error:", err);
+    return false;
+  }
+}
+
+export async function appendAudit(entry: Record<string, unknown>) {
+  const auditId = adminDb.ref("operations/audit").push().key;
+  if (!auditId) return;
+  await adminDb.ref(`operations/audit/${auditId}`).set({
+    ...entry,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+export const requireActor = requireStaff;
+
+export async function sendFirebasePasswordReset(email: string): Promise<boolean> {
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || "";
+  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  const url = authHost
+    ? `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`
+    : `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestType: "PASSWORD_RESET", email }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
