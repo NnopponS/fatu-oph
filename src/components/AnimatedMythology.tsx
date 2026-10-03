@@ -85,7 +85,7 @@ export const AnimatedSealStamp: React.FC<AnimatedSealStampProps> = ({
 
           {/* Chinese Seal Stamp Ring */}
           <img
-            src="/src/assets/animations/checkin-stamp.svg"
+            src="/assets/animations/checkin-stamp.svg"
             alt={sealTitle}
             className="stamp-ring"
             style={{

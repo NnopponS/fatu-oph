@@ -57,6 +57,21 @@ const checkUsernameSchema = z.object({
   username: z.string().trim().min(1).max(50),
 });
 
+async function claimUsername(normalized: string, uid: string, role: string, createdAt: string) {
+  const result = await adminDb.ref(`operations/usernames/${normalized}`).transaction((current) => {
+    if (current) return;
+    return { uid, role, createdAt };
+  });
+  return result.committed;
+}
+
+async function releaseUsername(normalized: string, uid: string) {
+  await adminDb.ref(`operations/usernames/${normalized}`).transaction((current) => {
+    if (current?.uid !== uid) return current;
+    return null;
+  });
+}
+
 export async function POST(request: Request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -88,6 +103,14 @@ export async function POST(request: Request) {
       await enforceRateLimit(request, "auth-register", 10, 60_000);
       const input = participantRegisterSchema.parse(body);
       const normalized = normalizeUsername(input.username);
+
+      const [registrationConfigSnap, siteConfigSnap] = await Promise.all([
+        adminDb.ref("public/registrationConfig/registrationOpen").get(),
+        adminDb.ref("public/site/registrationOpen").get(),
+      ]);
+      if (registrationConfigSnap.val() === false || siteConfigSnap.val() === false) {
+        return json({ error: "ขณะนี้ปิดรับลงทะเบียน กรุณาติดตามประกาศจากผู้จัดงาน" }, 403);
+      }
 
       if (!isValidUsername(normalized)) {
         return json({
@@ -123,10 +146,15 @@ export async function POST(request: Request) {
         emailVerified: false,
       });
 
+      const createdAt = new Date().toISOString();
+      const claimed = await claimUsername(normalized, user.uid, "participant", createdAt);
+      if (!claimed) {
+        await adminAuth.deleteUser(user.uid).catch(() => {});
+        return json({ error: "ชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาเลือกชื่อผู้ใช้อื่น" }, 409);
+      }
+
       // Set custom claims for role
       await adminAuth.setCustomUserClaims(user.uid, { role: "participant" });
-
-      const createdAt = new Date().toISOString();
       const participantProfile = {
         id: user.uid,
         username: normalized,
@@ -147,13 +175,9 @@ export async function POST(request: Request) {
         status: "active",
       };
 
-      // Atomic commit to RTDB
-      await adminDb.ref().update({
-        [`operations/usernames/${normalized}`]: {
-          uid: user.uid,
-          role: "participant",
-          createdAt,
-        },
+      // Atomic profile/account commit; username was reserved transactionally above.
+      try {
+        await adminDb.ref().update({
         [`operations/participants/${user.uid}`]: participantProfile,
         [`operations/accounting/participants/${user.uid}`]: {
           pointTotal: 0,
@@ -161,7 +185,12 @@ export async function POST(request: Request) {
           transactions: {},
           claims: {},
         },
-      });
+        });
+      } catch (error) {
+        await releaseUsername(normalized, user.uid).catch(() => {});
+        await adminAuth.deleteUser(user.uid).catch(() => {});
+        throw error;
+      }
 
       // Issue custom token for instant login
       const customToken = await adminAuth.createCustomToken(user.uid, { role: "participant" });
@@ -266,16 +295,18 @@ export async function POST(request: Request) {
         emailVerified: false,
       });
 
+      const createdAt = new Date().toISOString();
+      const claimed = await claimUsername(normalized, user.uid, "staff_pending", createdAt);
+      if (!claimed) {
+        await adminAuth.deleteUser(user.uid).catch(() => {});
+        return json({ error: "ชื่อผู้ใช้นี้ถูกใช้งานแล้ว" }, 409);
+      }
+
       // Role is strictly staff_pending - NO immediate privileges!
       await adminAuth.setCustomUserClaims(user.uid, { role: "staff_pending" });
 
-      const createdAt = new Date().toISOString();
-      await adminDb.ref().update({
-        [`operations/usernames/${normalized}`]: {
-          uid: user.uid,
-          role: "staff_pending",
-          createdAt,
-        },
+      try {
+        await adminDb.ref().update({
         [`admin/roles/${user.uid}`]: {
           role: "staff_pending",
           createdAt,
@@ -287,17 +318,22 @@ export async function POST(request: Request) {
           email: contactEmail,
           phone: input.phone,
           department: input.department || "",
-          status: "pending",
+          status: "staff_pending",
           appliedAt: createdAt,
         },
-      });
+        });
+      } catch (error) {
+        await releaseUsername(normalized, user.uid).catch(() => {});
+        await adminAuth.deleteUser(user.uid).catch(() => {});
+        throw error;
+      }
 
       const customToken = await adminAuth.createCustomToken(user.uid, { role: "staff_pending" });
 
       return json({
         ok: true,
         customToken,
-        status: "pending",
+        status: "staff_pending",
         user: {
           uid: user.uid,
           username: normalized,
@@ -374,6 +410,7 @@ export async function POST(request: Request) {
       ]);
 
       const participant = participantSnap.val();
+      const staffApplication = appSnap.val();
       const role = roleSnap.val() || decoded.role || (participant ? "participant" : "viewer");
       const account = accountSnap.val() || {};
       const visits = visitsSnap.val() || {};
@@ -397,13 +434,13 @@ export async function POST(request: Request) {
           uid,
           role,
           email: decoded.email || "",
-          displayName: participant?.displayName || decoded.name || "",
-          username: participant?.username || "",
+          displayName: participant?.displayName || staffApplication?.fullName || decoded.name || "",
+          username: participant?.username || staffApplication?.username || "",
           school: participant?.school || "",
           grade: participant?.grade || "",
           academicTrack: participant?.academicTrack || "",
-          phone: participant?.phone || "",
-          staffApplication: appSnap.val() || null,
+          phone: participant?.phone || staffApplication?.phone || "",
+          staffApplication: staffApplication || null,
         },
         participant,
         pointTotal: Number(account.pointTotal || 0),

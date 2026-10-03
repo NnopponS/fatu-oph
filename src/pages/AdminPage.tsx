@@ -44,10 +44,16 @@ export function AdminLayout() {
       subscribeToAuthState((user) => {
         if (!user) return setSession({ status: "signed-out" });
         void getStaffRole(user)
-          .then((role) => setSession(role ? { status: "ready", user, role } : { status: "forbidden" }))
+          .then((role) => {
+            if (role === "staff_pending") {
+              navigate("/staff/pending", { replace: true });
+              return;
+            }
+            setSession(role ? { status: "ready", user, role } : { status: "forbidden" });
+          })
           .catch(() => setSession({ status: "forbidden" }));
       }),
-    [],
+    [navigate],
   );
 
   if (session.status === "loading") return <main className="standalone-page"><section className="admin-card">กำลังตรวจสอบสิทธิ์...</section></main>;
@@ -84,18 +90,19 @@ export function AdminLayout() {
 }
 
 export function AdminDashboardPage() {
+  const { role } = useAdminSession();
   const modules = [
-    ["กิจกรรม", "สร้าง/แก้ไขกิจกรรม เวลา คะแนน และ QR", "/admin/activities"],
-    ["สถานที่", "แก้ข้อมูลสถานที่จริงและการเดินทาง", "/admin/venues"],
-    ["ผู้เข้าร่วม", "ค้นหา ปรับแต้ม และแลกรางวัล", "/admin/operations"],
-    ["สื่อ", "อัปโหลดรูป/วิดีโอเมื่อ Vercel Blob พร้อม", "/admin/media"],
-  ];
+    ["กิจกรรม", "สร้าง/แก้ไขกิจกรรม เวลา คะแนน และ QR", "/admin/activities", ["admin", "editor"]],
+    ["สถานที่", "แก้ข้อมูลสถานที่จริงและการเดินทาง", "/admin/venues", ["admin", "editor"]],
+    ["ผู้เข้าร่วม", "ค้นหา ปรับแต้ม และแลกรางวัล", "/admin/operations", ["admin", "staff"]],
+    ["สื่อ", "อัปโหลดรูป/วิดีโอเมื่อ Vercel Blob พร้อม", "/admin/media", ["admin", "editor"]],
+  ].filter(([, , , roles]) => (roles as string[]).includes(role));
   return (
     <section>
       <span className="section-kicker">ADMIN</span>
       <h1 className="admin-page-title">ระบบจัดการ Open House</h1>
       <div className="admin-dashboard-grid">
-        {modules.map(([title, text, href]) => <Link className="admin-module-card" to={href} key={href}><h2>{title}</h2><p>{text}</p></Link>)}
+        {modules.map(([title, text, href]) => <Link className="admin-module-card" to={href as string} key={href as string}><h2>{title}</h2><p>{text}</p></Link>)}
       </div>
     </section>
   );

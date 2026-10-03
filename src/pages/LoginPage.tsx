@@ -171,19 +171,19 @@ export const LoginPage: React.FC = () => {
 
         <div className="benefit-grid">
           <div className="benefit-card">
-            <img src="/src/assets/animations/checkin-stamp.svg" alt="" className="benefit-icon" />
+            <img src="/assets/animations/checkin-stamp.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">สะสมตราประทับ</div>
             <div className="benefit-desc">เช็กอิน 4 ดินแดนรับแต้มสะสม</div>
           </div>
 
           <div className="benefit-card">
-            <img src="/src/assets/decorations/dragon-seal.svg" alt="" className="benefit-icon" />
+            <img src="/assets/decorations/dragon-seal.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">บันทึกเส้นทาง</div>
             <div className="benefit-desc">ตรวจดูประวัติการร่วมกิจกรรม</div>
           </div>
 
           <div className="benefit-card">
-            <img src="/src/assets/animations/reward-chest.svg" alt="" className="benefit-icon" />
+            <img src="/assets/animations/reward-chest.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">แลกของรางวัล</div>
             <div className="benefit-desc">รับของที่ระลึกสุดพิเศษ</div>
           </div>

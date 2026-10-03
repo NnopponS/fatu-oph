@@ -187,7 +187,7 @@ export const SurveyPage: React.FC = () => {
             style={{ textAlign: "center", padding: "24px 16px", marginBottom: 20 }}
           >
             <img
-              src="/src/assets/characters/nine-tailed-fox-mascot.svg"
+              src="/assets/characters/nine-tailed-fox-mascot.svg"
               alt=""
               style={{ width: 90, height: 90, margin: "0 auto 12px" }}
             />

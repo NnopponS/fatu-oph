@@ -93,18 +93,20 @@ const saveRegistrationConfigSchema = z.object({
     label: z.string().min(1),
   })).min(1),
   grades: z.array(z.string().min(1)).min(1),
-  consentText: z.string().min(1),
+  consentText: z.string().optional().default(""),
+  registrationOpen: z.boolean().optional(),
 });
 
 const saveSiteConfigSchema = z.object({
   action: z.literal("saveSiteConfig"),
-  heroTitle: z.string().min(1),
-  heroSubtitle: z.string().optional().default(""),
-  heroDescription: z.string().optional().default(""),
-  heroCtaText: z.string().optional().default(""),
-  heroSecondaryCtaText: z.string().optional().default(""),
-  activeAnnouncement: z.string().optional().default(""),
-  theme: z.record(z.unknown()).optional().default({}),
+  name: z.string().trim().min(1).max(120),
+  eventYear: z.number().int().min(2026).max(2100).optional().default(2026),
+  theme: z.string().trim().min(1).max(160),
+  faculty: z.string().trim().min(1).max(160),
+  description: z.string().trim().max(1000).optional().default(""),
+  dateLabel: z.string().trim().max(120).optional().default(""),
+  locationLabel: z.string().trim().max(200).optional().default(""),
+  registrationOpen: z.boolean().optional().default(true),
 });
 
 async function appendAudit(entry: Record<string, unknown>) {
@@ -283,6 +285,7 @@ export async function POST(request: Request) {
         activity,
         source: "staff-completion",
         staffId: actor.uid,
+        venueId: activity.venueId || activity.locationId,
       });
       if (grant.committed && grant.transactionId) {
         await adminDb.ref(`operations/activityCompletions/${grant.transactionId}`).set({
@@ -410,6 +413,9 @@ export async function POST(request: Request) {
 
     if (body.action === "activityQr") {
       const input = qrSchema.parse(body);
+      if (input.rotate && actor.role !== "admin" && actor.role !== "editor") {
+        return json({ error: "ไม่มีสิทธิ์เปลี่ยน QR Code" }, 403);
+      }
       const activitySnap = await adminDb.ref(`public/activities/${input.activityId}`).get();
       if (!activitySnap.exists()) return json({ error: "ไม่พบกิจกรรม" }, 404);
 
@@ -554,10 +560,14 @@ export async function POST(request: Request) {
       if (actor.role !== "admin") return json({ error: "ไม่มีสิทธิ์จัดการ Staff" }, 403);
       const snap = await adminDb.ref("operations/staffApplications").get();
       const raw = snap.val() || {};
-      const applications = Object.entries(raw).map(([uid, val]) => ({
-        uid,
-        ...(val as Record<string, unknown>),
-      })).sort((a, b) => String((b as Record<string, unknown>).appliedAt || "").localeCompare(String((a as Record<string, unknown>).appliedAt || "")));
+      const applications = Object.entries(raw).map(([uid, val]) => {
+        const application = val as Record<string, unknown>;
+        return {
+          uid,
+          ...application,
+          status: application.status === "pending" ? "staff_pending" : application.status,
+        };
+      }).sort((a, b) => String((b as Record<string, unknown>).appliedAt || "").localeCompare(String((a as Record<string, unknown>).appliedAt || "")));
       return json({ applications });
     }
 

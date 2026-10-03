@@ -28,10 +28,10 @@ export const StaffDashboardPage: React.FC = () => {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!isStaff) {
-        navigate("/staff/login");
-      } else if (isPendingStaff) {
+      if (isPendingStaff) {
         navigate("/staff/pending");
+      } else if (!isStaff) {
+        navigate("/staff/login");
       }
     }
   }, [authLoading, isStaff, isPendingStaff, navigate]);

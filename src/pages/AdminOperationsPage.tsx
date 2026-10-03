@@ -162,9 +162,9 @@ export function AdminOperationsPage() {
   };
 
   useEffect(() => {
-    void refreshStaff();
+    if (session.role === "admin") void refreshStaff();
     void refreshParticipants();
-  }, []);
+  }, [session.role]);
 
   useEffect(() => {
     if (activeTab === "survey") {
@@ -548,7 +548,6 @@ export function AdminOperationsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
               {activities.items.map((activity) => {
                 const venue = venues.items.find((v) => v.id === activity.venueId);
-                const payload = `FATU26:ACT:${activity.id}`;
                 return (
                   <div
                     key={activity.id}
@@ -571,13 +570,23 @@ export function AdminOperationsPage() {
                       <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--text-light-primary)", margin: "6px 0 2px" }}>
                         {activity.title}
                       </h3>
-                      <div style={{ fontSize: 11, color: "var(--text-dark-muted)", marginTop: 6, fontFamily: "monospace" }}>
-                        {payload}
+                      <div style={{ fontSize: 11, color: "var(--text-dark-muted)", marginTop: 6 }}>
+                        QR แบบมี token จะถูกสร้างจากระบบเมื่อเปิดดู เพื่อรองรับการ rotate และยกเลิก QR เดิม
                       </div>
                     </div>
 
                     <button
-                      onClick={() => openQrModal(activity.title, `ณ ${venue?.name || "คณะศิลปกรรมศาสตร์"}`, payload, activity.pointsAwarded, venue?.name)}
+                      onClick={() => {
+                        void adminAction<{ qrPayload: string }>("activityQr", { activityId: activity.id })
+                          .then((result) => openQrModal(
+                            activity.title,
+                            `ณ ${venue?.name || "คณะศิลปกรรมศาสตร์"}`,
+                            result.qrPayload,
+                            activity.pointsAwarded,
+                            venue?.name,
+                          ))
+                          .catch((err) => setError(err instanceof Error ? err.message : "ไม่สามารถสร้าง QR Code ได้"));
+                      }}
                       className="button-gold-outline"
                       style={{ marginTop: 14, width: "100%", justifyContent: "center", fontSize: 12 }}
                     >

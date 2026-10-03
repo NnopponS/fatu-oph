@@ -32,6 +32,7 @@ export const RegisterPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationOpen, setRegistrationOpen] = useState(true);
 
   // Dynamic config loaded from Realtime Database if available
   const [tracks, setTracks] = useState<Array<{ id: string; label: string }>>([
@@ -63,9 +64,11 @@ export const RegisterPage: React.FC = () => {
         const config = await readRealtime<{
           academicTracks?: Array<{ id: string; label: string }>;
           grades?: string[];
+          registrationOpen?: boolean;
         }>(realtimePaths.public.registrationConfig);
         if (config?.academicTracks?.length) setTracks(config.academicTracks);
         if (config?.grades?.length) setGradeOptions(config.grades);
+        if (config?.registrationOpen === false) setRegistrationOpen(false);
       } catch {
         // Fallback to defaults
       }
@@ -95,6 +98,11 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!registrationOpen) {
+      setError("ขณะนี้ปิดรับลงทะเบียน กรุณาติดตามประกาศจากผู้จัดงาน");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
@@ -171,6 +179,12 @@ export const RegisterPage: React.FC = () => {
             สมัครสมาชิกเพื่อร่วมตะลุยแดนมังกรกับ OPH
           </p>
         </div>
+
+        {!registrationOpen && (
+          <div style={{ padding: "12px 14px", backgroundColor: "#fff7ed", border: "1px solid #fdba74", borderRadius: 10, color: "#9a3412", fontSize: 13, marginBottom: 16 }}>
+            ขณะนี้ปิดรับลงทะเบียน ผู้ที่มีบัญชีแล้วสามารถเข้าสู่ระบบได้ตามปกติ
+          </div>
+        )}
 
         {error && (
           <div
@@ -427,7 +441,7 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {/* Primary CTA */}
-          <button type="submit" disabled={loading} className="chinese-btn-primary">
+          <button type="submit" disabled={loading || !registrationOpen} className="chinese-btn-primary">
             {loading ? "กำลังลงทะเบียน..." : "เริ่มต้นการเดินทาง →"}
           </button>
         </form>
@@ -447,19 +461,19 @@ export const RegisterPage: React.FC = () => {
 
         <div className="benefit-grid">
           <div className="benefit-card">
-            <img src="/src/assets/animations/checkin-stamp.svg" alt="" className="benefit-icon" />
+            <img src="/assets/animations/checkin-stamp.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">สะสมตราประทับ</div>
             <div className="benefit-desc">เข้าร่วมกิจกรรม สะสมตราประทับจากดินแดนต่างๆ</div>
           </div>
 
           <div className="benefit-card">
-            <img src="/src/assets/decorations/dragon-seal.svg" alt="" className="benefit-icon" />
+            <img src="/assets/decorations/dragon-seal.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">ทำภารกิจท้าทาย</div>
             <div className="benefit-desc">เรียนรู้ พัฒนา และทำภารกิจ ปลดล็อกเรื่องราว</div>
           </div>
 
           <div className="benefit-card">
-            <img src="/src/assets/animations/reward-chest.svg" alt="" className="benefit-icon" />
+            <img src="/assets/animations/reward-chest.svg" alt="" className="benefit-icon" />
             <div className="benefit-title">รับรางวัลพิเศษ</div>
             <div className="benefit-desc">สะสมครบตามเงื่อนไข แลกรับของรางวัลจาก OPH</div>
           </div>

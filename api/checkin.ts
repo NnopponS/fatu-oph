@@ -65,6 +65,10 @@ export async function POST(request: Request) {
     if (token) {
       try {
         const decoded = await adminAuth.verifyIdToken(token);
+        const participantSnap = await adminDb.ref(`operations/participants/${decoded.uid}`).get();
+        if (!participantSnap.exists()) {
+          return json({ error: "บัญชีนี้ไม่ใช่บัญชีผู้เข้าร่วมงาน" }, 403);
+        }
         participantId = decoded.uid;
       } catch {
         return json({ error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่" }, 401);
@@ -100,22 +104,29 @@ export async function POST(request: Request) {
         const venueSnap = await adminDb.ref(`public/venues/${qr.targetId}`).get();
         if (venueSnap.exists()) {
           const venue = venueSnap.val();
-          // Record venue visit directly
+          // Record venue visit idempotently and preserve the first visit timestamp.
           const visitedAt = new Date().toISOString();
-          await adminDb.ref(`operations/locationVisits/${participantId}/${qr.targetId}`).set({
-            locationId: qr.targetId,
-            locationName: venue.visualLabel || venue.name,
-            visitedAt,
+          const visitRef = adminDb.ref(`operations/locationVisits/${participantId}/${qr.targetId}`);
+          const visitResult = await visitRef.transaction((current) => {
+            if (current) return;
+            return {
+              locationId: qr.targetId,
+              locationName: venue.visualLabel || venue.name,
+              visitedAt,
+            };
           });
+          const accountSnap = await adminDb.ref(`operations/accounting/participants/${participantId}/pointTotal`).get();
 
           return json({
             ok: true,
             activityTitle: "สำรวจแดนศักดิ์สิทธิ์",
             locationName: venue.visualLabel || venue.name,
             pointsAdded: 0,
-            pointTotal: 0,
-            duplicate: false,
-            message: `เช็กอินสำรวจ ${venue.visualLabel || venue.name} สำเร็จ!`,
+            pointTotal: Number(accountSnap.val() || 0),
+            duplicate: !visitResult.committed,
+            message: visitResult.committed
+              ? `เช็กอินสำรวจ ${venue.visualLabel || venue.name} สำเร็จ!`
+              : `คุณเคยเช็กอิน ${venue.visualLabel || venue.name} แล้ว`,
           });
         }
       }
@@ -123,9 +134,12 @@ export async function POST(request: Request) {
       const qrSnap = await adminDb.ref(`admin/activityQr/${activityId}`).get();
       const qrConfig = qrSnap.val();
       expectedToken = String(qrConfig?.token || "");
+      if (!expectedToken) {
+        return json({ error: "QR ของกิจกรรมนี้ยังไม่ถูกเปิดใช้งาน กรุณาติดต่อเจ้าหน้าที่" }, 400);
+      }
     }
 
-    if (expectedToken && qr.token && !safeEqual(expectedToken, qr.token)) {
+    if (expectedToken && (!qr.token || !safeEqual(expectedToken, qr.token))) {
       return json({ error: "QR Code หมดอายุหรือไม่ถูกต้อง" }, 400);
     }
 

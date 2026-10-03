@@ -78,7 +78,7 @@ export const ThemedLoading: React.FC<ThemedLoadingProps> = ({
           {/* Rotating Seal Container */}
           <div className="anime-seal-rotator" style={{ width: "100%", height: "100%", display: "grid", placeItems: "center" }}>
             <img
-              src="/src/assets/animations/loading-seal.svg"
+              src="/assets/animations/loading-seal.svg"
               alt=""
               className="anime-seal-pulse"
               style={{
@@ -140,7 +140,7 @@ export const ThemedLoading: React.FC<ThemedLoadingProps> = ({
         />
         <div className="anime-seal-rotator" style={{ width: "100%", height: "100%", display: "grid", placeItems: "center" }}>
           <img
-            src="/src/assets/animations/loading-seal.svg"
+            src="/assets/animations/loading-seal.svg"
             alt=""
             className="anime-seal-pulse"
             style={{ width: 44, height: 44 }}

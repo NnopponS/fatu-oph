@@ -120,13 +120,14 @@ const staffReg = await call(authHandler, {
 });
 assert.equal(staffReg.status, 201);
 assert.equal(staffReg.data.user.role, "staff_pending");
+assert.equal(staffReg.data.status, "staff_pending");
 
 const staffUid = staffReg.data.user.uid;
 
 // Verify staff application in RTDB
 const appSnap = await adminDb.ref(`operations/staffApplications/${staffUid}`).get();
 assert.ok(appSnap.exists());
-assert.equal(appSnap.val().status, "pending");
+assert.equal(appSnap.val().status, "staff_pending");
 
 console.log("--- 6. Testing Admin Staff Approval ---");
 // Create admin auth user
@@ -150,7 +151,7 @@ const adminAuthData = (await adminTokenRes.json()) as { idToken: string };
 // Admin views staff applications
 const appsRes = await call(adminHandler, { action: "staffApplications" }, adminAuthData.idToken);
 assert.equal(appsRes.status, 200);
-assert.ok(appsRes.data.applications.some((a: any) => a.uid === staffUid && (a.status === "pending" || a.status === "staff_pending")));
+assert.ok(appsRes.data.applications.some((a: any) => a.uid === staffUid && a.status === "staff_pending"));
 
 // Admin approves staff
 const approveRes = await call(
@@ -184,8 +185,10 @@ await adminDb.ref("public/activities/act_opening").set({
   pointsEnabled: true,
   pointsAwarded: 50,
   pointGrantMode: "once",
+  completionMethod: "qr",
   isPublished: true,
 });
+await adminDb.ref("admin/activityQr/act_opening").set({ token: "auth-rebuild-token" });
 
 // Participant signs in to get ID token
 const partTokenRes = await fetch(
@@ -201,7 +204,7 @@ const partAuthData = (await partTokenRes.json()) as { idToken: string };
 // Participant self scans the activity QR code
 const checkinRes = await call(
   checkinHandler,
-  { qrPayload: "FATU26:ACT:act_opening" },
+  { qrPayload: "FATU26:ACT:act_opening:auth-rebuild-token" },
   partAuthData.idToken,
 );
 
@@ -219,7 +222,7 @@ assert.equal(visitSnap.val().locationId, "venue_theatre");
 // Test duplicate scan prevention
 const dupCheckin = await call(
   checkinHandler,
-  { qrPayload: "FATU26:ACT:act_opening" },
+  { qrPayload: "FATU26:ACT:act_opening:auth-rebuild-token" },
   partAuthData.idToken,
 );
 assert.equal(dupCheckin.status, 200);

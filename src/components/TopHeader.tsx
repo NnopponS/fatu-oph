@@ -39,7 +39,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ title, showBack }) => {
 
         <Link to="/" className="top-nav-logo">
           <img
-            src="/src/assets/mythology/azure-dragon.svg"
+            src="/assets/mythology/azure-dragon.svg"
             alt="OPH"
             className="top-nav-emblem"
           />

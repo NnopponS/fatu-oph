@@ -22,7 +22,7 @@
    - Separate from participant login.
    - Staff registration creates an account with status `staff_pending`.
    - Strict admin approval required before any operational privileges are granted.
-   - Roles: `participant`, `staff_pending`, `staff`, `admin`, `super_admin`.
+   - Roles: `participant`, `staff_pending`, `staff`, `editor`, `viewer`, `admin`. `super_admin` is intentionally not part of the current implementation.
 3. **Self QR Check-in System:**
    - Participant opens their own phone to `/scan`.
    - Viewfinder with Chinese mythology ornamental frame scans the QR displayed at the activity / location.
@@ -311,3 +311,20 @@
 - [ ] Security audit: ensure no sensitive keys client-side, role spoofing prevented.
 - [ ] Build check: `npm run check` (Vite build + API TypeScript check + ESLint).
 - [ ] Update documentation and mark `<!-- GOAL_COMPLETE -->`.
+
+### Phase K: 2026-10-03 Stabilization & Mobile Simplification (Current)
+- [x] Preserve Antigravity rebuild before changes (`7a34b21`).
+- [x] Align Admin Settings UI payloads with server schemas and make registration close/open authoritative.
+- [x] Normalize Staff application status and repair pending/approved routing plus staff profile reload behavior.
+- [x] Require valid rotated tokens for protected activity QR codes; tokenless activity payloads must not bypass rotation.
+- [x] Make direct venue check-in idempotent and return the real participant point total.
+- [x] Require self-check-in bearer identities to be real participant accounts.
+- [x] Apply the same per-venue point policy to Staff manual completion and self QR completion.
+- [x] Ensure zero-point activities do not consume a venue point entitlement.
+- [x] Close username registration races with an atomic username claim and rollback failed Auth users.
+- [x] Replace assertion-free feature scripts with a real emulator-backed stabilization regression suite.
+- [x] Remove Three.js/WebGL from the mobile critical path; use lightweight PinePaper/static media now and reserve Google Flow video for optional decorative scenes.
+- [x] Consolidate runtime asset paths on `public/assets` and remove duplicate runtime copies.
+- [x] Re-run build/typecheck/lint, API smoke, auth rebuild suite, targeted stabilization suite, and browser smoke before production deployment.
+
+Phase K local verification is complete. Remaining launch gate: real Admin account click-through on production after deployment and replacement/removal of mock event data before the actual event.

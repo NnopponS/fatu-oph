@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import {
   Sparkles,
@@ -16,7 +16,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivities, useAnnouncements, useSite, useVenues } from "@/data/content";
 import { FloatingMythologyAura } from "@/components/AnimatedMythology";
-import { CelestialGate3D } from "@/components/CelestialGate3D";
 
 // Canonical mythology data map for fallback & visual metadata
 const REALM_MAP: Record<
@@ -33,7 +32,7 @@ const REALM_MAP: Record<
   "azure-dragon": {
     mythicalTitle: "สวรรค์แดนมังกรฟ้า",
     venueName: "โรงละคร",
-    image: "/src/assets/characters/azure-dragon-mascot.svg",
+    image: "/assets/characters/azure-dragon-mascot.svg",
     artImage: "/images/azure-dragon-art.jpg",
     themeColor: "#1b8a9e",
     tagline: "การแสดง แสง สี เสียง และพิธีเปิดสุดตระการตา",
@@ -41,7 +40,7 @@ const REALM_MAP: Record<
   "white-tiger": {
     mythicalTitle: "เมืองมนุษย์พยัคฆ์ขาว",
     venueName: "ตึกคณะ",
-    image: "/src/assets/characters/white-tiger-mascot.svg",
+    image: "/assets/characters/white-tiger-mascot.svg",
     artImage: "/images/white-tiger-art.jpg",
     themeColor: "#cda34f",
     tagline: "ศูนย์รวมนิทรรศการ เวิร์กช็อป และหลักสูตรศิลปกรรม",
@@ -49,7 +48,7 @@ const REALM_MAP: Record<
   "nine-tailed-fox": {
     mythicalTitle: "ป่าแดนจิ้งจอก 9 หาง",
     venueName: "โรงทอ",
-    image: "/src/assets/characters/nine-tailed-fox-mascot.svg",
+    image: "/assets/characters/nine-tailed-fox-mascot.svg",
     artImage: "/images/nine-tailed-fox-art.jpg",
     themeColor: "#ba55d3",
     tagline: "สัมผัสนวัตกรรมสิ่งทอ แฟชั่น และศิลปะร่วมสมัย",
@@ -57,7 +56,7 @@ const REALM_MAP: Record<
   "red-phoenix": {
     mythicalTitle: "ถ้ำหงส์แดง",
     venueName: "ตึก SC3",
-    image: "/src/assets/characters/red-phoenix-mascot.svg",
+    image: "/assets/characters/red-phoenix-mascot.svg",
     artImage: "/images/red-phoenix-art.jpg",
     themeColor: "#d93838",
     tagline: "การประชันความคิดสร้างสรรค์ เวทีเสวนา และเกมสะสมแต้ม",
@@ -73,7 +72,6 @@ export function HomePage() {
 
   const isParticipantLoggedIn = Boolean(firebaseUser && profile?.username);
 
-  const [show3DHero, setShow3DHero] = useState<boolean>(true);
   const chosenRealmKey = typeof window !== "undefined" ? sessionStorage.getItem("fatu_chosen_realm") : null;
 
   // Participant calculations
@@ -106,65 +104,13 @@ export function HomePage() {
             {site.item?.name || "FATU OPEN HOUSE 2026"}
           </div>
 
-          {/* Interactive Celestial Centerpiece: 3D Celestial Gate or 2D Emblem */}
+          {/* Lightweight hero artwork; optional Google Flow video can replace this media later. */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "14px 0 10px" }}>
-            <div style={{ position: "relative", width: 150, height: 150, display: "grid", placeItems: "center" }}>
-              {show3DHero ? (
-                <CelestialGate3D size={150} mode="gate" interactive={true} showParticles={true} />
-              ) : (
-                <FloatingMythologyAura duration={3400} distance={5}>
-                  <div
-                    style={{
-                      width: 104,
-                      height: 104,
-                      borderRadius: "50%",
-                      padding: 3,
-                      background: "linear-gradient(135deg, var(--color-gold-400), var(--color-gold-700), var(--color-gold-300))",
-                      boxShadow: "0 4px 18px rgba(179, 134, 40, 0.35)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        overflow: "hidden",
-                        background: "#fbf8f1",
-                      }}
-                    >
-                      <img
-                        src="/images/azure-dragon-art.jpg"
-                        alt="Azure Dragon"
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    </div>
-                  </div>
-                </FloatingMythologyAura>
-              )}
-            </div>
-
-            {/* Toggle Badge */}
-            <button
-              type="button"
-              onClick={() => setShow3DHero(!show3DHero)}
-              style={{
-                marginTop: 4,
-                background: show3DHero ? "rgba(125, 18, 18, 0.08)" : "rgba(205, 163, 79, 0.15)",
-                border: show3DHero ? "1px solid rgba(125, 18, 18, 0.3)" : "1px solid rgba(205, 163, 79, 0.4)",
-                borderRadius: 14,
-                padding: "3px 10px",
-                fontSize: 10,
-                fontWeight: 700,
-                color: show3DHero ? "var(--color-red-900)" : "var(--color-gold-700)",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Sparkles style={{ width: 11, height: 11 }} />
-              <span>{show3DHero ? "สลับดูภาพวาด 2D" : "เปิดดูประตูมังกร 3D WebGL"}</span>
-            </button>
+            <FloatingMythologyAura duration={3400} distance={5}>
+              <div style={{ width: 116, height: 116, borderRadius: "50%", padding: 3, background: "linear-gradient(135deg, var(--color-gold-400), var(--color-gold-700), var(--color-gold-300))", boxShadow: "0 4px 18px rgba(179, 134, 40, 0.35)" }}>
+                <img src="/images/azure-dragon-art.jpg" alt="Azure Dragon" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+              </div>
+            </FloatingMythologyAura>
           </div>
 
           <h1 className="chinese-hero-title">{site.item?.theme || "ตะลุยแดนมังกร"}</h1>
@@ -310,7 +256,7 @@ export function HomePage() {
               }}
             >
               <img
-                src="/src/assets/decorations/dragon-seal.svg"
+                src="/assets/decorations/dragon-seal.svg"
                 alt="Seal"
                 style={{ width: 28, height: 28 }}
               />
@@ -328,7 +274,7 @@ export function HomePage() {
                 pointerEvents: "none",
               }}
             >
-              <img src="/src/assets/mythology/azure-dragon.svg" alt="" style={{ width: 140, height: 140 }} />
+              <img src="/assets/mythology/azure-dragon.svg" alt="" style={{ width: 140, height: 140 }} />
             </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -443,7 +389,7 @@ export function HomePage() {
                 }}
               >
                 <img
-                  src="/src/assets/animations/reward-chest.svg"
+                  src="/assets/animations/reward-chest.svg"
                   alt=""
                   style={{ width: 34, height: 34, flexShrink: 0 }}
                 />
@@ -544,7 +490,7 @@ export function HomePage() {
             const meta = REALM_MAP[venue.visualIdentityKey] || {
               mythicalTitle: venue.visualLabel || venue.name,
               venueName: venue.name,
-              image: "/src/assets/mythology/azure-dragon.svg",
+              image: "/assets/mythology/azure-dragon.svg",
               artImage: "/images/azure-dragon-art.jpg",
               themeColor: "#cda34f",
               tagline: venue.description,
@@ -747,7 +693,7 @@ export function HomePage() {
       {/* Footer Branding */}
       <footer style={{ textAlign: "center", padding: "16px", color: "var(--text-dark-muted)", fontSize: 11 }}>
         <img
-          src="/src/assets/decorations/gold-divider.svg"
+          src="/assets/decorations/gold-divider.svg"
           alt=""
           style={{ width: 140, height: "auto", margin: "0 auto 12px", opacity: 0.6 }}
         />

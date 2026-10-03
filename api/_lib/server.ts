@@ -155,18 +155,19 @@ export async function grantActivityPoints(input: {
     const count = Number(next.grantCounts[grantKey] || 0);
     if (count >= limit) return; // duplicate activity checkin
 
-    // Check venue points policy: first activity in venue gets points; subsequent get 0 points
-    if (input.venueId) {
+    // Venue cap applies only to activities that actually award points.
+    const award = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+    if (input.venueId && award > 0) {
       const venueCount = Number(next.venueGrantCounts[input.venueId] || 0);
       if (venueCount >= 1) {
         venueCapped = true;
         pointsAdded = 0;
       } else {
         next.venueGrantCounts[input.venueId] = 1;
-        pointsAdded = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+        pointsAdded = award;
       }
     } else {
-      pointsAdded = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+      pointsAdded = award;
     }
 
     next.grantCounts[grantKey] = count + 1;

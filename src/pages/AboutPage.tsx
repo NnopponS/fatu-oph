@@ -9,7 +9,6 @@ import {
   Heart,
   ChevronRight,
 } from "lucide-react";
-import { CelestialGate3D } from "@/components/CelestialGate3D";
 
 export function AboutPage() {
   return (
@@ -39,9 +38,8 @@ export function AboutPage() {
           ตะลุยแดนมังกร เปิดประตูสู่โลกแห่งศิลปกรรมศาสตร์ มหาวิทยาลัยธรรมศาสตร์
         </p>
 
-        {/* Interactive 3D Celestial Astrolabe */}
         <div style={{ position: "relative", width: 140, height: 140, margin: "12px auto 0" }}>
-          <CelestialGate3D size={140} mode="gate" interactive={true} showParticles={true} />
+          <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
       </div>
 

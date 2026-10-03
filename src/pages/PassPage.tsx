@@ -18,7 +18,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useVenues } from "@/data/content";
 import { AnimatedSealStamp } from "@/components/AnimatedMythology";
-import { CelestialGate3D } from "@/components/CelestialGate3D";
 
 const REALM_STAMPS: Record<
   string,
@@ -34,28 +33,28 @@ const REALM_STAMPS: Record<
     name: "มังกรฟ้า",
     sealTitle: "ตรามังกรฟ้า",
     venueName: "โรงละคร",
-    image: "/src/assets/mythology/azure-dragon.svg",
+    image: "/assets/mythology/azure-dragon.svg",
     themeColor: "#1b8a9e",
   },
   "white-tiger": {
     name: "พยัคฆ์ขาว",
     sealTitle: "ตราพยัคฆ์ขาว",
     venueName: "ตึกคณะ",
-    image: "/src/assets/mythology/white-tiger.svg",
+    image: "/assets/mythology/white-tiger.svg",
     themeColor: "#cda34f",
   },
   "nine-tailed-fox": {
     name: "จิ้งจอก 9 หาง",
     sealTitle: "ตราจิ้งจอก 9 หาง",
     venueName: "โรงทอ",
-    image: "/src/assets/mythology/nine-tailed-fox.svg",
+    image: "/assets/mythology/nine-tailed-fox.svg",
     themeColor: "#ba55d3",
   },
   "red-phoenix": {
     name: "หงส์แดง",
     sealTitle: "ตราหงส์แดง",
     venueName: "ตึก SC3",
-    image: "/src/assets/mythology/red-phoenix.svg",
+    image: "/assets/mythology/red-phoenix.svg",
     themeColor: "#d93838",
   },
 };
@@ -90,7 +89,7 @@ export function PassPage() {
           style={{ padding: "36px 20px", border: "2px solid var(--color-gold-500)" }}
         >
           <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 8px" }}>
-            <CelestialGate3D size={120} mode="pearl" interactive={true} showParticles={true} />
+            <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-950)", margin: 0 }}>
             ใบเบิกทางจอมยุทธ์
@@ -138,7 +137,7 @@ export function PassPage() {
       >
         {/* Background watermark */}
         <div style={{ position: "absolute", top: -10, right: -10, opacity: 0.05, pointerEvents: "none" }}>
-          <img src="/src/assets/decorations/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
+          <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
         </div>
 
         {/* Top Pass Header */}
@@ -253,9 +252,7 @@ export function PassPage() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 1.5 3D CELESTIAL DRAGON PEARL RANK CARD                                  */}
-      {/* ========================================================================= */}
+      {/* Lightweight celestial rank card — no WebGL on the mobile critical path. */}
       <div
         className="ivory-card"
         style={{
@@ -268,7 +265,7 @@ export function PassPage() {
         }}
       >
         <div style={{ width: 84, height: 84, flexShrink: 0, display: "grid", placeItems: "center" }}>
-          <CelestialGate3D size={84} mode="pearl" interactive={true} showParticles={true} />
+          <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 76, height: 76, objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -285,7 +282,7 @@ export function PassPage() {
               : "จอมยุทธ์ผู้เริ่มต้น"}
           </div>
           <p style={{ fontSize: 11, color: "var(--text-dark-secondary)", margin: "2px 0 0", lineHeight: 1.4 }}>
-            หมุน 3D มุกมังกรเพื่อเสริมพลังปราณ สะสมให้ครบ 4 แดนเพื่อปลดล็อกตราสวรรค์ขั้นสูงสุด
+            สะสมตราให้ครบ 4 แดนเพื่อปลดล็อกตราสวรรค์ขั้นสูงสุด
           </p>
         </div>
       </div>
@@ -327,7 +324,7 @@ export function PassPage() {
               name: venue.name,
               sealTitle: venue.visualLabel || "ตราศักดิ์สิทธิ์",
               venueName: venue.name,
-              image: "/src/assets/mythology/azure-dragon.svg",
+              image: "/assets/mythology/azure-dragon.svg",
               themeColor: "#cda34f",
             };
 

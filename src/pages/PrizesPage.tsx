@@ -103,7 +103,7 @@ export function PrizesPage() {
         }}
       >
         <div style={{ position: "absolute", top: -15, right: -15, opacity: 0.1, pointerEvents: "none" }}>
-          <img src="/src/assets/animations/reward-chest.svg" alt="" style={{ width: 150, height: 150 }} />
+          <img src="/assets/animations/reward-chest.svg" alt="" style={{ width: 150, height: 150 }} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -474,7 +474,7 @@ export function PrizesPage() {
                 }}
               >
                 <img
-                  src="/src/assets/animations/reward-chest.svg"
+                  src="/assets/animations/reward-chest.svg"
                   alt=""
                   style={{ width: 44, height: 44 }}
                 />

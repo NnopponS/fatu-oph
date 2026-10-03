@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Sparkles, X, Compass, Award, Shield, ArrowRight, CheckCircle2, ChevronRight, RotateCcw } from "lucide-react";
 import { animate, createScope, spring, prefersReducedMotion } from "@/lib/anime";
-import { MythicRealmScene3D, RealmKey } from "@/components/MythicRealmScene3D";
+type RealmKey = "azure-dragon" | "white-tiger" | "nine-tailed-fox" | "red-phoenix";
 
 interface RealmChoice {
   key: RealmKey;
@@ -292,7 +292,7 @@ export const OpeningExperience: React.FC = () => {
         </div>
 
         {/* =================================================================== */}
-        {/* UPPER SECTION: 3D WEBGL REALM SCENE (Prominent 40vh Hero Stage)     */}
+        {/* UPPER SECTION: LIGHTWEIGHT REALM ART STAGE */}
         {/* =================================================================== */}
         <div
           style={{
@@ -307,7 +307,7 @@ export const OpeningExperience: React.FC = () => {
             overflow: "hidden",
           }}
         >
-          {/* Top 3D Overlay Badge */}
+          {/* Top realm overlay badge */}
           <div
             style={{
               position: "absolute",
@@ -352,15 +352,13 @@ export const OpeningExperience: React.FC = () => {
             </div>
           </div>
 
-          {/* The 3D Canvas Viewport */}
-          <MythicRealmScene3D
-            stage={stage}
-            selectedRealm={selectedRealm}
-            onSelectRealm={(key) => setSelectedRealm(key)}
-            height="100%"
+          <img
+            src={currentChoice.image}
+            alt={currentChoice.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.92 }}
           />
 
-          {/* Bottom 3D Touch Hint */}
+          {/* Bottom realm hint */}
           <div
             style={{
               position: "absolute",
@@ -385,7 +383,7 @@ export const OpeningExperience: React.FC = () => {
                 backdropFilter: "blur(4px)",
               }}
             >
-              👆 แตะหมุนลากมุมกล้อง 3D เพื่อสำรวจยุทธภพ
+              เลือกแดนด้านล่างเพื่อสำรวจเรื่องราว
             </div>
           </div>
         </div>
@@ -489,7 +487,7 @@ export const OpeningExperience: React.FC = () => {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255, 255, 255, 0.9)", padding: "4px 8px", borderRadius: 8, border: "1px solid rgba(205, 163, 79, 0.25)" }}>
                       <span style={{ fontSize: 11 }}>🎁</span>
-                      <span style={{ fontSize: 10, color: "var(--text-dark-main)" }}><strong>๓. เสี่ยงโชคสวรรค์:</strong> สุ่มกล่องกาชา 3D ชิง Art Toy สัตว์เทพ</span>
+                      <span style={{ fontSize: 10, color: "var(--text-dark-main)" }}><strong>๓. เสี่ยงโชคสวรรค์:</strong> สุ่มกล่องสวรรค์ชิงของรางวัลประจำงาน</span>
                     </div>
                   </div>
                 </div>
@@ -551,7 +549,7 @@ export const OpeningExperience: React.FC = () => {
                     เลือกสายวิชา & สังกัดแดนแรก
                   </h3>
                   <p style={{ fontSize: 10, color: "var(--text-dark-secondary)", margin: 0, textAlign: "center" }}>
-                    แตะเลือกแดนที่ตรงใจ กล้อง 3D จะบินโฉบไปหน้าพระวิหารทันที!
+                    แตะเลือกแดนที่ตรงใจเพื่อเปิดเรื่องราวและภารกิจของแดนนั้น
                   </p>
                 </div>
 
@@ -740,7 +738,7 @@ export const OpeningExperience: React.FC = () => {
                     บรีฟกฎแห่งยุทธภพ Open House
                   </h3>
                   <p style={{ fontSize: 10, color: "var(--text-dark-secondary)", margin: 0, textAlign: "center" }}>
-                    หีบสวรรค์ 3D เปิดออกแล้ว! ภารกิจล่าแต้ม ๓ ประการ:
+                    หีบสวรรค์เปิดออกแล้ว! ภารกิจล่าแต้ม ๓ ประการ:
                   </p>
                 </div>
 
@@ -948,7 +946,7 @@ export const OpeningExperience: React.FC = () => {
                   {/* 3 Pass Features */}
                   <div style={{ background: "rgba(255, 255, 255, 0.9)", border: "1px solid rgba(205, 163, 79, 0.25)", borderRadius: 7, padding: "5px 7px", fontSize: 9, color: "var(--text-dark-secondary)", lineHeight: 1.35, marginBottom: 5 }}>
                     <div>⚡ <strong>บันทึกตราประทับดิจิทัล:</strong> อัตโนมัติเมื่อสแกน QR หน้างานจริง</div>
-                    <div>🎁 <strong>เปิดกล่องสวรรค์ 3D:</strong> สะสมแต้มครบปลดล็อกสิทธิ์สุ่มกาชาทันที</div>
+                    <div>🎁 <strong>เปิดกล่องสวรรค์:</strong> สะสมแต้มครบปลดล็อกสิทธิ์สุ่มของรางวัลทันที</div>
                   </div>
 
                   {/* Starter Mission Directive */}

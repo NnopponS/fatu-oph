@@ -21,8 +21,8 @@ export const StaffLoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(username, password);
-      navigate("/staff/dashboard");
+      const authProfile = await login(username, password);
+      navigate(authProfile.role === "staff_pending" ? "/staff/pending" : "/staff/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "ชื่อผู้ใช้หรือรหัสผ่านเจ้าหน้าที่ไม่ถูกต้อง");
     } finally {

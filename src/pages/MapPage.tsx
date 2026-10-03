@@ -13,22 +13,22 @@ import { useVenues } from "@/data/content";
 
 const REALM_GRAPHICS: Record<string, { mascot: string; artImage: string; emblemColor: string }> = {
   "azure-dragon": {
-    mascot: "/src/assets/characters/azure-dragon-mascot.svg",
+    mascot: "/assets/characters/azure-dragon-mascot.svg",
     artImage: "/images/azure-dragon-art.jpg",
     emblemColor: "#0f766e",
   },
   "white-tiger": {
-    mascot: "/src/assets/characters/white-tiger-mascot.svg",
+    mascot: "/assets/characters/white-tiger-mascot.svg",
     artImage: "/images/white-tiger-art.jpg",
     emblemColor: "#a16207",
   },
   "nine-tailed-fox": {
-    mascot: "/src/assets/characters/nine-tailed-fox-mascot.svg",
+    mascot: "/assets/characters/nine-tailed-fox-mascot.svg",
     artImage: "/images/nine-tailed-fox-art.jpg",
     emblemColor: "#e11d48",
   },
   "red-phoenix": {
-    mascot: "/src/assets/characters/red-phoenix-mascot.svg",
+    mascot: "/assets/characters/red-phoenix-mascot.svg",
     artImage: "/images/red-phoenix-art.jpg",
     emblemColor: "#dc2626",
   },
@@ -70,7 +70,7 @@ export function MapPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {items.map((venue) => {
           const graphic = REALM_GRAPHICS[venue.visualIdentityKey] || {
-            mascot: "/src/assets/characters/azure-dragon-mascot.svg",
+            mascot: "/assets/characters/azure-dragon-mascot.svg",
             artImage: "/images/azure-dragon-art.jpg",
             emblemColor: "#0f766e",
           };

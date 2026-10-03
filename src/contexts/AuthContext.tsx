@@ -20,7 +20,7 @@ interface AuthContextType {
   isStaff: boolean;
   isAdmin: boolean;
   isPendingStaff: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<AuthUserProfile>;
   register: (data: ParticipantRegistrationData) => Promise<void>;
   registerStaff: (data: StaffRegistrationData) => Promise<{ message?: string }>;
   logout: () => Promise<void>;
@@ -64,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { user, profile: authProfile } = await usernameLogin(username, password);
       setFirebaseUser(user);
       setProfile(authProfile);
+      return authProfile;
     } finally {
       setLoading(false);
     }

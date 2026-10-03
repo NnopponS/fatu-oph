@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" fill="none">
-  <path d="M 32 4 C 18 4 6 16 6 30 C 6 48 32 76 32 76 C 32 76 58 48 58 30 C 58 16 46 4 32 4 Z" fill="#8b0000" stroke="#d4af37" stroke-width="2.5" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.5))"/>
-  <circle cx="32" cy="30" r="14" fill="#0d1b1e" stroke="#ffd700" stroke-width="1.5"/>
-  <!-- Gold Pagoda / Dragon Silhouette icon inside pin -->
-  <path d="M 32 20 L 38 26 L 35 26 L 39 33 L 33 33 L 33 38 L 31 38 L 31 33 L 25 33 L 29 26 L 26 26 Z" fill="#ffd700"/>
-</svg>

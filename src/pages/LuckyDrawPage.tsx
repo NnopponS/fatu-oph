@@ -475,25 +475,25 @@ export const LuckyDrawPage: React.FC = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/src/assets/characters/azure-dragon-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
+                  <img src="/assets/characters/azure-dragon-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>Art Toy สัตว์เทพ</div>
                   <div style={{ fontSize: 10, color: "var(--color-gold-700)", fontWeight: 600 }}>รางวัลระดับตำนาน</div>
                 </div>
 
                 <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/src/assets/characters/nine-tailed-fox-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
+                  <img src="/assets/characters/nine-tailed-fox-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>พวงกุญแจอะคริลิก</div>
                   <div style={{ fontSize: 10, color: "#9333ea", fontWeight: 600 }}>มหากาพย์</div>
                 </div>
 
                 <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/src/assets/decorations/dragon-seal.svg" alt="" style={{ width: 44, height: 44, margin: "4px auto 6px" }} />
+                  <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 44, height: 44, margin: "4px auto 6px" }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>กระเป๋าผ้า OPH 2026</div>
                   <div style={{ fontSize: 10, color: "#0284c7", fontWeight: 600 }}>พรีเมียม</div>
                 </div>
 
                 <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/src/assets/decorations/chinese-cloud.svg" alt="" style={{ width: 50, height: 40, margin: "8px auto 6px" }} />
+                  <img src="/assets/decorations/chinese-cloud.svg" alt="" style={{ width: 50, height: 40, margin: "8px auto 6px" }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>เซตสติ๊กเกอร์โฮโลแกรม</div>
                   <div style={{ fontSize: 10, color: "#16a34a", fontWeight: 600 }}>ของที่ระลึก</div>
                 </div>

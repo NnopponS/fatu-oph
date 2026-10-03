@@ -28,7 +28,7 @@ const REALM_MAP: Record<
   "azure-dragon": {
     mythicalTitle: "สวรรค์แดนมังกรฟ้า",
     venueName: "โรงละคร",
-    image: "/src/assets/mythology/azure-dragon.svg",
+    image: "/assets/mythology/azure-dragon.svg",
     artImage: "/images/azure-dragon-art.jpg",
     themeColor: "#1b8a9e",
     sealStamp: "ตรามังกรฟ้า",
@@ -37,7 +37,7 @@ const REALM_MAP: Record<
   "white-tiger": {
     mythicalTitle: "เมืองมนุษย์พยัคฆ์ขาว",
     venueName: "ตึกคณะ",
-    image: "/src/assets/mythology/white-tiger.svg",
+    image: "/assets/mythology/white-tiger.svg",
     artImage: "/images/white-tiger-art.jpg",
     themeColor: "#cda34f",
     sealStamp: "ตราพยัคฆ์ขาว",
@@ -46,7 +46,7 @@ const REALM_MAP: Record<
   "nine-tailed-fox": {
     mythicalTitle: "ป่าแดนจิ้งจอก 9 หาง",
     venueName: "โรงทอ",
-    image: "/src/assets/mythology/nine-tailed-fox.svg",
+    image: "/assets/mythology/nine-tailed-fox.svg",
     artImage: "/images/nine-tailed-fox-art.jpg",
     themeColor: "#ba55d3",
     sealStamp: "ตราจิ้งจอกเก้าหาง",
@@ -55,7 +55,7 @@ const REALM_MAP: Record<
   "red-phoenix": {
     mythicalTitle: "ถ้ำหงส์แดง",
     venueName: "ตึก SC3",
-    image: "/src/assets/mythology/red-phoenix.svg",
+    image: "/assets/mythology/red-phoenix.svg",
     artImage: "/images/red-phoenix-art.jpg",
     themeColor: "#d93838",
     sealStamp: "ตราหงส์แดง",
@@ -94,7 +94,7 @@ export function VenuePage() {
   const meta = REALM_MAP[venue.visualIdentityKey] || {
     mythicalTitle: venue.visualLabel || venue.name,
     venueName: venue.name,
-    image: "/src/assets/mythology/azure-dragon.svg",
+    image: "/assets/mythology/azure-dragon.svg",
     artImage: "/images/azure-dragon-art.jpg",
     themeColor: "#cda34f",
     sealStamp: "ตราศักดิ์สิทธิ์",
@@ -259,7 +259,7 @@ export function VenuePage() {
         }}
       >
         <img
-          src="/src/assets/animations/reward-chest.svg"
+          src="/assets/animations/reward-chest.svg"
           alt="Chest"
           style={{ width: 44, height: 44, flexShrink: 0 }}
         />

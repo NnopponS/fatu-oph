@@ -394,7 +394,7 @@ export const ScanPage: React.FC = () => {
               }}
             >
               <img
-                src="/src/assets/characters/azure-dragon-mascot.svg"
+                src="/assets/characters/azure-dragon-mascot.svg"
                 alt=""
                 style={{ width: 85, height: 85, opacity: 0.85, marginBottom: 12 }}
               />
@@ -412,7 +412,7 @@ export const ScanPage: React.FC = () => {
               position: "absolute",
               inset: 0,
               pointerEvents: "none",
-              background: "url(/src/assets/decorations/qr-frame.svg) center / contain no-repeat",
+              background: "url(/assets/decorations/qr-frame.svg) center / contain no-repeat",
             }}
           />
 
@@ -642,7 +642,7 @@ export const ScanPage: React.FC = () => {
               }}
             >
               <img
-                src="/src/assets/animations/checkin-stamp.svg"
+                src="/assets/animations/checkin-stamp.svg"
                 alt=""
                 style={{ width: 44, height: 44, opacity: 0.45, margin: "0 auto 8px" }}
               />
@@ -671,7 +671,7 @@ export const ScanPage: React.FC = () => {
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <img
-                      src="/src/assets/animations/checkin-stamp.svg"
+                      src="/assets/animations/checkin-stamp.svg"
                       alt=""
                       style={{ width: 36, height: 36 }}
                     />
