@@ -107,7 +107,7 @@ Run before production deploy:
 - `npm run preview`
 - `npm run test:browser`
 
-2026-10-03 local result: all commands pass; `npm audit` reports 0 vulnerabilities and browser smoke passes 15/15 routes at 412x915.
+2026-10-03 local result: all commands pass; `npm audit` reports 0 vulnerabilities, stabilization regression covers 8 groups including Lucky Draw, and browser smoke passes 15/15 routes at 412x915.
 
 ## Event-day sign-off still requires a human Admin account
 Log in with the real Admin account and click through:

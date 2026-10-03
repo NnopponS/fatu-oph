@@ -72,11 +72,20 @@ export const LuckyDrawPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const token = firebaseUser ? await firebaseUser.getIdToken() : "";
-      const headers: Record<string, string> = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (!firebaseUser) {
+        setStatusData(null);
+        return;
+      }
 
-      const res = await fetch("/api/lucky-draw", { headers });
+      const token = await firebaseUser.getIdToken();
+      const res = await fetch("/api/lucky-draw", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: "status" }),
+      });
       const data: LuckyDrawStatus = await res.json();
       if (!res.ok) {
         throw new Error((data as unknown as { error?: string }).error || "ไม่สามารถโหลดข้อมูลสุ่มรางวัลได้");

@@ -19,7 +19,7 @@ const DEFAULT_LUCKY_PRIZES = [
     rarityLabel: "ระดับตำนาน (ทอง)",
     description: "ฟิกเกอร์มังกรฟ้าสุดพิเศษ ผลิตจำนวนจำกัดสำหรับงาน Open House 2026",
     weight: 10,
-    image: "/src/assets/mythology/azure-dragon.svg",
+    image: "/assets/mythology/azure-dragon.svg",
   },
   {
     id: "lucky_totebag",
@@ -28,7 +28,7 @@ const DEFAULT_LUCKY_PRIZES = [
     rarityLabel: "ระดับมหากาพย์ (ม่วง)",
     description: "กระเป๋าผ้าเนื้อหนา พิมพ์ลายสีทองพรีเมียม สไตล์จีนร่วมสมัย",
     weight: 25,
-    image: "/src/assets/decorations/dragon-seal.svg",
+    image: "/assets/decorations/dragon-seal.svg",
   },
   {
     id: "lucky_keychain",
@@ -37,7 +37,7 @@ const DEFAULT_LUCKY_PRIZES = [
     rarityLabel: "ระดับหายาก (ฟ้า)",
     description: "พวงกุญแจอะคริลิกสองด้าน ลายมาสคอตสัตว์เทพประจำแดนศิลปกรรม",
     weight: 35,
-    image: "/src/assets/animations/reward-chest.svg",
+    image: "/assets/animations/reward-chest.svg",
   },
   {
     id: "lucky_stickers",
@@ -46,7 +46,7 @@ const DEFAULT_LUCKY_PRIZES = [
     rarityLabel: "ระดับทั่วไป (เขียว)",
     description: "สติกเกอร์ไดคัทเคลือบโฮโลแกรมกันน้ำ ลวดลายมังกรและตราประทับมงคล",
     weight: 30,
-    image: "/src/assets/decorations/chinese-cloud.svg",
+    image: "/assets/decorations/chinese-cloud.svg",
   },
 ];
 
@@ -91,10 +91,12 @@ export async function POST(request: Request) {
 
       const account = accountSnap.val() || {};
       const visits = visitsSnap.val() || {};
-      const transactions = Object.values(account.transactions || {});
+      const transactions = Object.values(account.transactions || {}) as Array<{ activityId?: string }>;
+      const completedActivityIds = new Set(transactions.map((t) => t.activityId).filter(Boolean));
 
-      const hasActivity = transactions.some((t) => (t as { activityId?: string }).activityId);
-      const hasVenue = Object.keys(visits).length >= 1;
+      const hasActivity = completedActivityIds.size >= 1;
+      const visitedVenuesCount = Object.keys(visits).length;
+      const hasVenue = visitedVenuesCount >= 1;
       const eligible = hasActivity && hasVenue;
       const hasDrawn = luckySnap.exists();
       const drawRecord = luckySnap.val() || null;
@@ -105,11 +107,31 @@ export async function POST(request: Request) {
         voucher = vSnap.val() || null;
       }
 
+      const prize = hasDrawn ? {
+        id: String(voucher?.prizeId || drawRecord?.prizeId || ""),
+        title: String(voucher?.prizeName || drawRecord?.prizeName || ""),
+        description: voucher?.description || "",
+        tier: String(voucher?.rarity || drawRecord?.rarity || ""),
+        claimedAt: drawRecord?.drawnAt || voucher?.createdAt || "",
+        voucherCode: String(voucher?.voucherCode || drawRecord?.voucherCode || ""),
+        redeemed: voucher?.status === "claimed",
+        redeemedAt: voucher?.claimedAt || "",
+      } : null;
+
       return json({
-        eligible,
-        hasDrawn,
-        drawRecord,
-        voucher,
+        ok: true,
+        status: {
+          eligible,
+          claimed: hasDrawn,
+          prize,
+          conditions: {
+            hasVisitedVenue: hasVenue,
+            hasCompletedActivity: hasActivity,
+            visitedVenuesCount,
+            completedActivitiesCount: completedActivityIds.size,
+          },
+          catalogCount: DEFAULT_LUCKY_PRIZES.length,
+        },
       });
     }
 

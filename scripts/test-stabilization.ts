@@ -7,16 +7,18 @@ process.env.FIREBASE_ADMIN_PROJECT_ID = "demo-fatu-oph-2026";
 process.env.FIREBASE_DATABASE_URL = "https://demo-fatu-oph-2026-default-rtdb.firebaseio.com";
 process.env.VITE_FIREBASE_API_KEY = "fake-api-key";
 
-const [authModule, checkinModule, adminModule, server] = await Promise.all([
+const [authModule, checkinModule, adminModule, luckyDrawModule, server] = await Promise.all([
   import("../api/auth.ts"),
   import("../api/checkin.ts"),
   import("../api/admin.ts"),
+  import("../api/lucky-draw.ts"),
   import("../api/_lib/server.ts"),
 ]);
 
 const authHandler = authModule.POST;
 const checkinHandler = checkinModule.POST;
 const adminHandler = adminModule.POST;
+const luckyDrawHandler = luckyDrawModule.POST;
 const { adminDb, adminAuth } = server;
 
 async function call(
@@ -248,6 +250,27 @@ const statuses = [raceA.status, raceB.status].sort((a, b) => a - b);
 assert.deepEqual(statuses, [201, 409]);
 const raceIndex = (await adminDb.ref("operations/usernames/race_user").get()).val();
 assert.ok(raceIndex?.uid);
+
+console.log("8. Lucky Draw status contract, one-time draw, and claimed status");
+result = await call(luckyDrawHandler, { action: "status" }, participant2Token);
+assert.equal(result.status, 200);
+assert.equal(result.data.status.eligible, true);
+assert.equal(result.data.status.claimed, false);
+assert.equal(result.data.status.conditions.hasVisitedVenue, true);
+assert.equal(result.data.status.conditions.hasCompletedActivity, true);
+
+result = await call(luckyDrawHandler, { action: "draw" }, participant2Token);
+assert.equal(result.status, 200);
+assert.ok(result.data.voucher?.voucherCode);
+
+result = await call(luckyDrawHandler, { action: "status" }, participant2Token);
+assert.equal(result.status, 200);
+assert.equal(result.data.status.claimed, true);
+assert.ok(result.data.status.prize?.title);
+assert.ok(result.data.status.prize?.voucherCode);
+
+result = await call(luckyDrawHandler, { action: "draw" }, participant2Token);
+assert.ok(result.status === 400 || result.status === 409);
 
 console.log("\nSTABILIZATION REGRESSION SUITE PASSED");
 process.exit(0);
