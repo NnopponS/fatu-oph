@@ -45,7 +45,7 @@ export const StaffRegisterPage: React.FC = () => {
         password,
         department,
       });
-      navigate("/staff/pending");
+      navigate("/admin/pending");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลงทะเบียนเจ้าหน้าที่");
     } finally {
@@ -234,7 +234,7 @@ export const StaffRegisterPage: React.FC = () => {
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <span style={{ fontSize: 13, color: "var(--text-dark-muted)" }}>มีบัญชีเจ้าหน้าที่แล้ว? </span>
           <Link
-            to="/staff/login"
+            to="/admin/login"
             style={{ fontSize: 13, color: "var(--color-red-800)", fontWeight: 700, textDecoration: "underline" }}
           >
             เข้าสู่ระบบ Staff

@@ -36,7 +36,6 @@ const RegisterPage = lazyNamed(() => import("@/pages/RegisterPage"), "RegisterPa
 const ForgotPasswordPage = lazyNamed(() => import("@/pages/ForgotPasswordPage"), "ForgotPasswordPage");
 
 // Staff pages
-const StaffLoginPage = lazyNamed(() => import("@/pages/StaffLoginPage"), "StaffLoginPage");
 const StaffRegisterPage = lazyNamed(() => import("@/pages/StaffRegisterPage"), "StaffRegisterPage");
 const StaffPendingPage = lazyNamed(() => import("@/pages/StaffPendingPage"), "StaffPendingPage");
 const StaffDashboardPage = lazyNamed(() => import("@/pages/StaffDashboardPage"), "StaffDashboardPage");
@@ -85,15 +84,19 @@ export default function App() {
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Staff Portal Flows */}
-        <Route path="staff/login" element={<StaffLoginPage />} />
-        <Route path="staff/register" element={<StaffRegisterPage />} />
-        <Route path="staff/pending" element={<StaffPendingPage />} />
-        <Route path="staff/dashboard" element={<StaffDashboardPage />} />
+        <Route path="staff" element={<Navigate to="/admin" replace />} />
+        <Route path="staff/login" element={<Navigate to="/admin/login" replace />} />
+        <Route path="staff/register" element={<Navigate to="/admin/register" replace />} />
+        <Route path="staff/pending" element={<Navigate to="/admin/pending" replace />} />
+        <Route path="staff/dashboard" element={<Navigate to="/admin/field" replace />} />
 
         {/* Admin CMS */}
         <Route path="admin/login" element={<AdminLoginPage />} />
+        <Route path="admin/register" element={<StaffRegisterPage />} />
+        <Route path="admin/pending" element={<StaffPendingPage />} />
         <Route path="admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path="field" element={<StaffDashboardPage />} />
           <Route path="activities" element={<AdminContentPage kind="activities" />} />
           <Route path="venues" element={<AdminContentPage kind="venues" />} />
           <Route path="prizes" element={<AdminContentPage kind="prizes" />} />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { z, type ZodType } from "zod";
 import { realtimePaths, subscribeRealtime } from "@/services/realtime";
+import { formatPlaceText, realmFor } from "@/lib/realms";
 
 export const siteSchema = z.object({
   name: z.string().min(1),
@@ -164,7 +165,11 @@ export function useSite() {
 }
 
 export function useVenues(publishedOnly = true) {
-  return useCollection<Venue>(realtimePaths.public.venues, venueSchema, publishedOnly);
+  const state = useCollection<Venue>(realtimePaths.public.venues, venueSchema, publishedOnly);
+  return useMemo(() => ({ ...state, items: state.items.map(venue => {
+    const meta = realmFor(venue.visualIdentityKey);
+    return { ...venue, name: meta.place, mapUrl: meta.mapUrl, description: formatPlaceText(venue.description), directions: formatPlaceText(venue.directions), landmarkNotes: formatPlaceText(venue.landmarkNotes) };
+  }) }), [state]);
 }
 
 export function useActivities(publishedOnly = true) {

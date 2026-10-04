@@ -16,6 +16,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivities, useAnnouncements, useSite, useVenues } from "@/data/content";
 import { FloatingMythologyAura } from "@/components/AnimatedMythology";
+import { RealmPlaceCard } from "@/components/RealmPlaces";
+import { JourneyBoard } from "@/components/JourneyBoard";
+import { Lantern, QiParticles } from "@/components/WuxiaScene";
 
 // Canonical mythology data map for fallback & visual metadata
 const REALM_MAP: Record<
@@ -31,17 +34,17 @@ const REALM_MAP: Record<
 > = {
   "azure-dragon": {
     mythicalTitle: "สวรรค์แดนมังกรฟ้า",
-    venueName: "โรงละคร",
-    image: "/assets/characters/azure-dragon-mascot.svg",
-    artImage: "/images/azure-dragon-art.jpg",
+    venueName: "โรงละคอน",
+    image: "/assets/brand/dragon-seal.svg",
+    artImage: "/images/azure-dragon-art.webp",
     themeColor: "#1b8a9e",
     tagline: "การแสดง แสง สี เสียง และพิธีเปิดสุดตระการตา",
   },
   "white-tiger": {
     mythicalTitle: "เมืองมนุษย์พยัคฆ์ขาว",
-    venueName: "ตึกคณะ",
+    venueName: "ตึกคณะศิลปกรรมศาสตร์",
     image: "/assets/characters/white-tiger-mascot.svg",
-    artImage: "/images/white-tiger-art.jpg",
+    artImage: "/images/white-tiger-art.webp",
     themeColor: "#cda34f",
     tagline: "ศูนย์รวมนิทรรศการ เวิร์กช็อป และหลักสูตรศิลปกรรม",
   },
@@ -49,7 +52,7 @@ const REALM_MAP: Record<
     mythicalTitle: "ป่าแดนจิ้งจอก 9 หาง",
     venueName: "โรงทอ",
     image: "/assets/characters/nine-tailed-fox-mascot.svg",
-    artImage: "/images/nine-tailed-fox-art.jpg",
+    artImage: "/images/nine-tailed-fox-art.webp",
     themeColor: "#ba55d3",
     tagline: "สัมผัสนวัตกรรมสิ่งทอ แฟชั่น และศิลปะร่วมสมัย",
   },
@@ -57,7 +60,7 @@ const REALM_MAP: Record<
     mythicalTitle: "ถ้ำหงส์แดง",
     venueName: "ตึก SC3",
     image: "/assets/characters/red-phoenix-mascot.svg",
-    artImage: "/images/red-phoenix-art.jpg",
+    artImage: "/images/red-phoenix-art.webp",
     themeColor: "#d93838",
     tagline: "การประชันความคิดสร้างสรรค์ เวทีเสวนา และเกมสะสมแต้ม",
   },
@@ -90,15 +93,17 @@ export function HomePage() {
       {/* ========================================================================= */}
       {!isParticipantLoggedIn ? (
         <section
-          className="chinese-hero"
+          className="chinese-hero home-cinematic"
           style={{
             padding: "36px 16px 30px",
-            background: "linear-gradient(180deg, rgba(252, 250, 244, 0.88) 0%, rgba(247, 242, 230, 0.97) 100%), url('/images/hero-chinese-landscape.jpg') center top / cover no-repeat",
+            background: "linear-gradient(180deg, rgba(5, 29, 33, 0.52) 0%, rgba(5, 29, 33, 0.97) 100%), url('/images/hero-chinese-landscape.webp') center top / cover no-repeat",
             borderBottom: "1.5px solid var(--color-gold-400)",
             position: "relative",
           }}
         >
           <div className="chinese-hero-clouds" />
+          <QiParticles count={12} />
+          <div className="hero-lantern left"><Lantern /></div><div className="hero-lantern right"><Lantern /></div>
           <div className="chinese-hero-tagline" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <Sparkles style={{ width: 14, height: 14, color: "var(--color-gold-700)" }} />
             {site.item?.name || "FATU OPEN HOUSE 2026"}
@@ -108,7 +113,7 @@ export function HomePage() {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "14px 0 10px" }}>
             <FloatingMythologyAura duration={3400} distance={5}>
               <div style={{ width: 116, height: 116, borderRadius: "50%", padding: 3, background: "linear-gradient(135deg, var(--color-gold-400), var(--color-gold-700), var(--color-gold-300))", boxShadow: "0 4px 18px rgba(179, 134, 40, 0.35)" }}>
-                <img src="/images/azure-dragon-art.jpg" alt="Azure Dragon" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+                <img src="/images/azure-dragon-art.webp" alt="Azure Dragon" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
               </div>
             </FloatingMythologyAura>
           </div>
@@ -116,7 +121,7 @@ export function HomePage() {
           <h1 className="chinese-hero-title">{site.item?.theme || "ตะลุยแดนมังกร"}</h1>
           <div className="chinese-hero-subtitle" style={{ color: "var(--color-gold-700)" }}>FACULTY OF FINE AND APPLIED ARTS</div>
           <p className="chinese-hero-desc" style={{ color: "var(--text-dark-secondary)" }}>
-            {site.item?.description || "ผจญภัยสู่ 4 แดนศักดิ์สิทธิ์ สแกน QR ทำภารกิจ สะสมคะแนน แลกรับของรางวัลสุดพรีเมียม"}
+            {site.item?.description && !/mock environment/i.test(site.item.description) ? site.item.description : "ผจญภัยสู่ 4 แดนศักดิ์สิทธิ์ สแกน QR ทำภารกิจ สะสมคะแนน แลกรับของรางวัลสุดพรีเมียม"}
           </p>
 
           <div
@@ -134,7 +139,7 @@ export function HomePage() {
               margin: "12px auto 20px",
             }}
           >
-            <span>{site.item?.dateLabel || "21-22 มีนาคม 2026"}</span>
+            <span>{site.item?.dateLabel || "กำหนดวันจัดงานเร็ว ๆ นี้"}</span>
             <span>·</span>
             <span>{site.item?.locationLabel || "คณะศิลปกรรมศาสตร์ มธ. รังสิต"}</span>
           </div>
@@ -188,7 +193,7 @@ export function HomePage() {
                   marginTop: 2,
                 }}
               >
-                🚩 แดนเริ่มต้นที่เจ้าเลือก: <strong>{REALM_MAP[chosenRealmKey].mythicalTitle}</strong> ({REALM_MAP[chosenRealmKey].venueName})
+                จุดเริ่มต้นที่คุณเลือก: <strong>{REALM_MAP[chosenRealmKey].venueName}</strong>
               </div>
             )}
           </div>
@@ -352,7 +357,7 @@ export function HomePage() {
                 }}
               >
                 <img
-                  src="/images/celestial-mystery-chest.jpg"
+                  src="/images/celestial-mystery-chest.webp"
                   alt="กล่องสวรรค์"
                   style={{
                     width: 44,
@@ -427,6 +432,8 @@ export function HomePage() {
       )}
 
       {/* ========================================================================= */}
+      <JourneyBoard />
+
       {/* 2. IMPORTANT ANNOUNCEMENTS                                                */}
       {/* ========================================================================= */}
       {announcements.items.length > 0 && (
@@ -470,151 +477,9 @@ export function HomePage() {
       {/* ========================================================================= */}
       {/* 3. THE 4 SACRED REALMS (EXPEDITION STATIONS)                              */}
       {/* ========================================================================= */}
-      <section style={{ padding: "0 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-gold-500)", letterSpacing: "0.08em" }}>
-              EXPEDITION REALMS
-            </span>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--text-light-primary)", margin: "2px 0 0" }}>
-              4 แดนศักดิ์สิทธิ์
-            </h2>
-          </div>
-          <Link to="/map" style={{ fontSize: 12, color: "var(--color-gold-400)", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
-            แผนที่งาน <ChevronRight style={{ width: 14, height: 14 }} />
-          </Link>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {venues.items.map((venue) => {
-            const meta = REALM_MAP[venue.visualIdentityKey] || {
-              mythicalTitle: venue.visualLabel || venue.name,
-              venueName: venue.name,
-              image: "/assets/mythology/azure-dragon.svg",
-              artImage: "/images/azure-dragon-art.jpg",
-              themeColor: "#cda34f",
-              tagline: venue.description,
-            };
-
-            const isVisited = visitedLocationIds.has(venue.id);
-            const venueActivities = activities.items.filter((a) => a.venueId === venue.id);
-
-            return (
-              <Link
-                key={venue.id}
-                to={`/venue/${venue.id}`}
-                style={{
-                  textDecoration: "none",
-                  background: "#ffffff",
-                  border: isVisited ? "1.5px solid var(--color-gold-500)" : "1px solid var(--border-gold-subtle)",
-                  borderRadius: 18,
-                  padding: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  position: "relative",
-                  overflow: "hidden",
-                  boxShadow: isVisited ? "0 4px 18px rgba(179, 134, 40, 0.2)" : "0 3px 12px rgba(100, 70, 30, 0.06)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {/* Mythological Creature Emblem */}
-                <div
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 16,
-                    background: "#fbf8f1",
-                    border: `2px solid ${meta.themeColor}`,
-                    display: "grid",
-                    placeItems: "center",
-                    flexShrink: 0,
-                    overflow: "hidden",
-                    boxShadow: `0 2px 10px ${meta.themeColor}33`,
-                  }}
-                >
-                  <img
-                    src={meta.artImage || meta.image}
-                    alt={venue.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
-
-                {/* Realm Details */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: meta.themeColor,
-                        letterSpacing: "0.05em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {venue.name}
-                    </span>
-
-                    {isParticipantLoggedIn && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: "2px 6px",
-                          borderRadius: 10,
-                          backgroundColor: isVisited ? "rgba(46, 125, 50, 0.12)" : "rgba(205, 163, 79, 0.15)",
-                          color: isVisited ? "#166534" : "var(--color-gold-700)",
-                          border: isVisited ? "1px solid rgba(102, 187, 106, 0.5)" : "1px solid rgba(205, 163, 79, 0.4)",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                        }}
-                      >
-                        {isVisited ? <CheckCircle2 style={{ width: 10, height: 10 }} /> : null}
-                        {isVisited ? "สำรวจแล้ว" : "ยังไม่เช็กอิน"}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 800,
-                      color: "var(--text-dark-primary)",
-                      margin: "4px 0 2px",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {venue.visualLabel || meta.mythicalTitle}
-                  </h3>
-
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "var(--text-dark-secondary)",
-                      margin: 0,
-                      lineHeight: 1.4,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 1,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {venue.description || meta.tagline}
-                  </p>
-
-                  <div style={{ fontSize: 11, color: "var(--color-gold-700)", marginTop: 4, fontWeight: 600 }}>
-                    {venueActivities.length} กิจกรรมให้ร่วมสนุก
-                  </div>
-                </div>
-
-                <ChevronRight style={{ width: 18, height: 18, color: "var(--color-gold-600)", flexShrink: 0 }} />
-              </Link>
-            );
-          })}
-        </div>
+      <section className="home-real-places">
+        <div className="places-section-heading"><div><span className="section-kicker">FOUR PLACES · ONE ADVENTURE</span><h2>เริ่มต้นที่ไหนดี?</h2><p>ไปสัมผัสสถานที่จริง แล้วพบผู้พิทักษ์ของคุณ</p></div><Link to="/map">แผนที่งาน <ChevronRight size={16} /></Link></div>
+        <div className="realm-place-grid">{venues.items.map((venue, index) => <RealmPlaceCard key={venue.id} venue={venue} index={index} count={activities.items.filter(activity => activity.venueId === venue.id).length} visited={visitedLocationIds.has(venue.id)} />)}</div>
       </section>
 
       {/* ========================================================================= */}

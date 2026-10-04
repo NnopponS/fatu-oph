@@ -40,19 +40,26 @@ export function AdminLayout() {
   >({ status: "loading" });
 
   useEffect(
-    () =>
-      subscribeToAuthState((user) => {
+    () => {
+      let active = true;
+      let revision = 0;
+      const unsubscribe = subscribeToAuthState((user) => {
+        const currentRevision = ++revision;
         if (!user) return setSession({ status: "signed-out" });
+        setSession({ status: "loading" });
         void getStaffRole(user)
           .then((role) => {
+            if (!active || currentRevision !== revision) return;
             if (role === "staff_pending") {
-              navigate("/staff/pending", { replace: true });
+              navigate("/admin/pending", { replace: true });
               return;
             }
             setSession(role ? { status: "ready", user, role } : { status: "forbidden" });
           })
-          .catch(() => setSession({ status: "forbidden" }));
-      }),
+          .catch(() => { if (active && currentRevision === revision) setSession({ status: "forbidden" }); });
+      });
+      return () => { active = false; unsubscribe(); };
+    },
     [navigate],
   );
 
@@ -62,8 +69,9 @@ export function AdminLayout() {
 
   if (session.status !== "ready") return null;
 
-  const links = [
+  const modules = [
     { href: "/admin", label: "ภาพรวม", roles: ["admin", "editor", "staff", "viewer"] },
+    { href: "/admin/field", label: "เช็กอิน / จ่ายรางวัล", roles: ["admin", "staff"] },
     { href: "/admin/activities", label: "กิจกรรม", roles: ["admin", "editor"] },
     { href: "/admin/venues", label: "สถานที่", roles: ["admin", "editor"] },
     { href: "/admin/prizes", label: "ของรางวัล", roles: ["admin", "editor"] },
@@ -73,34 +81,43 @@ export function AdminLayout() {
     { href: "/admin/media", label: "สื่อ", roles: ["admin", "editor"] },
     { href: "/admin/audit", label: "Audit", roles: ["admin"] },
     { href: "/admin/settings", label: "ตั้งค่า / Staff", roles: ["admin", "editor"] },
-  ].filter((item) => item.roles.includes(session.role));
+  ];
+  const links = modules.filter((item) => item.roles.includes(session.role));
+  const pageModule = modules.find(item => location.pathname === item.href || location.pathname.startsWith(`${item.href}/`));
+  // Select the exact route before the root /admin module when checking direct URLs.
+  const requestedModule = modules.find(item => location.pathname === item.href) || pageModule;
+  const allowed = !requestedModule || requestedModule.roles.includes(session.role);
+  const roleLabels: Record<StaffRole, string> = { admin: "ผู้ดูแลระบบ", editor: "ผู้ดูแลเนื้อหา", staff: "เจ้าหน้าที่", viewer: "ผู้สังเกตการณ์", staff_pending: "รออนุมัติ" };
 
   return (
     <main className="admin-shell">
       <header className="admin-topbar">
-        <div><strong>FATU OPH 2026</strong><small>{session.user.email} · {session.role}</small></div>
-        <button className="text-button" onClick={() => void signOutAdmin().then(() => navigate("/admin/login"))}>ออกจากระบบ</button>
+        <div><strong>ศูนย์บัญชาการ · FATU OPH 2026</strong><small>{session.user.email} · {roleLabels[session.role]}</small></div>
+        <div className="portal-topbar-actions"><Link to="/">ดูหน้าเว็บ</Link><button className="text-button" onClick={() => void signOutAdmin().then(() => navigate("/admin/login"))}>ออกจากระบบ</button></div>
       </header>
-      <nav className="admin-nav" aria-label="Admin navigation">
+      <nav className="admin-nav" aria-label="เมนูทีมงานตามสิทธิ์">
         {links.map(({ href, label }) => <Link className={location.pathname === href ? "active" : ""} key={href} to={href}>{label}</Link>)}
       </nav>
-      <div className="admin-content"><Outlet context={{ user: session.user, role: session.role } satisfies AdminSession} /></div>
+      <div className="admin-content">{allowed ? <Outlet context={{ user: session.user, role: session.role } satisfies AdminSession} /> : <section className="admin-card" role="alert"><h1 className="admin-page-title">ไม่มีสิทธิ์เข้าหน้านี้</h1><p>บัญชี{roleLabels[session.role]}ไม่สามารถใช้เมนูนี้ได้</p><Link className="button-imperial-red" to="/admin">กลับหน้าทำงาน</Link></section>}</div>
     </main>
   );
 }
 
 export function AdminDashboardPage() {
   const { role } = useAdminSession();
+  if (role === "staff") return <Navigate to="/admin/field" replace />;
   const modules = [
     ["กิจกรรม", "สร้าง/แก้ไขกิจกรรม เวลา คะแนน และ QR", "/admin/activities", ["admin", "editor"]],
     ["สถานที่", "แก้ข้อมูลสถานที่จริงและการเดินทาง", "/admin/venues", ["admin", "editor"]],
     ["ผู้เข้าร่วม", "ค้นหา ปรับแต้ม และแลกรางวัล", "/admin/operations", ["admin", "staff"]],
+    ["ปฏิบัติงานหน้างาน", "บันทึกกิจกรรมและตรวจ Voucher รับรางวัล", "/admin/field", ["admin", "staff"]],
     ["สื่อ", "อัปโหลดรูป/วิดีโอเมื่อ Vercel Blob พร้อม", "/admin/media", ["admin", "editor"]],
   ].filter(([, , , roles]) => (roles as string[]).includes(role));
   return (
     <section>
-      <span className="section-kicker">ADMIN</span>
+      <span className="section-kicker">TEAM PORTAL</span>
       <h1 className="admin-page-title">ระบบจัดการ Open House</h1>
+      <p>เลือกงานที่ต้องการทำ เมนูด้านบนแสดงเฉพาะสิทธิ์ของบัญชีคุณ</p>
       <div className="admin-dashboard-grid">
         {modules.map(([title, text, href]) => <Link className="admin-module-card" to={href as string} key={href as string}><h2>{title}</h2><p>{text}</p></Link>)}
       </div>

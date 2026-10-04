@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { adminAuth, adminDb, grantActivityPoints, json, publicError, randomToken, readJson, requireStaff, resolveParticipant } from "./_lib/server.js";
+import { adminAuth, adminDb, grantActivityPoints, isValidUsername, json, normalizeUsername, publicError, randomToken, readJson, requireStaff, resolveParticipant } from "./_lib/server.js";
 
 const adjustSchema = z.object({
   action: z.literal("adjustPoints"),
@@ -23,6 +23,11 @@ const qrSchema = z.object({
 const passLookupSchema = z.object({
   action: z.literal("participantByPass"),
   passToken: z.string().min(20),
+});
+
+const usernameLookupSchema = z.object({
+  action: z.literal("participantByUsername"),
+  username: z.string().trim().min(1).max(40),
 });
 
 const completeSchema = z.object({
@@ -199,6 +204,21 @@ export async function POST(request: Request) {
     if (body.action === "participants") {
       if (actor.role !== "admin" && actor.role !== "staff") return json({ error: "ไม่มีสิทธิ์ดูข้อมูลผู้เข้าร่วม" }, 403);
       return json({ participants: await participantRows() });
+    }
+
+    if (body.action === "participantByUsername") {
+      if (actor.role !== "admin" && actor.role !== "staff") return json({ error: "ไม่มีสิทธิ์ดูข้อมูลผู้เข้าร่วม" }, 403);
+      const input = usernameLookupSchema.parse(body);
+      const normalized = normalizeUsername(input.username);
+      const validUsername = isValidUsername(normalized) && !normalized.includes(".");
+      const validUid = /^[A-Za-z0-9_-]{1,128}$/.test(input.username);
+      if (!validUsername && !validUid) return json({ error: "กรุณากรอกชื่อผู้ใช้หรือ UID ให้ถูกต้อง" }, 400);
+      const index = validUsername ? (await adminDb.ref(`operations/usernames/${normalized}`).get()).val() : null;
+      const uid = index?.role === "participant" ? index.uid : validUid ? input.username : null;
+      if (!uid) return json({ error: "ไม่พบชื่อผู้ใช้ผู้เข้าร่วมนี้" }, 404);
+      const participant = (await adminDb.ref(`operations/participants/${uid}`).get()).val();
+      if (!participant || participant.status === "disabled") return json({ error: "บัญชีผู้เข้าร่วมนี้ไม่พร้อมใช้งาน" }, 404);
+      return json({ participant: { id: uid, username: participant.username, displayName: participant.displayName } });
     }
 
     if (body.action === "participantByPass") {

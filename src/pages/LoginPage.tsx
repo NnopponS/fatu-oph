@@ -21,8 +21,8 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(username, password);
-      navigate("/");
+      const account = await login(username, password);
+      navigate(account.role === "staff_pending" ? "/admin/pending" : ["admin", "editor", "staff", "viewer"].includes(account.role) ? "/admin" : "/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
     } finally {
@@ -157,7 +157,7 @@ export const LoginPage: React.FC = () => {
         <div style={{ textAlign: "center", marginTop: 28, paddingTop: 16, borderTop: "1px dashed rgba(205, 163, 79, 0.3)" }}>
           <span style={{ fontSize: 12, color: "var(--text-dark-muted)" }}>สำหรับเจ้าหน้าที่และสตาฟ: </span>
           <Link
-            to="/staff/login"
+            to="/admin/login"
             style={{ fontSize: 12, color: "var(--color-gold-700)", fontWeight: 600, textDecoration: "none" }}
           >
             เข้าสู่ระบบ Staff →

@@ -10,7 +10,7 @@ export const StaffPendingPage: React.FC = () => {
 
   useEffect(() => {
     if (isStaff && role !== "staff_pending") {
-      navigate("/staff/dashboard");
+      navigate("/admin");
     }
   }, [isStaff, role, navigate]);
 
@@ -98,7 +98,7 @@ export const StaffPendingPage: React.FC = () => {
           <button
             onClick={async () => {
               await logout();
-              navigate("/staff/login");
+              navigate("/admin/login");
             }}
             className="chinese-btn-secondary"
           >

@@ -15,8 +15,10 @@ import {
   Send,
 } from "lucide-react";
 import jsQR from "jsqr";
-import { TopHeader } from "@/components/TopHeader";
-import { BottomNavBar } from "@/components/BottomNavBar";
+import { SealBurst } from "@/components/WuxiaScene";
+import { DragonScroll } from "@/components/DragonScroll";
+import { useVenues } from "@/data/content";
+import { placeName, realmForPlace } from "@/lib/realms";
 import { ThemedLoading } from "@/components/ThemedLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,6 +36,8 @@ interface CheckinResult {
 
 export const ScanPage: React.FC = () => {
   const { firebaseUser, profile, refreshProfile } = useAuth();
+  const venues = useVenues();
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,8 +46,11 @@ export const ScanPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isScanningRef = useRef<boolean>(false);
   const lastScanTimeRef = useRef<number>(0);
+  const cameraGenerationRef = useRef(0);
+  const verifyingRef = useRef(false);
 
   const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [hasTorch, setHasTorch] = useState<boolean>(false);
@@ -56,6 +63,26 @@ export const ScanPage: React.FC = () => {
   // Manual code entry state
   const [showManualInput, setShowManualInput] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>("");
+
+  const resultVisible = Boolean(checkinResult);
+  useEffect(() => {
+    if (!resultVisible) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    resultRef.current?.focus({ preventScroll: true });
+    function keys(event: KeyboardEvent) {
+      if (event.key === "Escape") setCheckinResult(null);
+      if (event.key !== "Tab") return;
+      const controls = Array.from(resultRef.current?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") || []);
+      const first = controls[0]; const last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === resultRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === resultRef.current)) { event.preventDefault(); first.focus(); }
+    }
+    document.addEventListener("keydown", keys);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keys); previousFocus?.focus({ preventScroll: true }); };
+  }, [resultVisible]);
 
   // Play auspicious success chime using Web Audio API
   const playSuccessChime = useCallback(() => {
@@ -79,12 +106,14 @@ export const ScanPage: React.FC = () => {
 
       osc.start();
       osc.stop(ctx.currentTime + 0.6);
+      osc.onended = () => { void ctx.close(); };
     } catch {
       // Audio not permitted or supported
     }
   }, []);
 
   const stopCamera = useCallback(() => {
+    cameraGenerationRef.current += 1;
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
@@ -94,13 +123,25 @@ export const ScanPage: React.FC = () => {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+    }
     setCameraActive(false);
+    setCameraStarting(false);
     setTorchOn(false);
     setHasTorch(false);
   }, []);
 
   const handleVerifyPayload = useCallback(
     async (payload: string) => {
+      if (verifyingRef.current) return;
+      if (!firebaseUser) {
+        setVerifying(false);
+        setErrorMessage("กรุณาเข้าสู่ระบบก่อนเช็กอินเพื่อบันทึกแต้มลงใบเบิกทาง");
+        return;
+      }
+      verifyingRef.current = true;
       stopCamera();
       setVerifying(true);
       setErrorMessage(null);
@@ -127,6 +168,7 @@ export const ScanPage: React.FC = () => {
       } catch (err: unknown) {
         setErrorMessage(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการตรวจสอบ QR Code");
       } finally {
+        verifyingRef.current = false;
         setVerifying(false);
       }
     },
@@ -156,7 +198,10 @@ export const ScanPage: React.FC = () => {
   };
 
   const startCamera = useCallback(async () => {
+    if (verifyingRef.current) return;
     stopCamera();
+    const generation = cameraGenerationRef.current;
+    setCameraStarting(true);
     setCameraError(null);
     setErrorMessage(null);
     setCheckinResult(null);
@@ -164,6 +209,9 @@ export const ScanPage: React.FC = () => {
     let stream: MediaStream | null = null;
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("เบราว์เซอร์นี้ไม่รองรับกล้อง กรุณาเปิดผ่าน HTTPS หรือใช้รูป QR");
+      }
       // 1. Try with preferred facingMode
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -174,7 +222,8 @@ export const ScanPage: React.FC = () => {
           },
           audio: false,
         });
-      } catch {
+      } catch (error) {
+        if (error instanceof DOMException && ["NotAllowedError", "SecurityError"].includes(error.name)) throw error;
         // Fallback to basic video stream without constraints
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
@@ -186,14 +235,24 @@ export const ScanPage: React.FC = () => {
         throw new Error("Unable to obtain video stream");
       }
 
+      if (generation !== cameraGenerationRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
       streamRef.current = stream;
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) throw new Error("ไม่พบหน้าต่างแสดงภาพกล้อง กรุณาลองเปิดกล้องอีกครั้ง");
 
       video.srcObject = stream;
       video.setAttribute("playsinline", "true");
       video.setAttribute("webkit-playsinline", "true");
       await video.play();
+
+      if (generation !== cameraGenerationRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
 
       setCameraActive(true);
       isScanningRef.current = true;
@@ -226,7 +285,7 @@ export const ScanPage: React.FC = () => {
       const TARGET_WIDTH = 480;
 
       const scanLoop = async (timestamp: number) => {
-        if (!isScanningRef.current) return;
+        if (!isScanningRef.current || generation !== cameraGenerationRef.current) return;
 
         // Throttle scans to once every 100ms
         if (timestamp - lastScanTimeRef.current >= 100) {
@@ -238,6 +297,7 @@ export const ScanPage: React.FC = () => {
             if (nativeDetector) {
               try {
                 const barcodes = await nativeDetector.detect(currentVideo);
+                if (!isScanningRef.current || generation !== cameraGenerationRef.current) return;
                 if (barcodes.length > 0 && barcodes[0].rawValue) {
                   isScanningRef.current = false;
                   void handleVerifyPayload(barcodes[0].rawValue);
@@ -280,10 +340,15 @@ export const ScanPage: React.FC = () => {
       };
 
       frameRef.current = requestAnimationFrame(scanLoop);
-    } catch {
-      setCameraError("ไม่สามารถเข้าถึงกล้องได้ กรุณาอนุญาตสิทธิ์กล้องในเบราว์เซอร์ หรือกดอัปโหลดรูปภาพ / กรอกรหัส");
-      setCameraActive(false);
-      isScanningRef.current = false;
+    } catch (error) {
+      stream?.getTracks().forEach((track) => track.stop());
+      if (generation !== cameraGenerationRef.current) return;
+      stopCamera();
+      setCameraError(error instanceof DOMException && error.name === "NotFoundError"
+        ? "ไม่พบกล้องในอุปกรณ์นี้ ใช้อัปโหลดรูป QR หรือกรอกรหัสแทนได้"
+        : "เปิดกล้องไม่ได้ กรุณาอนุญาตสิทธิ์กล้องในเบราว์เซอร์ แล้วกดเปิดกล้องอีกครั้ง หรือใช้รูป QR / กรอกรหัส");
+    } finally {
+      if (generation === cameraGenerationRef.current) setCameraStarting(false);
     }
   }, [facingMode, handleVerifyPayload, stopCamera]);
 
@@ -298,13 +363,21 @@ export const ScanPage: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    stopCamera();
+    e.target.value = "";
 
     setVerifying(true);
     setErrorMessage(null);
 
     const reader = new FileReader();
+    const failRead = () => {
+      setVerifying(false);
+      setErrorMessage("อ่านรูปภาพไม่ได้ กรุณาเลือกรูป QR ที่ชัดเจนอีกครั้ง");
+    };
+    reader.onerror = failRead;
     reader.onload = (event) => {
       const img = new Image();
+      img.onerror = failRead;
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const maxDim = 1000;
@@ -325,7 +398,7 @@ export const ScanPage: React.FC = () => {
             setVerifying(false);
             setErrorMessage("ไม่พบ QR Code ในรูปภาพที่อัปโหลด กรุณาถ่ายภาพให้เห็น QR ชัดเจนและสว่างขึ้น");
           }
-        }
+        } else failRead();
       };
       img.src = event.target?.result as string;
     };
@@ -341,8 +414,7 @@ export const ScanPage: React.FC = () => {
   const recentTransactions = profile?.transactions || [];
 
   return (
-    <div className="mobile-viewport">
-      <TopHeader title="สแกน QR" />
+    <div className="scan-page">
 
       {/* Hero Header */}
       <div className="chinese-hero" style={{ paddingBottom: 16 }}>
@@ -351,7 +423,7 @@ export const ScanPage: React.FC = () => {
           <HelpCircle style={{ width: 18, height: 18, color: "var(--color-gold-400)" }} />
         </div>
         <p className="chinese-hero-desc">
-          สแกน QR Code ณ จุดเช็กอินหรือกิจกรรมภายในงาน เพื่อสะสมคะแนนและร่วมสุ่มกล่องสวรรค์
+          เปิดคัมภีร์ สแกน QR ที่จุดกิจกรรม แล้วรับตราประทับและพลังจากผู้พิทักษ์
         </p>
       </div>
 
@@ -371,15 +443,15 @@ export const ScanPage: React.FC = () => {
             border: "2px solid var(--border-gold-subtle)",
           }}
         >
-          {cameraActive ? (
-            <video
+          <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              aria-label="ภาพสดจากกล้องสแกน QR"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: cameraActive ? 1 : 0 }}
             />
-          ) : (
+          {!cameraActive && (
             <div
               style={{
                 width: "100%",
@@ -394,15 +466,17 @@ export const ScanPage: React.FC = () => {
               }}
             >
               <img
-                src="/assets/characters/azure-dragon-mascot.svg"
+                src="/assets/brand/dragon-seal.svg"
                 alt=""
+                className="scan-dormant-mark"
                 style={{ width: 85, height: 85, opacity: 0.85, marginBottom: 12 }}
               />
               <div style={{ color: "var(--color-gold-300)", fontSize: 13, fontWeight: 700 }}>
-                {cameraError ? "กล้องปิดอยู่" : "กดปุ่มเปิดกล้องเพื่อเริ่มสแกน"}
+                {cameraStarting ? "กำลังเปิดกล้อง..." : cameraError ? "กล้องปิดอยู่" : "กดปุ่มเปิดกล้องเพื่อเริ่มสแกน"}
               </div>
             </div>
           )}
+          {cameraActive && <div className="scanner-energy-line" aria-hidden="true" />}
 
           <canvas ref={canvasRef} hidden />
 
@@ -492,6 +566,8 @@ export const ScanPage: React.FC = () => {
           </div>
         </div>
 
+        {cameraError && <div className="scanner-camera-error" role="alert"><AlertTriangle size={18} /><p>{cameraError}</p></div>}
+
         {/* Error Notification */}
         {errorMessage && (
           <div
@@ -518,11 +594,12 @@ export const ScanPage: React.FC = () => {
           <button
             type="button"
             onClick={startCamera}
+            disabled={cameraStarting || verifying}
             className="chinese-btn-primary"
             style={{ fontSize: 13, padding: "10px 14px" }}
           >
             <Camera style={{ width: 17, height: 17 }} />
-            <span>{cameraActive ? "รีสตาร์ตกล้อง" : "เปิดกล้อง"}</span>
+            <span>{cameraStarting ? "กำลังเปิดกล้อง..." : cameraActive ? "รีสตาร์ตกล้อง" : "เปิดกล้อง"}</span>
           </button>
 
           <button
@@ -680,7 +757,7 @@ export const ScanPage: React.FC = () => {
                         {tx.activityTitle || "กิจกรรม FATU Open House"}
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-dark-muted)", marginTop: 2 }}>
-                        {tx.venueName || "สถานที่จัดงาน"} • {tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : "วันนี้"}
+                        {placeName(tx.venueName || "สถานที่จัดงาน")} • {tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : "วันนี้"}
                       </div>
                     </div>
                   </div>
@@ -705,79 +782,24 @@ export const ScanPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Celebratory Check-in Success Banner / Modal */}
       <AnimatePresence>
-        {checkinResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50 }}
-            style={{
-              position: "fixed",
-              bottom: 80,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "calc(100% - 32px)",
-              maxWidth: 440,
-              background: checkinResult.duplicate
-                ? "linear-gradient(135deg, #1e293b, #0f172a)"
-                : "linear-gradient(135deg, #14532d, #064e3b)",
-              border: `2px solid ${checkinResult.duplicate ? "#94a3b8" : "#4ade80"}`,
-              borderRadius: 16,
-              padding: 16,
-              color: "#ffffff",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
-              zIndex: 999,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  background: checkinResult.duplicate ? "rgba(148, 163, 184, 0.2)" : "rgba(74, 222, 128, 0.2)",
-                  display: "grid",
-                  placeItems: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <CheckCircle style={{ width: 28, height: 28, color: checkinResult.duplicate ? "#94a3b8" : "#4ade80" }} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 15 }}>
-                  {checkinResult.duplicate ? "บันทึกไว้แล้ว" : "เช็กอินสำเร็จ!"}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>
-                  {checkinResult.message}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {!checkinResult.duplicate && checkinResult.pointsAdded > 0 && (
-                <div style={{ fontSize: 16, fontWeight: 900, color: "#fef08a" }}>
-                  +{checkinResult.pointsAdded}
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => setCheckinResult(null)}
-                style={{ background: "none", border: "none", color: "#ffffff", cursor: "pointer", padding: 4 }}
-              >
-                <X style={{ width: 20, height: 20 }} />
-              </button>
-            </div>
+        {checkinResult && <motion.div ref={resultRef} tabIndex={-1} className="checkin-celebration" role="dialog" aria-modal="true" aria-labelledby="checkin-result-title" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="checkin-result-card" initial={{ y: 24, scale: .92 }} animate={{ y: 0, scale: 1 }}>
+            {!checkinResult.duplicate && <><div className="checkin-energy-background" aria-hidden="true" /><div className="checkin-power-label">THE GUARDIAN'S BLESSING</div><DragonScroll empowered identity={realmForPlace(checkinResult.locationName)?.[0] || venues.items.find(venue => venue.name === checkinResult.locationName)?.visualIdentityKey || "azure-dragon"} /></>}
+            <button className="checkin-close" aria-label="ปิดผลเช็กอิน" onClick={() => setCheckinResult(null)}><X size={20} /></button>
+            {!checkinResult.duplicate ? <SealBurst label="ประทับตราสำเร็จ" points={checkinResult.pointsAdded} /> : <div className="checkin-duplicate"><CheckCircle size={50} /><h2>บันทึกไว้แล้ว</h2></div>}
+            <h2 id="checkin-result-title">{placeName(checkinResult.locationName)}</h2>
+            <strong>{checkinResult.activityTitle}</strong>
+            <p>{checkinResult.message}</p>
+            <div className="checkin-total">แต้มในใบเบิกทาง <b>{checkinResult.pointTotal}</b></div>
+            <Link className="button-imperial-red" to="/schedule">เลือกภารกิจถัดไป <ArrowRight size={17} /></Link>
+            <button className="button-gold-outline" onClick={() => { setCheckinResult(null); void startCamera(); }}>สแกนกิจกรรมต่อไป</button>
           </motion.div>
-        )}
+        </motion.div>}
       </AnimatePresence>
 
       {verifying && <ThemedLoading fullscreen message="กำลังตรวจสอบจุดเช็กอิน..." />}
 
-      <BottomNavBar />
     </div>
   );
 };

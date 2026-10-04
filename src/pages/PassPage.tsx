@@ -17,47 +17,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVenues } from "@/data/content";
-import { AnimatedSealStamp } from "@/components/AnimatedMythology";
-
-const REALM_STAMPS: Record<
-  string,
-  {
-    name: string;
-    sealTitle: string;
-    venueName: string;
-    image: string;
-    themeColor: string;
-  }
-> = {
-  "azure-dragon": {
-    name: "มังกรฟ้า",
-    sealTitle: "ตรามังกรฟ้า",
-    venueName: "โรงละคร",
-    image: "/assets/mythology/azure-dragon.svg",
-    themeColor: "#1b8a9e",
-  },
-  "white-tiger": {
-    name: "พยัคฆ์ขาว",
-    sealTitle: "ตราพยัคฆ์ขาว",
-    venueName: "ตึกคณะ",
-    image: "/assets/mythology/white-tiger.svg",
-    themeColor: "#cda34f",
-  },
-  "nine-tailed-fox": {
-    name: "จิ้งจอก 9 หาง",
-    sealTitle: "ตราจิ้งจอก 9 หาง",
-    venueName: "โรงทอ",
-    image: "/assets/mythology/nine-tailed-fox.svg",
-    themeColor: "#ba55d3",
-  },
-  "red-phoenix": {
-    name: "หงส์แดง",
-    sealTitle: "ตราหงส์แดง",
-    venueName: "ตึก SC3",
-    image: "/assets/mythology/red-phoenix.svg",
-    themeColor: "#d93838",
-  },
-};
+import { VenuePhoto, GuardianButton } from "@/components/RealmPlaces";
+import { placeName, realmFor } from "@/lib/realms";
 
 export function PassPage() {
   const { firebaseUser, profile, logout } = useAuth();
@@ -89,7 +50,7 @@ export function PassPage() {
           style={{ padding: "36px 20px", border: "2px solid var(--color-gold-500)" }}
         >
           <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 8px" }}>
-            <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            <img src="/assets/brand/dragon-seal.svg" alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-950)", margin: 0 }}>
             ใบเบิกทางจอมยุทธ์
@@ -137,7 +98,7 @@ export function PassPage() {
       >
         {/* Background watermark */}
         <div style={{ position: "absolute", top: -10, right: -10, opacity: 0.05, pointerEvents: "none" }}>
-          <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
+          <img src="/assets/brand/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
         </div>
 
         {/* Top Pass Header */}
@@ -265,7 +226,7 @@ export function PassPage() {
         }}
       >
         <div style={{ width: 84, height: 84, flexShrink: 0, display: "grid", placeItems: "center" }}>
-          <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 76, height: 76, objectFit: "contain" }} />
+          <img src="/assets/brand/dragon-seal.svg" alt="" style={{ width: 76, height: 76, objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -320,19 +281,12 @@ export function PassPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {venues.items.map((venue) => {
             const isVisited = visitedVenueIds.has(venue.id);
-            const stampMeta = REALM_STAMPS[venue.visualIdentityKey] || {
-              name: venue.name,
-              sealTitle: venue.visualLabel || "ตราศักดิ์สิทธิ์",
-              venueName: venue.name,
-              image: "/assets/mythology/azure-dragon.svg",
-              themeColor: "#cda34f",
-            };
-
-            const visitRecord = visits[venue.id];
+            const stampMeta = realmFor(venue.visualIdentityKey);
 
             return (
               <div
                 key={venue.id}
+                className="passport-realm-card"
                 style={{
                   background: isVisited
                     ? "radial-gradient(circle, rgba(125, 18, 18, 0.06) 0%, #ffffff 100%)"
@@ -346,28 +300,10 @@ export function PassPage() {
                   boxShadow: isVisited ? "0 4px 12px rgba(179, 134, 40, 0.15)" : "0 2px 6px rgba(0,0,0,0.03)",
                 }}
               >
-                {/* Animated Imperial Seal Stamp (Anime.js v4) */}
-                <AnimatedSealStamp
-                  image={stampMeta.image}
-                  sealTitle={stampMeta.sealTitle}
-                  isVisited={isVisited}
-                  size={68}
-                  triggerKey={venue.id}
-                />
-
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color: isVisited ? "var(--color-red-900)" : "var(--text-dark-primary)",
-                  }}
-                >
-                  {stampMeta.sealTitle}
-                </div>
-
-                <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", marginTop: 2 }}>
-                  {venue.name}
-                </div>
+                <Link className="passport-photo" to={`/venue/${venue.id}`} aria-label={`สำรวจ${venue.name}`}><VenuePhoto identity={venue.visualIdentityKey} name={venue.name} /></Link>
+                <h3 className="passport-place-name">{venue.name}</h3>
+                <small className="passport-realm-name">{stampMeta.title}</small>
+                <GuardianButton identity={venue.visualIdentityKey} className="passport-guardian-button">ผู้พิทักษ์</GuardianButton>
 
                 <div style={{ marginTop: 8 }}>
                   {isVisited ? (
@@ -439,7 +375,7 @@ export function PassPage() {
                     {tx.activityTitle || "ภารกิจแดนมังกร"}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", marginTop: 2 }}>
-                    {tx.venueName || "คณะศิลปกรรมศาสตร์"} · {tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : ""}
+                        {placeName(tx.venueName || "คณะศิลปกรรมศาสตร์")} · {tx.createdAt ? new Date(tx.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : ""}
                   </div>
                 </div>
 

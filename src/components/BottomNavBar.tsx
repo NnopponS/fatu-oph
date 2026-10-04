@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Compass, Gift, Scroll, QrCode } from "lucide-react";
+import { Home, Compass, Gift, Scroll, ScrollText, QrCode } from "lucide-react";
 
 export const BottomNavBar: React.FC = () => {
   return (
@@ -26,8 +26,9 @@ export const BottomNavBar: React.FC = () => {
         to="/scan"
         className="scanner-nav-button"
         title="สแกนเช็กอิน"
+        aria-label="เปิดคัมภีร์สแกนเช็กอิน"
       >
-        <QrCode style={{ width: 24, height: 24 }} />
+        <ScrollText style={{ width: 26, height: 26 }} /><QrCode className="scan-nav-qr" size={12} />
       </NavLink>
 
       <NavLink

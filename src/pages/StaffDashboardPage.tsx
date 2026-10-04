@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Shield, Users, MapPin, CheckCircle, Award, Settings, Search, LogOut, Gift, QrCode } from "lucide-react";
-import { TopHeader } from "@/components/TopHeader";
+
+import { Shield, Users, MapPin, CheckCircle, Award, Search, Gift, QrCode } from "lucide-react";
+import { useAdminSession } from "@/pages/AdminPage";
 import { ThemedLoading } from "@/components/ThemedLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { readRealtime, realtimePaths } from "@/services/realtime";
 
 export const StaffDashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { firebaseUser, profile, role, isStaff, isPendingStaff, loading: authLoading, logout } = useAuth();
+  const { user: firebaseUser, role } = useAdminSession();
+  const { profile } = useAuth();
 
   const [venues, setVenues] = useState<Record<string, { name: string; realmTitle?: string; isPublished?: boolean }>>({});
   const [activities, setActivities] = useState<Record<string, { title: string; venueId?: string; isPublished?: boolean }>>({});
@@ -25,16 +25,6 @@ export const StaffDashboardPage: React.FC = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherResult, setVoucherResult] = useState<{ ok: boolean; msg: string; prize?: string; participant?: string } | null>(null);
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (isPendingStaff) {
-        navigate("/staff/pending");
-      } else if (!isStaff) {
-        navigate("/staff/login");
-      }
-    }
-  }, [authLoading, isStaff, isPendingStaff, navigate]);
 
   useEffect(() => {
     async function loadData() {
@@ -67,6 +57,13 @@ export const StaffDashboardPage: React.FC = () => {
 
     try {
       const token = firebaseUser ? await firebaseUser.getIdToken() : "";
+      const lookup = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "participantByUsername", username: targetUsername.trim() }),
+      });
+      const lookupData = await lookup.json();
+      if (!lookup.ok || !lookupData.participant?.id) throw new Error(lookupData.error || "ไม่พบผู้เข้าร่วมนี้");
       const res = await fetch("/api/admin", {
         method: "POST",
         headers: {
@@ -75,7 +72,7 @@ export const StaffDashboardPage: React.FC = () => {
         },
         body: JSON.stringify({
           action: "completeActivity",
-          participantId: targetUsername.trim(),
+          participantId: lookupData.participant.id,
           activityId: selectedActivityId,
           reason: overrideReason.trim() || "เจ้าหน้าที่บันทึกผ่าน Staff Portal",
         }),
@@ -132,8 +129,8 @@ export const StaffDashboardPage: React.FC = () => {
       setVoucherResult({
         ok: true,
         msg: data.message || "ตัดรับของรางวัลเรียบร้อยแล้ว",
-        prize: data.prize?.title,
-        participant: data.prize?.participantUsername,
+        prize: data.voucher?.prizeName,
+        participant: data.voucher?.displayName,
       });
       setVoucherCode("");
     } catch (err: unknown) {
@@ -146,7 +143,7 @@ export const StaffDashboardPage: React.FC = () => {
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return <ThemedLoading fullscreen message="กำลังโหลดข้อมูลแดชบอร์ดเจ้าหน้าที่..." />;
   }
 
@@ -154,8 +151,7 @@ export const StaffDashboardPage: React.FC = () => {
   const activityList = Object.entries(activities);
 
   return (
-    <div className="mobile-viewport allow-desktop">
-      <TopHeader title="STAFF OPS" />
+    <div className="staff-field-page">
 
       {/* Staff Header Bar */}
       <div
@@ -196,47 +192,7 @@ export const StaffDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {role === "admin" && (
-            <Link
-              to="/admin"
-              className="button-imperial-red"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 14px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
-              <Settings style={{ width: 14, height: 14 }} />
-              <span>Admin Panel</span>
-            </Link>
-          )}
 
-          <button
-            onClick={async () => {
-              await logout();
-              navigate("/staff/login");
-            }}
-            className="button-gold-outline"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 12px",
-              borderRadius: 8,
-              fontSize: 12,
-              cursor: "pointer",
-            }}
-          >
-            <LogOut style={{ width: 14, height: 14 }} />
-            <span>ออก</span>
-          </button>
-        </div>
       </div>
 
       <div style={{ padding: "20px 16px 80px" }}>
@@ -390,14 +346,14 @@ export const StaffDashboardPage: React.FC = () => {
           <form onSubmit={handleManualOverride}>
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: "block", color: "var(--text-dark-primary)", fontSize: 12, marginBottom: 4, fontWeight: 700 }}>
-                รหัสประจำตัว หรือ UID ผู้เข้าร่วม
+                ชื่อผู้ใช้ หรือ UID ผู้เข้าร่วม
               </label>
               <div style={{ position: "relative" }}>
                 <Search style={{ position: "absolute", left: 12, top: 11, width: 16, height: 16, color: "var(--color-gold-600)" }} />
                 <input
                   type="text"
                   required
-                  placeholder="เช่น participant UID"
+                  placeholder="เช่น dragon_26"
                   value={targetUsername}
                   onChange={(e) => setTargetUsername(e.target.value)}
                   style={{

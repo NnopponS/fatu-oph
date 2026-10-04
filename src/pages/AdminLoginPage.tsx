@@ -1,112 +1,50 @@
-import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { auth } from "@/lib/firebase";
-import {
-  getAdminAuthErrorMessage,
-  getStaffRole,
-  sendAdminPasswordReset,
-  signInAdmin,
-  signOutAdmin,
-} from "@/services/auth";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import { getAdminAuthErrorMessage, getStaffRole, signInAdmin, signOutAdmin, usernameLogin } from "@/services/auth";
+import { useAuth } from "@/contexts/AuthContext";
+import { Lantern } from "@/components/WuxiaScene";
 
 export function AdminLoginPage() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate(); const { firebaseUser, loading: authLoading, refreshProfile } = useAuth();
+  const [identity, setIdentity] = useState(""); const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  if (auth.currentUser) {
-    return <Navigate to="/admin" replace />;
-  }
+  useEffect(() => {
+    if (!firebaseUser || authLoading || submitting) return;
+    let active = true;
+    void getStaffRole(firebaseUser).then(role => {
+      if (active && role) navigate(role === "staff_pending" ? "/admin/pending" : "/admin", { replace: true });
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [firebaseUser, authLoading, submitting, navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    setNotice(null);
-
+    event.preventDefault(); setSubmitting(true); setError(null);
     try {
-      const credential = await signInAdmin(email.trim(), password);
-      const role = await getStaffRole(credential.user);
-
-      if (!role) {
-        await signOutAdmin();
-        setError("บัญชีนี้ไม่มีสิทธิ์เข้าระบบจัดการ");
-        return;
-      }
-
-      navigate("/admin", { replace: true });
+      const user = identity.includes("@") ? (await signInAdmin(identity.trim(), password)).user : (await usernameLogin(identity.trim(), password)).user;
+      const role = await getStaffRole(user);
+      if (!role) { await signOutAdmin(); setError("บัญชีนี้ไม่มีสิทธิ์เจ้าหน้าที่ กรุณาใช้ทางเข้าผู้เข้าร่วมงาน"); return; }
+      await refreshProfile();
+      navigate(role === "staff_pending" ? "/admin/pending" : "/admin", { replace: true });
     } catch (loginError) {
       await signOutAdmin().catch(() => undefined);
-      setError(getAdminAuthErrorMessage(loginError));
-    } finally {
-      setSubmitting(false);
-    }
+      setError(loginError instanceof Error && !("code" in loginError) ? loginError.message : getAdminAuthErrorMessage(loginError));
+    } finally { setSubmitting(false); }
   }
 
-  async function resetPassword() {
-    const target = email.trim();
-    setError(null);
-    setNotice(null);
-    if (!target) {
-      setError("กรอกอีเมล Admin ก่อนขอรีเซ็ตรหัสผ่าน");
-      return;
-    }
-
-    try {
-      await sendAdminPasswordReset(target);
-      setNotice("ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว หากอีเมลนี้มีบัญชี Admin กรุณาตรวจกล่องจดหมาย");
-    } catch (resetError) {
-      setError(getAdminAuthErrorMessage(resetError));
-    }
-  }
-
-  return (
-    <main className="standalone-page">
-      <section className="admin-card admin-login-card">
-        <span className="section-kicker">ADMIN</span>
-        <h1>เข้าสู่ระบบจัดการ</h1>
-        <p>สำหรับทีมงาน FATU Open House 2026 เท่านั้น</p>
-
-        <form className="admin-form" onSubmit={handleSubmit}>
-          <label>
-            <span>อีเมล</span>
-            <input
-              autoComplete="username"
-              inputMode="email"
-              name="email"
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              type="email"
-              value={email}
-            />
-          </label>
-
-          <label>
-            <span>รหัสผ่าน</span>
-            <input
-              autoComplete="current-password"
-              name="password"
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              type="password"
-              value={password}
-            />
-          </label>
-
-          {error ? <p className="form-error" role="alert">{error}</p> : null}
-          {notice ? <p className="success-message" role="status">{notice}</p> : null}
-
-          <button className="admin-submit" disabled={submitting} type="submit">
-            {submitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-          </button>
-          <button className="text-button" disabled={submitting} onClick={() => void resetPassword()} type="button">
-            ลืมรหัสผ่าน / ส่งลิงก์รีเซ็ต
-          </button>
-        </form>
-      </section>
-    </main>
-  );
+  return <main className="portal-login">
+    <div className="portal-login-art"><div className="portal-lantern"><Lantern /></div><span className="eyebrow">FATU OPEN HOUSE 2026</span><ShieldCheck size={42} /><h1>ศูนย์บัญชาการ<br /><em>แดนมังกร</em></h1><p>ทางเข้าเดียวสำหรับ Staff และ Admin<br />เมนูทำงานจะแสดงตามสิทธิ์ของบัญชีคุณ</p><Link to="/">กลับหน้าเว็บไซต์ <ArrowRight size={16} /></Link></div>
+    <section className="portal-login-form"><span className="eyebrow">TEAM PORTAL</span><h2>เข้าสู่ระบบจัดการ</h2><p>ใช้ชื่อผู้ใช้เจ้าหน้าที่ หรืออีเมลบัญชี Admin</p>
+      <form onSubmit={handleSubmit} className="admin-form">
+        <label><span>ชื่อผู้ใช้หรืออีเมล</span><div className="portal-input"><UserRound size={18} /><input name="identity" autoComplete="username" required value={identity} onChange={event => setIdentity(event.target.value)} placeholder="Staff username / Admin email" /></div></label>
+        <label><span>รหัสผ่าน</span><div className="portal-input"><LockKeyhole size={18} /><input name="password" autoComplete="current-password" required type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} /><button type="button" aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></label>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button className="button-imperial-red" disabled={submitting || authLoading} type="submit">{submitting ? "กำลังตรวจสอบสิทธิ์..." : "เข้าสู่ศูนย์บัญชาการ"}<ArrowRight size={18} /></button>
+      </form>
+      <Link className="portal-forgot" to="/forgot-password">ลืมรหัสผ่าน</Link>
+      <div className="portal-signup"><span>ยังไม่มีบัญชีทีมงาน?</span><Link to="/admin/register">สมัครเจ้าหน้าที่</Link></div>
+      <Link className="portal-participant-link" to="/login">เข้าสู่ระบบสำหรับผู้เข้าร่วมงาน</Link>
+    </section>
+  </main>;
 }

@@ -10,8 +10,6 @@ import {
   Heart,
   HelpCircle,
 } from "lucide-react";
-import { TopHeader } from "@/components/TopHeader";
-import { BottomNavBar } from "@/components/BottomNavBar";
 import { ThemedLoading } from "@/components/ThemedLoading";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -142,8 +140,7 @@ export const SurveyPage: React.FC = () => {
   };
 
   return (
-    <div className="mobile-viewport">
-      <TopHeader title="แบบประเมิน" />
+    <div className="survey-page">
 
       {/* Hero Section */}
       <div className="chinese-hero" style={{ paddingBottom: 20 }}>
@@ -312,7 +309,6 @@ export const SurveyPage: React.FC = () => {
       {loading && <ThemedLoading fullscreen message="กำลังโหลดแบบประเมิน..." />}
       {submitting && <ThemedLoading fullscreen message="กำลังบันทึกความคิดเห็น..." />}
 
-      <BottomNavBar />
     </div>
   );
 };

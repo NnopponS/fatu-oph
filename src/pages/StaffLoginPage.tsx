@@ -22,7 +22,7 @@ export const StaffLoginPage: React.FC = () => {
 
     try {
       const authProfile = await login(username, password);
-      navigate(authProfile.role === "staff_pending" ? "/staff/pending" : "/staff/dashboard");
+      navigate(authProfile.role === "staff_pending" ? "/admin/pending" : "/admin");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "ชื่อผู้ใช้หรือรหัสผ่านเจ้าหน้าที่ไม่ถูกต้อง");
     } finally {
@@ -124,7 +124,7 @@ export const StaffLoginPage: React.FC = () => {
         <div style={{ textAlign: "center", marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--border-gold-subtle)" }}>
           <span style={{ fontSize: 13, color: "var(--text-dark-muted)" }}>เป็นเจ้าหน้าที่ใหม่? </span>
           <Link
-            to="/staff/register"
+            to="/admin/register"
             style={{ fontSize: 13, color: "var(--color-red-800)", fontWeight: 700, textDecoration: "underline" }}
           >
             ลงทะเบียนเจ้าหน้าที่ที่นี่

@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { TopHeader } from "@/components/TopHeader";
 import { BottomNavBar } from "@/components/BottomNavBar";
@@ -9,28 +8,19 @@ import { CelestialDust } from "@/components/CelestialDust";
 export function AppShell() {
   const location = useLocation();
 
-  // Hide chrome for immersive scanner and auth pages if routed under shell
-  const isScanPage = location.pathname === "/scan";
+  const titles: Record<string, string> = { "/scan": "สแกน QR", "/lucky-draw": "หีบสมบัติ", "/survey": "แบบประเมิน", "/schedule": "กิจกรรม", "/map": "แผนที่" };
 
   return (
     <div className="mobile-viewport">
       <CelestialDust count={20} />
       <OpeningExperience />
-      {!isScanPage && <TopHeader />}
-      <main
-        style={{
-          flex: 1,
-          paddingBottom: isScanPage ? 0 : "calc(var(--nav-bottom-height, 68px) + 16px)",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <TopHeader title={titles[location.pathname]} />
+      <main className="app-content">
         <PageTransition>
           <Outlet />
         </PageTransition>
       </main>
-      {!isScanPage && <BottomNavBar />}
+      <BottomNavBar />
     </div>
   );
 }

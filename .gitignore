@@ -3,6 +3,7 @@ node_modules/
 dist/
 dist-ssr/
 *.tsbuildinfo
+previews/rework/
 
 # Environment and local deployment state
 .env
@@ -31,3 +32,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

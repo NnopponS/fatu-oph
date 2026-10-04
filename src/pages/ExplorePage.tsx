@@ -1,32 +1,14 @@
 import { Link } from "react-router-dom";
-import { resolveMediaUrl, useActivities, useMedia, useVenues } from "@/data/content";
+import { ArrowRight, MapPin } from "lucide-react";
+import { useActivities, useVenues } from "@/data/content";
+import { useAuth } from "@/contexts/AuthContext";
+import { RealmPlaceCard } from "@/components/RealmPlaces";
 
 export function ExplorePage() {
-  const venues = useVenues();
-  const activities = useActivities();
-  const media = useMedia();
-
-  return (
-    <section className="page-section">
-      <span className="section-kicker">EXPLORE</span>
-      <h1 className="page-title">สถานที่ภายในงาน</h1>
-      <p className="page-lead">ชื่อสถานที่จริงเป็นข้อมูลหลัก ส่วนสัตว์ในตำนานใช้เป็น visual identity เท่านั้น</p>
-      {venues.loading ? <p className="content-status">กำลังโหลดสถานที่...</p> : null}
-      {venues.error ? <p className="content-status content-error">{venues.error}</p> : null}
-      <div className="venue-list">
-        {venues.items.map((venue, index) => {
-          const count = activities.items.filter((activity) => activity.venueId === venue.id).length;
-          const cover = resolveMediaUrl(venue.coverMediaId || "", media.items);
-          return (
-            <Link className="venue-list-item venue-list-link" to={`/venue/${venue.id}`} key={venue.id}>
-              <span className="venue-index">{String(index + 1).padStart(2, "0")}</span>
-              {cover ? <img className="venue-list-thumb" src={cover} alt="" aria-hidden="true" /> : null}
-              <div><span className="venue-identity">{venue.visualLabel}</span><h2>{venue.name}</h2><p>{venue.description || "ดูรายละเอียดสถานที่"} · {count} กิจกรรม</p></div>
-            </Link>
-          );
-        })}
-      </div>
-      <div className="action-row"><Link className="secondary-button" to="/map">เปิดหน้าการเดินทาง</Link><Link className="secondary-button" to="/checkin">สแกน QR กิจกรรม</Link></div>
-    </section>
-  );
+  const venues = useVenues(); const activities = useActivities(); const { profile } = useAuth();
+  return <section className="places-page">
+    <div className="places-intro"><span className="section-kicker">THE FOUR GUARDIANS</span><h1>สี่สถานที่<br /><em>หนึ่งการผจญภัย</em></h1><p>เลือกกิจกรรมที่ชอบ ออกไปสำรวจ<br />และเก็บตราประทับให้ครบทุกสถานที่</p><Link to="/map"><MapPin size={16} />เปิดแผนที่งาน <ArrowRight size={16} /></Link></div>
+    {venues.loading && <p role="status">กำลังโหลดสถานที่...</p>}{venues.error && <p role="alert">{venues.error}</p>}
+    <div className="realm-place-grid">{venues.items.map((venue, index) => <RealmPlaceCard key={venue.id} venue={venue} index={index} count={activities.items.filter(activity => activity.venueId === venue.id).length} visited={Boolean(profile?.visits?.[venue.id])} />)}</div>
+  </section>;
 }

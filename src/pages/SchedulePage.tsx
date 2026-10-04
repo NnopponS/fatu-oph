@@ -1,200 +1,90 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Award,
-  ChevronRight,
-  Filter,
-} from "lucide-react";
+import { ArrowRight, Bookmark, CalendarDays, Clock3, MapPin, Search, SlidersHorizontal, Sparkles, Swords, X } from "lucide-react";
 import { useActivities, useVenues } from "@/data/content";
+import { activityLiveState, activityTiming, scheduleDateLabel } from "@/lib/schedule";
 
-function formatTime(raw?: string) {
-  if (!raw) return "";
-  if (raw.includes("T")) {
-    const d = new Date(raw);
-    if (!isNaN(d.getTime())) {
-      return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
-    }
-  }
-  return raw.slice(0, 5);
+const savedKey = "fatu_saved_activities";
+function readSaved(): string[] {
+  try { const ids: unknown = JSON.parse(localStorage.getItem(savedKey) || "[]"); return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []; }
+  catch { return []; }
 }
 
 export function SchedulePage() {
-  const activities = useActivities();
-  const venues = useVenues();
-  const [filterPeriod, setFilterPeriod] = useState<"all" | "morning" | "afternoon">("all");
-
-  const sorted = [...activities.items]
-    .filter((item) => item.startAt)
-    .sort((a, b) => a.startAt.localeCompare(b.startAt));
-
-  const filtered = sorted.filter((act) => {
-    if (filterPeriod === "all") return true;
-    const timeStr = formatTime(act.startAt);
-    const hour = parseInt(timeStr.split(":")[0] || "0", 10);
-    if (filterPeriod === "morning") return hour < 12;
-    if (filterPeriod === "afternoon") return hour >= 12;
-    return true;
-  });
+  const activities = useActivities(); const venues = useVenues();
+  const [query, setQuery] = useState("");
+  const [venueId, setVenueId] = useState("all");
+  const [date, setDate] = useState("all");
+  const [period, setPeriod] = useState("all");
+  const [onlySaved, setOnlySaved] = useState(false);
+  const [saved, setSaved] = useState(readSaved);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60000); return () => window.clearInterval(timer); }, []);
+  const dates = useMemo(() => [...new Set(activities.items.map(activity => activityTiming(activity.startAt).date).filter(Boolean))].sort(), [activities.items]);
+  const filtered = useMemo(() => activities.items.filter(activity => {
+    const timing = activityTiming(activity.startAt);
+    const venue = venues.items.find(item => item.id === activity.venueId);
+    const matchesText = `${activity.title} ${activity.shortDescription} ${venue?.name || ""} ${activity.tags.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase());
+    return matchesText && (venueId === "all" || activity.venueId === venueId)
+      && (date === "all" || !timing.date || timing.date === date)
+      && (period === "all" || (timing.minutes !== null && (period === "morning" ? timing.minutes < 720 : timing.minutes >= 720)))
+      && (!onlySaved || saved.includes(activity.id));
+  }).sort((a, b) => {
+    const aa = activityTiming(a.startAt); const bb = activityTiming(b.startAt);
+    if (aa.minutes === null) return bb.minutes === null ? a.displayOrder - b.displayOrder : 1;
+    if (bb.minutes === null) return -1;
+    return aa.date.localeCompare(bb.date) || aa.minutes - bb.minutes;
+  }), [activities.items, venues.items, query, venueId, date, period, onlySaved, saved]);
+  const live = filtered.filter(activity => activity.availabilityStatus === "open" && activityLiveState(activity.startAt, activity.endAt, now) === "live");
+  const upcoming = filtered.find(activity => activity.availabilityStatus === "open" && activityLiveState(activity.startAt, activity.endAt, now) === "upcoming");
+  function toggleSaved(id: string) {
+    const next = saved.includes(id) ? saved.filter(value => value !== id) : [...saved, id]; setSaved(next);
+    try { localStorage.setItem(savedKey, JSON.stringify(next)); } catch { /* Keep the list usable when storage is unavailable. */ }
+  }
+  function clearFilters() { setQuery(""); setVenueId("all"); setDate("all"); setPeriod("all"); setOnlySaved(false); }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "0 16px 40px" }}>
-      {/* Hero Section */}
-      <div
-        className="card-mythology"
-        style={{
-          padding: "24px 20px",
-          marginTop: 8,
-          border: "1.5px solid var(--color-gold-500)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <Calendar style={{ width: 18, height: 18, color: "var(--color-gold-400)" }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-gold-400)", letterSpacing: "0.08em" }}>
-            EVENT TIMELINE
-          </span>
+    <div className="schedule-page">
+      <section className="quest-banner">
+        <img src="/assets/decorations/chinese-cloud.svg" alt="" className="quest-banner-cloud" />
+        <span className="eyebrow"><Swords size={16} /> YOUR NEXT ADVENTURE</span>
+        <h1>เลือกภารกิจ<br /><em>แล้วออกเดินทาง</em></h1>
+        <p>ตารางกิจกรรม เวิร์กช็อป และการแสดง<br />ค้นหาสิ่งที่ชอบ แล้วเก็บให้ครบทุกสถานที่</p>
+        <div className="quest-banner-stats"><span><CalendarDays size={16} /> {activities.items.length} กิจกรรม</span><span><MapPin size={16} /> {venues.items.length} สถานที่</span></div>
+      </section>
+
+      <section className="schedule-controls" aria-label="ตัวกรองตารางกิจกรรม">
+        <label className="schedule-search"><Search size={19} /><input aria-label="ค้นหากิจกรรม" placeholder="ค้นหากิจกรรมหรือสถานที่..." value={query} onChange={event => setQuery(event.target.value)} />{query && <button aria-label="ล้างคำค้นหา" onClick={() => setQuery("")}><X size={16} /></button>}</label>
+        <div className="filter-scroll" aria-label="เลือกวัน">
+          <button className={date === "all" ? "filter-chip selected" : "filter-chip"} aria-pressed={date === "all"} onClick={() => setDate("all")}>ทุกวัน</button>
+          {dates.map(day => <button key={day} className={date === day ? "filter-chip selected" : "filter-chip"} aria-pressed={date === day} onClick={() => setDate(day)}>{scheduleDateLabel(day)}</button>)}
         </div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-light-primary)", margin: "0 0 6px" }}>
-          ตารางเวลาและกิจกรรม
-        </h1>
-        <p style={{ fontSize: 13, color: "var(--text-light-secondary)", margin: 0, lineHeight: 1.5 }}>
-          กำหนดการเวิร์กช็อป การแสดง และกิจกรรมสำคัญประจำวัน อัปเดตสดจากระบบส่วนกลาง
-        </p>
-      </div>
+        <div className="schedule-selects">
+          <label><MapPin size={16} /><select aria-label="เลือกสถานที่" value={venueId} onChange={event => setVenueId(event.target.value)}><option value="all">ทุกสถานที่</option>{venues.items.map(venue => <option value={venue.id} key={venue.id}>{venue.name}</option>)}</select></label>
+          <label><Clock3 size={16} /><select aria-label="เลือกช่วงเวลา" value={period} onChange={event => setPeriod(event.target.value)}><option value="all">ทุกช่วงเวลา</option><option value="morning">ช่วงเช้า · ก่อน 12:00</option><option value="afternoon">ช่วงบ่าย · ตั้งแต่ 12:00</option></select></label>
+        </div>
+        <button className={`saved-filter ${onlySaved ? "selected" : ""}`} aria-pressed={onlySaved} onClick={() => setOnlySaved(!onlySaved)}><Bookmark size={16} fill={onlySaved ? "currentColor" : "none"} /> กิจกรรมที่บันทึกไว้ <span>{saved.filter(id => activities.items.some(a => a.id === id)).length}</span></button>
+      </section>
 
-      {/* Period Filter Chips */}
-      <div style={{ display: "flex", gap: 8 }}>
-        {[
-          { id: "all", label: "กิจกรรมทั้งหมด" },
-          { id: "morning", label: "ช่วงเช้า (09:00 - 12:00)" },
-          { id: "afternoon", label: "ช่วงบ่าย (12:00 - 17:00)" },
-        ].map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilterPeriod(f.id as "all" | "morning" | "afternoon")}
-            style={{
-              padding: "8px 14px",
-              borderRadius: 9999,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              border: filterPeriod === f.id ? "1px solid var(--color-gold-600)" : "1px solid var(--border-gold-subtle)",
-              background: filterPeriod === f.id ? "#7d1212" : "#ffffff",
-              color: filterPeriod === f.id ? "#ffffff" : "var(--text-dark-secondary)",
-              boxShadow: filterPeriod === f.id ? "0 2px 8px rgba(125, 18, 18, 0.25)" : "0 1px 3px rgba(0,0,0,0.04)",
-              transition: "all 0.15s ease",
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      {(live.length > 0 || upcoming) && <section className="schedule-spotlight"><span className="eyebrow"><span className="live-dot" />{live.length > 0 ? "กำลังจัดอยู่" : "กิจกรรมถัดไป"}</span><Link to={`/activity/${(live[0] || upcoming)?.id}`}><strong>{(live[0] || upcoming)?.title}</strong><ArrowRight size={18} /></Link><span><MapPin size={14} /> {venues.items.find(v => v.id === (live[0] || upcoming)?.venueId)?.name} · {activityTiming((live[0] || upcoming)?.startAt || "").time}</span></section>}
 
-      {activities.loading && (
-        <p style={{ color: "var(--text-dark-secondary)", textAlign: "center" }}>กำลังโหลดตารางกิจกรรม...</p>
-      )}
-
-      {/* Timeline List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filtered.length > 0 ? (
-          filtered.map((activity) => {
-            const venue = venues.items.find((item) => item.id === activity.venueId);
-            return (
-              <Link
-                key={activity.id}
-                to={`/activity/${activity.id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <article
-                  className="card-mythology"
-                  style={{
-                    padding: "16px 18px",
-                    border: "1px solid var(--border-gold-subtle)",
-                    borderRadius: 16,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 14,
-                    transition: "border-color 0.2s ease",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    {/* Time Badge */}
-                    <div
-                      style={{
-                        background: "#fbf8f1",
-                        border: "1px solid var(--border-gold-subtle)",
-                        borderRadius: 10,
-                        padding: "8px 10px",
-                        textAlign: "center",
-                        minWidth: 64,
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Clock style={{ width: 14, height: 14, color: "var(--color-gold-600)", margin: "0 auto 2px" }} />
-                      <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-red-900)" }}>
-                        {formatTime(activity.startAt)}
-                      </div>
-                      {activity.endAt && (
-                        <div style={{ fontSize: 10, color: "var(--text-dark-secondary)" }}>
-                          - {formatTime(activity.endAt)}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Activity Info */}
-                    <div>
-                      <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--text-dark-primary)", margin: "0 0 4px" }}>
-                        {activity.title}
-                      </h3>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 11, color: "var(--text-dark-secondary)" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <MapPin style={{ width: 12, height: 12, color: "var(--color-gold-600)" }} />
-                          <span>{venue?.name || "จุดจัดงาน"}</span>
-                        </span>
-                        {Boolean(activity.pointsAwarded && activity.pointsAwarded > 0) && (
-                          <span
-                            style={{
-                              background: "#dcfce7",
-                              color: "#166534",
-                              border: "1px solid #bbf7d0",
-                              padding: "1px 6px",
-                              borderRadius: 4,
-                              fontWeight: 700,
-                            }}
-                          >
-                            +{activity.pointsAwarded} แต้ม
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <ChevronRight style={{ width: 18, height: 18, color: "var(--color-gold-600)", flexShrink: 0 }} />
-                </article>
-              </Link>
-            );
-          })
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "40px 16px",
-              background: "#ffffff",
-              borderRadius: 16,
-              border: "1px dashed var(--border-gold-subtle)",
-              color: "var(--text-dark-secondary)",
-              fontSize: 13,
-            }}
-          >
-            ยังไม่มีตารางกิจกรรมที่เผยแพร่ในช่วงเวลานี้
-          </div>
-        )}
-      </div>
+      <div className="schedule-results-heading"><h2><SlidersHorizontal size={17} /> ตารางกิจกรรม</h2><span>{filtered.length} รายการ</span></div>
+      {activities.loading ? <div className="schedule-empty" role="status"><img src="/assets/animations/loading-seal.svg" alt="" width={60} /><p>กำลังเปิดคัมภีร์กิจกรรม...</p></div> : activities.error ? <div className="schedule-empty" role="alert"><p>{activities.error}</p></div> : filtered.length === 0 ? <div className="schedule-empty"><Search size={32} /><h3>{activities.items.length ? "ยังไม่พบภารกิจที่ตรงกับตัวกรอง" : "กำหนดการกำลังจะมา"}</h3><p>{activities.items.length ? "ลองเลือกสถานที่หรือช่วงเวลาอื่น" : "เมื่อทีมงานประกาศกิจกรรม รายละเอียดจะปรากฏที่นี่"}</p>{activities.items.length ? <button className="button-gold-outline" onClick={clearFilters}>แสดงกิจกรรมทั้งหมด</button> : <Link to="/explore" className="button-imperial-red">สำรวจสถานที่ก่อน <ArrowRight size={16} /></Link>}</div> : <div className="schedule-timeline">
+        {filtered.map((activity, index) => {
+          const timing = activityTiming(activity.startAt); const end = activityTiming(activity.endAt);
+          const venue = venues.items.find(item => item.id === activity.venueId);
+          const state = activityLiveState(activity.startAt, activity.endAt, now);
+          const isSaved = saved.includes(activity.id);
+          const availability = { open: "เข้าร่วมได้", full: "เต็มแล้ว", closed: "ปิดรับแล้ว", "coming-soon": "เร็ว ๆ นี้" }[activity.availabilityStatus];
+          return <article className="schedule-activity" key={activity.id} style={{ animationDelay: `${Math.min(index * 45, 180)}ms` }}>
+            <div className="schedule-time"><span className="timeline-node" /><strong>{timing.time || "—"}</strong><small>{end.time ? `ถึง ${end.time}` : timing.time ? "รอประกาศเวลาสิ้นสุด" : "ยังไม่ระบุเวลา"}</small>{timing.date && <small>{scheduleDateLabel(timing.date)}</small>}</div>
+            <div className="schedule-activity-card">
+              <div className="schedule-card-top"><span className={`activity-state ${activity.availabilityStatus}`}>{state === "live" && activity.availabilityStatus === "open" ? "กำลังจัดอยู่" : availability}</span><button className={isSaved ? "bookmark-button saved" : "bookmark-button"} aria-label={`${isSaved ? "เลิกบันทึก" : "บันทึก"} ${activity.title}`} aria-pressed={isSaved} onClick={() => toggleSaved(activity.id)}><Bookmark size={19} fill={isSaved ? "currentColor" : "none"} /></button></div>
+              <Link to={`/activity/${activity.id}`} className="schedule-card-link"><h3>{activity.title}</h3><span className="schedule-venue"><MapPin size={14} />{venue?.name || "รอประกาศสถานที่"}</span>{activity.shortDescription && <p>{activity.shortDescription}</p>}{!timing.time && <small className="unscheduled-label">ยังไม่ระบุเวลา · สอบถามที่จุดกิจกรรม</small>}<div className="schedule-card-footer">{activity.pointsEnabled && activity.pointsAwarded > 0 ? <span className="points-pill"><Sparkles size={13} />+{activity.pointsAwarded} แต้ม</span> : <span>{activity.isFree ? "เข้าร่วมฟรี" : activity.priceLabel || "ดูรายละเอียดค่าเข้าร่วม"}</span>}<span>รายละเอียด <ArrowRight size={15} /></span></div></Link>
+            </div>
+          </article>;
+        })}
+      </div>}
     </div>
   );
 }

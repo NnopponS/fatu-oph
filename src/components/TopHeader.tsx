@@ -39,12 +39,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ title, showBack }) => {
 
         <Link to="/" className="top-nav-logo">
           <img
-            src="/assets/mythology/azure-dragon.svg"
-            alt="OPH"
+            src="/assets/brand/dragon-seal.svg"
+            alt="FATU ตะลุยแดนมังกร"
             className="top-nav-emblem"
           />
           <div className="top-nav-brand">
-            <span className="top-nav-title">{title || "OPH"}</span>
+            <span className="top-nav-title">{title || "FATU"}</span>
             <span className="top-nav-subtitle">OPEN HOUSE 2026</span>
           </div>
         </Link>
@@ -53,7 +53,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ title, showBack }) => {
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {isStaff && (
           <Link
-            to="/staff/dashboard"
+            to="/admin"
             style={{
               padding: "4px 8px",
               background: "rgba(205, 163, 79, 0.2)",

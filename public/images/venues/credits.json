@@ -1,0 +1,24 @@
+{
+  "theater": {
+    "file": "theater.webp",
+    "source": "Photo supplied by the event organizer on 2026-10-04",
+    "place": "Thammasat Playhouse"
+  },
+  "faculty": {
+    "file": "faculty.webp",
+    "source": "https://fineart.tu.ac.th/index.php?Itemid=331&id=50&lang=th&option=com_content&view=article",
+    "image": "https://fineart.tu.ac.th/images/Contents/faculty-of-fine-and-applied-arts.jpg",
+    "place": "Faculty of Fine and Applied Arts, Thammasat University"
+  },
+  "weaving": {
+    "file": "weaving.webp",
+    "source": "Photo supplied by the event organizer on 2026-10-04; organizer confirmed this is the weaving workshop building. Original Google imagery watermark retained.",
+    "place": "Weaving workshop building"
+  },
+  "sc3": {
+    "file": "sc3.webp",
+    "source": "https://tu.ac.th/staff/",
+    "image": "https://tu.ac.th/app/uploads/2025/09/Landscape-Rangsit-PHOTO-160-scaled.jpg",
+    "place": "Social Sciences 3 building, Thammasat Rangsit"
+  }
+}

@@ -1,521 +1,184 @@
-import React, { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Gift,
-  Sparkles,
-  CheckCircle,
-  AlertCircle,
-  QrCode,
-  ArrowRight,
-  ShieldCheck,
-  MapPin,
-  Flame,
-  Award,
-} from "lucide-react";
+import { ArrowRight, Award, CheckCircle2, Gift, MapPin, RefreshCw, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
 import QRCode from "qrcode";
-import { motion, AnimatePresence } from "framer-motion";
-import { TopHeader } from "@/components/TopHeader";
-import { BottomNavBar } from "@/components/BottomNavBar";
-import { ThemedLoading } from "@/components/ThemedLoading";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { QiParticles, RitualChest } from "@/components/WuxiaScene";
+import { PrizeArtwork } from "@/components/PrizeArtwork";
+import { resolveMediaUrl, useMedia, usePrizes } from "@/data/content";
 
-interface LuckyDrawStatus {
-  ok: boolean;
-  status: {
-    eligible: boolean;
-    claimed: boolean;
-    prize: {
-      id: string;
-      title: string;
-      description?: string;
-      tier?: string;
-      claimedAt?: string;
-      voucherCode?: string;
-      redeemed?: boolean;
-      redeemedAt?: string;
-    } | null;
-    conditions: {
-      hasVisitedVenue: boolean;
-      hasCompletedActivity: boolean;
-      visitedVenuesCount: number;
-      completedActivitiesCount: number;
-    };
-    catalogCount: number;
-  };
+interface DrawPrize {
+  id: string; title: string; description?: string; tier?: string; claimedAt?: string;
+  voucherCode?: string; redeemed?: boolean; redeemedAt?: string;
 }
-
-function getLuckyPrizeImage(title: string): string {
-  const lower = (title || "").toLowerCase();
-  if (lower.includes("art toy") || lower.includes("ตุ๊กตา") || lower.includes("มังกร") || lower.includes("โมเดล")) {
-    return "/images/prize-art-toy.jpg";
-  }
-  if (lower.includes("พวงกุญแจ") || lower.includes("keychain") || lower.includes("จิ้งจอก")) {
-    return "/images/prize-fox-keychain.jpg";
-  }
-  if (lower.includes("กระเป๋า") || lower.includes("tote") || lower.includes("ผ้า") || lower.includes("bag")) {
-    return "/images/prize-tote-bag.jpg";
-  }
-  return "/images/prize-stickers-pack.jpg";
+interface DrawStatus {
+  eligible: boolean; claimed: boolean; prize: DrawPrize | null;
+  conditions: { hasVisitedVenue: boolean; hasCompletedActivity: boolean; visitedVenuesCount: number; completedActivitiesCount: number };
+  catalogCount: number;
 }
+type Phase = "idle" | "charging" | "summoning" | "opening" | "revealed";
+const rarityLabels: Record<string, string> = { legendary: "ระดับตำนาน", epic: "มหากาพย์", rare: "หายาก", uncommon: "พิเศษ", common: "ของขวัญมงคล" };
 
-export const LuckyDrawPage: React.FC = () => {
-  const { firebaseUser, profile, refreshProfile } = useAuth();
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [drawing, setDrawing] = useState<boolean>(false);
-  const [statusData, setStatusData] = useState<LuckyDrawStatus["status"] | null>(null);
+export function LuckyDrawPage() {
+  const { firebaseUser, refreshProfile, loading: authLoading } = useAuth();
+  const prizes = usePrizes(); const media = useMedia();
+  const reduced = useReducedMotion();
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<DrawStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [celebrateReveal, setCelebrateReveal] = useState<boolean>(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [qr, setQr] = useState("");
+  const [sound, setSound] = useState(false);
+  const [needsRecovery, setNeedsRecovery] = useState(false);
+  const [drawBusy, setDrawBusy] = useState(false);
+  const drawing = useRef(false);
+  const mounted = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const audio = useRef<AudioContext | null>(null);
+  const drawAbort = useRef<AbortController | null>(null);
+  const skipAnimation = useRef(false);
+  const releaseReveal = useRef<(() => void) | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const ceremonyVisible = phase !== "idle";
 
-  const fetchStatus = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      if (!firebaseUser) {
-        setStatusData(null);
-        return;
-      }
-
-      const token = await firebaseUser.getIdToken();
-      const res = await fetch("/api/lucky-draw", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action: "status" }),
-      });
-      const data: LuckyDrawStatus = await res.json();
-      if (!res.ok) {
-        throw new Error((data as unknown as { error?: string }).error || "ไม่สามารถโหลดข้อมูลสุ่มรางวัลได้");
-      }
-      setStatusData(data.status);
-
-      if (data.status?.prize?.voucherCode) {
-        const url = await QRCode.toDataURL(data.status.prize.voucherCode, {
-          width: 256,
-          margin: 2,
-          color: {
-            dark: "#042f2e",
-            light: "#ffffff",
-          },
-        });
-        setQrDataUrl(url);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการดึงข้อมูล");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void fetchStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const getStatus = useCallback(async (signal?: AbortSignal): Promise<DrawStatus | null> => {
+    if (!firebaseUser) return null;
+    const token = await firebaseUser.getIdToken();
+    const response = await fetch("/api/lucky-draw", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "status" }), signal });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "โหลดข้อมูลรางวัลไม่สำเร็จ");
+    return data.status;
   }, [firebaseUser]);
 
-  const handleDraw = async () => {
-    if (!firebaseUser) return;
-    setDrawing(true);
-    setError(null);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; releaseReveal.current?.(); timers.current.forEach(clearTimeout); drawAbort.current?.abort(); void audio.current?.close(); audio.current = null; };
+  }, []);
+  useEffect(() => {
+    if (authLoading) return;
+    const controller = new AbortController(); let active = true;
+    setLoading(true); setStatus(null); setQr("");
+    void getStatus(controller.signal).then(data => { if (active) { setStatus(data); setError(null); } }).catch(err => { if (active) setError(err instanceof Error ? err.message : "โหลดข้อมูลรางวัลไม่สำเร็จ"); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; controller.abort(); };
+  }, [authLoading, getStatus]);
+  useEffect(() => {
+    let active = true; setQr("");
+    if (status?.prize?.voucherCode) void QRCode.toDataURL(status.prize.voucherCode, { width: 280, margin: 3, color: { dark: "#103b3b", light: "#ffffff" } }).then(url => { if (active) setQr(url); }).catch(() => { if (active) setError("สร้างรูป QR ไม่สำเร็จ ใช้รหัส Voucher ด้านล่างรับของรางวัลได้"); });
+    return () => { active = false; };
+  }, [status?.prize?.voucherCode]);
+  useEffect(() => {
+    if (!ceremonyVisible) return;
+    const previous = document.body.style.overflow; document.body.style.overflow = "hidden";
+    const previousFocus = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus({ preventScroll: true });
+    function keys(event: KeyboardEvent) {
+      if (event.key === "Escape") { skipAnimation.current = true; releaseReveal.current?.(); setPhase("idle"); }
+      if (event.key !== "Tab") return;
+      const buttons = Array.from(dialogRef.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") || []);
+      if (!buttons.length) { event.preventDefault(); return; }
+      const first = buttons[0]; const last = buttons[buttons.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+    document.addEventListener("keydown", keys);
+    return () => { document.body.style.overflow = previous; document.removeEventListener("keydown", keys); previousFocus?.focus({ preventScroll: true }); };
+  }, [ceremonyVisible]);
 
+  function tone(frequency: number, delay: number, duration = .28) {
+    const context = audio.current; if (!context || context.state === "closed") return;
+    const oscillator = context.createOscillator(); const gain = context.createGain();
+    oscillator.type = "sine"; oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(.001, context.currentTime + delay); gain.gain.exponentialRampToValueAtTime(.12, context.currentTime + delay + .02); gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + delay + duration);
+    oscillator.connect(gain); gain.connect(context.destination); oscillator.start(context.currentTime + delay); oscillator.stop(context.currentTime + delay + duration);
+  }
+  function stopTimers() { timers.current.forEach(clearTimeout); timers.current = []; }
+  function showPrize(data: DrawStatus) {
+    if (!mounted.current) return;
+    stopTimers(); setStatus(data); setPhase(skipAnimation.current ? "idle" : "revealed"); setNeedsRecovery(false);
+    if (sound) { [587, 740, 880, 1174].forEach((frequency, index) => tone(frequency, index * .13, .45)); }
+    if (!reduced) navigator.vibrate?.([60, 30, 90]);
+  }
+  async function recover() {
+    setLoading(true); setError(null);
+    try { const data = await getStatus(); if (mounted.current) { setStatus(data); setNeedsRecovery(false); } }
+    catch (err) { if (mounted.current) setError(err instanceof Error ? err.message : "กรุณาตรวจสอบผลอีกครั้ง"); }
+    finally { if (mounted.current) setLoading(false); }
+  }
+  async function handleDraw() {
+    if (!firebaseUser || drawing.current || !status?.eligible || status.claimed || needsRecovery) return;
+    drawing.current = true; skipAnimation.current = false; setDrawBusy(true); setError(null); setPhase("charging");
+    const startedAt = performance.now();
+    const controller = new AbortController(); drawAbort.current = controller;
+    if (sound) {
+      try { audio.current = new AudioContext(); void audio.current.resume(); [220, 294, 440, 587].forEach((frequency, index) => tone(frequency, index * .35, .4)); } catch { /* Sound is optional. */ }
+    }
+    if (!reduced) {
+      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) setPhase("summoning"); }, 1200));
+      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) setPhase("opening"); }, 3000));
+    }
     try {
       const token = await firebaseUser.getIdToken();
-      const res = await fetch("/api/lucky-draw", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action: "draw" }),
+      const response = await fetch("/api/lucky-draw", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "draw" }), signal: controller.signal });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "เปิดหีบไม่สำเร็จ");
+      // The server's persisted voucher is the source of the revealed reward.
+      const voucher = data.voucher;
+      if (!voucher?.voucherCode) throw new Error("กำลังตรวจสอบบัตรรางวัลที่บันทึกในระบบ");
+      const awarded: DrawPrize = { id: voucher.prizeId || data.prize?.id, title: voucher.prizeName || data.prize?.name, description: voucher.description || data.prize?.description, tier: voucher.rarity || data.prize?.rarity, claimedAt: voucher.createdAt, voucherCode: voucher.voucherCode, redeemed: voucher.status === "claimed" };
+      if (!reduced && !skipAnimation.current) await new Promise<void>(resolve => {
+        releaseReveal.current = resolve;
+        timers.current.push(setTimeout(resolve, Math.max(0, 4700 - (performance.now() - startedAt))));
       });
+      releaseReveal.current = null;
+      showPrize({ ...status, claimed: true, prize: awarded });
+      void refreshProfile().catch(() => undefined);
+    } catch (err) {
+      stopTimers();
+      if (!mounted.current) return;
+      // A lost response may still have committed a draw. Recover its voucher before offering another attempt.
+      try {
+        const data = await getStatus(controller.signal);
+        if (!mounted.current) return;
+        if (data?.claimed) { showPrize(data); return; }
+        setStatus(data); setNeedsRecovery(false);
+      } catch { if (mounted.current) setNeedsRecovery(true); }
+      if (mounted.current) { setPhase("idle"); setError(err instanceof Error ? err.message : "เชื่อมต่อขัดข้อง กรุณาตรวจสอบผลล่าสุด"); }
+    } finally { drawing.current = false; if (mounted.current) setDrawBusy(false); }
+  }
+  const prize = status?.prize;
+  const catalogPrize = prize && prizes.items.find(item => item.id === prize.id || item.name === prize.title);
+  const image = catalogPrize ? resolveMediaUrl(catalogPrize.imageMediaId, media.items) : "";
+  const stageText: Record<Exclude<Phase, "idle" | "revealed">, string> = { charging: "รวมพลังผู้พิทักษ์", summoning: "ชะตากำลังเลือกคุณ", opening: "สมบัติกำลังเผยตัว" };
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "ไม่สามารถสุ่มรางวัลได้");
-      }
-
-      setCelebrateReveal(true);
-      await refreshProfile();
-      await fetchStatus();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการสุ่มรางวัล");
-    } finally {
-      setDrawing(false);
-    }
-  };
-
-  const isEligible = statusData?.eligible ?? false;
-  const isClaimed = statusData?.claimed ?? false;
-  const prize = statusData?.prize;
-  const conditions = statusData?.conditions;
-
-  return (
-    <div className="mobile-viewport">
-      <TopHeader title="กล่องสุ่มสวรรค์" />
-
-      {/* Chinese Mythology Hero Section */}
-      <div className="chinese-hero" style={{ paddingBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Sparkles style={{ width: 18, height: 18, color: "var(--color-gold-400)" }} />
-          <span className="chinese-hero-tagline">FATU OPEN HOUSE 2026</span>
-          <Sparkles style={{ width: 18, height: 18, color: "var(--color-gold-400)" }} />
-        </div>
-        <h1 className="chinese-hero-title" style={{ fontSize: 26, margin: "4px 0" }}>
-          กล่องสุ่มสวรรค์
-        </h1>
-        <div className="chinese-hero-subtitle" style={{ color: "var(--color-gold-300)" }}>
-          CELESTIAL MYSTERY BOX
-        </div>
-        <p className="chinese-hero-desc">
-          พิชิตภารกิจแดนมังกรเพื่อรับสิทธิ์สุ่มของรางวัลสุดพิเศษประจำงาน (ทุกคนมีสิทธิ์ 1 ครั้ง)
-        </p>
-      </div>
-
-      <div className="ivory-card" style={{ paddingBottom: 110 }}>
-        {error && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 14px",
-              backgroundColor: "#fef2f2",
-              border: "1px solid #fecaca",
-              borderRadius: 12,
-              color: "#991b1b",
-              fontSize: 13,
-              marginBottom: 16,
-            }}
-          >
-            <AlertCircle style={{ width: 18, height: 18, flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Not Logged In Callout */}
-        {!firebaseUser && (
-          <div
-            className="ivory-card-inner"
-            style={{
-              textAlign: "center",
-              padding: "24px 16px",
-              marginBottom: 20,
-              border: "1.5px dashed var(--border-gold-subtle)",
-            }}
-          >
-            <div
-              style={{
-                width: 120,
-                height: 120,
-                margin: "0 auto 12px",
-                borderRadius: 20,
-                overflow: "hidden",
-                border: "2px solid var(--color-gold-400)",
-                boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
-              }}
-            >
-              <img
-                src="/images/celestial-mystery-chest.jpg"
-                alt="Mystery Box"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--color-red-900)", margin: "0 0 6px" }}>
-              เข้าสู่ระบบเพื่อรับสิทธิ์สุ่มรางวัล
-            </h3>
-            <p style={{ fontSize: 13, color: "var(--text-dark-secondary)", marginBottom: 16 }}>
-              เพียงลงทะเบียนและร่วมกิจกรรมอย่างน้อย 1 จุด เพื่อปลดล็อกกล่องสุ่มสวรรค์
-            </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-              <Link to="/login" className="chinese-btn-primary" style={{ padding: "8px 20px", fontSize: 13 }}>
-                เข้าสู่ระบบ
-              </Link>
-              <Link to="/register" className="chinese-btn-secondary" style={{ padding: "8px 20px", fontSize: 13 }}>
-                ลงทะเบียน
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Logged in Content */}
-        {firebaseUser && (
-          <div>
-            {/* 1. Main Mystery Box Animation Graphic */}
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "20px 0 10px",
-              }}
-            >
-              <motion.div
-                animate={
-                  drawing
-                    ? { scale: [1, 1.15, 0.95, 1.2, 1], rotate: [0, -6, 6, -10, 0] }
-                    : { y: [0, -8, 0] }
-                }
-                transition={
-                  drawing
-                    ? { duration: 1.5, repeat: Infinity }
-                    : { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
-                }
-                style={{
-                  width: 220,
-                  height: 220,
-                  borderRadius: 24,
-                  overflow: "hidden",
-                  border: "3px solid var(--color-gold-400)",
-                  boxShadow: "0 12px 36px rgba(205, 163, 79, 0.4)",
-                  background: "#081d22",
-                }}
-              >
-                <img
-                  src="/images/celestial-mystery-chest.jpg"
-                  alt="Celestial Mystery Box"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </motion.div>
-            </div>
-
-            {/* 2. State: Already Claimed Prize */}
-            {isClaimed && prize && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                style={{
-                  background: "linear-gradient(135deg, #fdfbf7 0%, #fef3c7 100%)",
-                  border: "2px solid var(--color-gold-500)",
-                  borderRadius: 20,
-                  padding: "20px",
-                  marginTop: 10,
-                  marginBottom: 20,
-                  textAlign: "center",
-                  boxShadow: "0 10px 30px rgba(212, 175, 55, 0.25)",
-                }}
-              >
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--color-red-900)", color: "#fef08a", padding: "4px 14px", borderRadius: 9999, fontSize: 12, fontWeight: 800, marginBottom: 12 }}>
-                  <Award style={{ width: 14, height: 14 }} />
-                  <span>รางวัลที่คุณได้รับ</span>
-                </div>
-
-                <div
-                  style={{
-                    width: 140,
-                    height: 140,
-                    margin: "0 auto 14px",
-                    borderRadius: 16,
-                    overflow: "hidden",
-                    border: "2px solid var(--color-gold-500)",
-                    boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <img
-                    src={getLuckyPrizeImage(prize.title)}
-                    alt={prize.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
-
-                <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-950)", margin: "0 0 6px" }}>
-                  {prize.title}
-                </h2>
-                {prize.description && (
-                  <p style={{ fontSize: 13, color: "var(--text-dark-secondary)", margin: "0 0 16px" }}>
-                    {prize.description}
-                  </p>
-                )}
-
-                {/* Redemption Status Badge */}
-                <div style={{ marginBottom: 16 }}>
-                  {prize.redeemed ? (
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#dcfce7", color: "#166534", padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "1px solid #86efac" }}>
-                      <CheckCircle style={{ width: 16, height: 16 }} />
-                      <span>รับของรางวัลแล้วเรียบร้อย ({prize.redeemedAt ? new Date(prize.redeemedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) : "วันนี้"})</span>
-                    </div>
-                  ) : (
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fef9c3", color: "#854d0e", padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "1px solid #fde047" }}>
-                      <ShieldCheck style={{ width: 16, height: 16 }} />
-                      <span>รอรับของรางวัล — แสดง Voucher QR นี้แก่เจ้าหน้าที่ที่บูธกลาง</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Voucher QR Code */}
-                {qrDataUrl && !prize.redeemed && (
-                  <div style={{ background: "#ffffff", padding: 14, borderRadius: 16, display: "inline-block", border: "1px solid var(--border-gold-subtle)", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", marginBottom: 12 }}>
-                    <img src={qrDataUrl} alt="Claim Voucher QR" style={{ width: 180, height: 180, display: "block" }} />
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-red-900)", marginTop: 8, letterSpacing: 1 }}>
-                      {prize.voucherCode}
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ fontSize: 11, color: "var(--text-dark-muted)", marginTop: 4 }}>
-                  สิทธิ์การสุ่ม: 1 ครั้งต่อผู้เข้าร่วม (ใช้สิทธิ์แล้ว)
-                </div>
-              </motion.div>
-            )}
-
-            {/* 3. State: Eligible to Draw (Ready!) */}
-            {!isClaimed && isEligible && (
-              <div style={{ textAlign: "center", marginTop: 10, marginBottom: 20 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#15803d", background: "#dcfce7", padding: "4px 14px", borderRadius: 9999, fontSize: 12, fontWeight: 700, marginBottom: 12, border: "1px solid #86efac" }}>
-                  <CheckCircle style={{ width: 14, height: 14 }} />
-                  <span>คุณมีสิทธิ์สุ่มกล่องสวรรค์แล้ว 1 ครั้ง!</span>
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <button
-                    type="button"
-                    disabled={drawing}
-                    onClick={handleDraw}
-                    className="chinese-btn-primary"
-                    style={{
-                      width: "100%",
-                      maxWidth: 320,
-                      margin: "0 auto",
-                      padding: "14px 24px",
-                      fontSize: 16,
-                      fontWeight: 800,
-                      boxShadow: "0 8px 24px rgba(212, 175, 55, 0.4)",
-                    }}
-                  >
-                    <Gift style={{ width: 20, height: 20 }} />
-                    <span>{drawing ? "กำลังเปิดกล่องสวรรค์..." : "เปิดกล่องสุ่มสวรรค์ทันที!"}</span>
-                  </button>
-                </div>
-
-                <div style={{ fontSize: 11, color: "var(--text-dark-muted)" }}>
-                  ของรางวัลของแท้มีจำนวนจำกัด สุ่มได้ 1 ครั้งต่อคนเท่านั้น
-                </div>
-              </div>
-            )}
-
-            {/* 4. State: In Progress (Not Yet Eligible) */}
-            {!isClaimed && !isEligible && conditions && (
-              <div style={{ marginTop: 10, marginBottom: 20 }}>
-                <div className="ivory-card-inner">
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--color-red-900)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                    <Flame style={{ width: 16, height: 16, color: "var(--color-gold-600)" }} />
-                    <span>เงื่อนไขการปลดล็อกกล่องสุ่มสวรรค์</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: "var(--text-dark-secondary)", margin: "0 0 12px" }}>
-                    เข้าร่วมกิจกรรมเพื่อสะสมหลักฐานการผ่านด่านอย่างน้อย 1 สถานที่ และ 1 กิจกรรม
-                  </p>
-
-                  <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "10px 12px",
-                        borderRadius: 10,
-                        background: conditions.hasVisitedVenue ? "#f0fdf4" : "#fef2f2",
-                        border: `1px solid ${conditions.hasVisitedVenue ? "#bbf7d0" : "#fecaca"}`,
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600 }}>
-                        <MapPin style={{ width: 16, height: 16, color: conditions.hasVisitedVenue ? "#16a34a" : "#dc2626" }} />
-                        <span>เช็กอินสถานที่จัดงานอย่างน้อย 1 โซน</span>
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: conditions.hasVisitedVenue ? "#16a34a" : "#dc2626" }}>
-                        {conditions.hasVisitedVenue ? "✓ สำเร็จ" : `${conditions.visitedVenuesCount}/1`}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "10px 12px",
-                        borderRadius: 10,
-                        background: conditions.hasCompletedActivity ? "#f0fdf4" : "#fef2f2",
-                        border: `1px solid ${conditions.hasCompletedActivity ? "#bbf7d0" : "#fecaca"}`,
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 600 }}>
-                        <Award style={{ width: 16, height: 16, color: conditions.hasCompletedActivity ? "#16a34a" : "#dc2626" }} />
-                        <span>เข้าร่วมกิจกรรม/ซุ้มอย่างน้อย 1 ฐาน</span>
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: conditions.hasCompletedActivity ? "#16a34a" : "#dc2626" }}>
-                        {conditions.hasCompletedActivity ? "✓ สำเร็จ" : `${conditions.completedActivitiesCount}/1`}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Link
-                    to="/scan"
-                    className="chinese-btn-primary"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      textDecoration: "none",
-                      padding: "10px 16px",
-                      fontSize: 13,
-                    }}
-                  >
-                    <QrCode style={{ width: 16, height: 16 }} />
-                    <span>ไปหน้าสแกนเพื่อเช็กอิน</span>
-                    <ArrowRight style={{ width: 14, height: 14 }} />
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {/* List of Possible Gifts in the Mystery Box */}
-            <div style={{ marginTop: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--color-red-900)", margin: 0 }}>
-                  ของขวัญในกล่องสุ่มสวรรค์
-                </h3>
-                <Link to="/prizes" style={{ fontSize: 12, color: "var(--color-gold-700)", textDecoration: "none", fontWeight: 700 }}>
-                  ดูคลังรางวัลทั้งหมด →
-                </Link>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/assets/characters/azure-dragon-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>Art Toy สัตว์เทพ</div>
-                  <div style={{ fontSize: 10, color: "var(--color-gold-700)", fontWeight: 600 }}>รางวัลระดับตำนาน</div>
-                </div>
-
-                <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/assets/characters/nine-tailed-fox-mascot.svg" alt="" style={{ width: 50, height: 50, margin: "0 auto 6px" }} />
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>พวงกุญแจอะคริลิก</div>
-                  <div style={{ fontSize: 10, color: "#9333ea", fontWeight: 600 }}>มหากาพย์</div>
-                </div>
-
-                <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/assets/decorations/dragon-seal.svg" alt="" style={{ width: 44, height: 44, margin: "4px auto 6px" }} />
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>กระเป๋าผ้า OPH 2026</div>
-                  <div style={{ fontSize: 10, color: "#0284c7", fontWeight: 600 }}>พรีเมียม</div>
-                </div>
-
-                <div style={{ background: "#ffffff", border: "1px solid var(--border-gold-subtle)", borderRadius: 14, padding: 12, textAlign: "center", boxShadow: "var(--shadow-card-ivory)" }}>
-                  <img src="/assets/decorations/chinese-cloud.svg" alt="" style={{ width: 50, height: 40, margin: "8px auto 6px" }} />
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>เซตสติ๊กเกอร์โฮโลแกรม</div>
-                  <div style={{ fontSize: 10, color: "#16a34a", fontWeight: 600 }}>ของที่ระลึก</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {loading && <ThemedLoading fullscreen message="กำลังโหลดข้อมูลกล่องสวรรค์..." />}
-      {drawing && <ThemedLoading fullscreen message="กำลังเปิดกล่องสุ่มสวรรค์แดนมังกร..." />}
-
-      <BottomNavBar />
+  return <div className="treasure-page">
+    <section className="treasure-hero">
+      <QiParticles count={10} /><span className="eyebrow"><Sparkles size={15} /> THE DRAGON'S TREASURE</span>
+      <h1>หีบสมบัติ<br /><em>แห่งแดนมังกร</em></h1><p>ภารกิจของคุณ อาจนำไปสู่สมบัติชิ้นพิเศษ</p>
+      <RitualChest opened={Boolean(prize)} />
+      <div className="treasure-hero-caption"><span /><small>{prize ? "สมบัติของคุณถูกบันทึกแล้ว" : "หนึ่งโอกาส · หนึ่งสมบัติ · สำหรับคุณ"}</small><span /></div>
+    </section>
+    <div className="treasure-content">
+      {loading || authLoading ? <div className="treasure-notice" role="status"><img src="/assets/animations/loading-seal.svg" alt="" width={54} /><p>กำลังตรวจสอบใบเบิกทาง...</p></div> : !firebaseUser ? <section className="treasure-notice"><Gift size={26} /><h2>เริ่มภารกิจเพื่อเปิดหีบ</h2><p>ลงทะเบียน เข้าร่วมอย่างน้อย 1 กิจกรรม<br />และเช็กอินอย่างน้อย 1 สถานที่</p><Link className="button-imperial-red" to="/register">รับใบเบิกทาง <ArrowRight size={17} /></Link><Link className="treasure-text-link" to="/login">มีบัญชีแล้ว · เข้าสู่ระบบ</Link></section> : prize ? <section className="reward-voucher" aria-label="บัตรรับรางวัล">
+        <span className="reward-rarity">{rarityLabels[prize.tier || ""] || "สมบัติของคุณ"}</span><div className="reward-voucher-art"><PrizeArtwork name={prize.title} source={image} /></div><h2>{prize.title}</h2>{prize.description && <p>{prize.description}</p>}
+        <div className={`voucher-state ${prize.redeemed ? "redeemed" : ""}`}><ShieldCheck size={17} />{prize.redeemed ? "รับของรางวัลเรียบร้อยแล้ว" : "แสดง Voucher นี้กับเจ้าหน้าที่จุดรับรางวัล"}</div>
+        {!prize.redeemed && qr && <img className="voucher-qr" src={qr} alt="QR Voucher สำหรับรับของรางวัล" />}
+        {!prize.redeemed && prize.voucherCode && <code className="voucher-code">{prize.voucherCode}</code>}
+        <small>กลับมาที่หน้านี้เพื่อดูบัตรรับรางวัลได้ทุกเมื่อ</small>
+        <Link className="button-gold-outline" to="/schedule">ออกเดินทางต่อ <ArrowRight size={16} /></Link>
+      </section> : status && <section className="treasure-notice">
+        <span className="eyebrow">YOUR QUEST PROGRESS</span><h2>{status.eligible ? "ผู้พิทักษ์ยอมรับคุณแล้ว" : "อีกนิดเดียว สมบัติรออยู่"}</h2><p>{status.eligible ? "พร้อมเปิดหีบและลุ้นรางวัลของคุณ" : "ทำภารกิจต่อไปนี้เพื่อปลดล็อกสิทธิ์"}</p>
+        <div className="unlock-checklist"><div className={status.conditions.hasVisitedVenue ? "done" : ""}><MapPin size={20} /><span>เช็กอิน 1 สถานที่<small>ไปถึงจุดกิจกรรมแล้วสแกน QR</small></span>{status.conditions.hasVisitedVenue ? <CheckCircle2 size={19} /> : <b>0/1</b>}</div><div className={status.conditions.hasCompletedActivity ? "done" : ""}><Award size={20} /><span>ร่วมสนุก 1 กิจกรรม<small>ทำกิจกรรมเพื่อรับบันทึกการผ่านด่าน</small></span>{status.conditions.hasCompletedActivity ? <CheckCircle2 size={19} /> : <b>0/1</b>}</div></div>
+        {status.eligible && !needsRecovery ? <><button className="ceremony-button" onClick={() => void handleDraw()} disabled={drawBusy || phase !== "idle"}><Gift size={20} />{drawBusy ? "กำลังรอผลจากเซิร์ฟเวอร์..." : "เปิดหีบสมบัติ"} <ArrowRight size={18} /></button><button className="sound-toggle" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? <Volume2 size={16} /> : <VolumeX size={16} />}{sound ? "เสียงพิธีเปิด · เปิด" : "เสียงพิธีเปิด · ปิด"}</button><small>สุ่มได้ 1 ครั้งต่อคน ผลรางวัลบันทึกในระบบ</small></> : !needsRecovery && <Link className="button-imperial-red" to="/scan">ไปสแกน QR ทำภารกิจ <ArrowRight size={17} /></Link>}
+      </section>}
+      {error && <div className="treasure-error" role="alert"><p>{error}</p><button className="button-gold-outline" disabled={loading} onClick={() => void recover()}><RefreshCw size={16} />ตรวจสอบผลล่าสุด</button></div>}
+      <div className="treasure-next-quest"><img src="/assets/brand/dragon-seal.svg" alt="" /><div><strong>การเดินทางยังไม่จบ</strong><p>เก็บตราประทับให้ครบทุกสถานที่<br />ยังมีอีกหลายกิจกรรมให้ค้นพบ</p><Link to="/schedule">เลือกภารกิจถัดไป <ArrowRight size={14} /></Link></div></div>
     </div>
-  );
-};
+    <AnimatePresence>{phase !== "idle" && <motion.div ref={dialogRef} tabIndex={-1} className={`draw-ceremony phase-${phase}`} role="dialog" aria-modal="true" aria-labelledby="draw-heading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .3 }}>
+      <QiParticles count={24} /><div className="ceremony-rays" /><div className="ceremony-inner">
+        {phase !== "revealed" ? <><span className="eyebrow">THE GUARDIANS HAVE ANSWERED</span><RitualChest active opened={phase === "opening"} /><h2 id="draw-heading" aria-live="polite">{stageText[phase]}</h2><p>ผู้พิทักษ์ทั้งสี่กำลังปลดผนึกสมบัติ</p><div className="ceremony-phase-legend">{["รวมพลัง", "ปลดผนึก", "เผยสมบัติ"].map((label, index) => <span key={label} className={index <= ["charging", "summoning", "opening"].indexOf(phase) ? "active" : ""}><b>{index + 1}</b>{label}</span>)}</div></> : <motion.div className="ceremony-reward" initial={{ scale: reduced ? 1 : .65, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 16 }}><span className="eyebrow">DESTINY HAS CHOSEN</span><span className="ceremony-rarity">{rarityLabels[prize?.tier || ""] || "สมบัติมงคล"}</span><div className="ceremony-prize-art"><div className="treasure-reveal-burst" aria-hidden="true" /><PrizeArtwork name={prize?.title || "สมบัติมงคล"} source={image} /><div className="prize-sparkle one" /><div className="prize-sparkle two" /></div><h2 id="draw-heading">{prize?.title}</h2><p>นี่คือสมบัติที่ผู้พิทักษ์มอบให้คุณ<br />บัตรรับรางวัลถูกเก็บไว้แล้ว</p><button autoFocus className="ceremony-button" onClick={() => setPhase("idle")}>เก็บสมบัติ · ดูบัตรรับรางวัล <ArrowRight size={18} /></button></motion.div>}
+        {phase !== "revealed" && <button className="ceremony-skip" onClick={() => { skipAnimation.current = true; releaseReveal.current?.(); setPhase("idle"); }}>ข้ามภาพเคลื่อนไหว · รอผลที่หน้ารางวัล</button>}
+      </div>
+    </motion.div>}</AnimatePresence>
+  </div>;
+}
