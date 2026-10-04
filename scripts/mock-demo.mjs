@@ -108,7 +108,7 @@ const activities = Object.fromEntries(activitySeed.map(([id, title, venueId, sta
     isPublished: true,
     isArchived: false,
     pointsEnabled: true,
-    pointsAwarded: points,
+    pointsAwarded: points > 0 ? 100 : 0,
     pointGrantMode: "once",
     repeatLimit: null,
     completionMethod,
@@ -121,7 +121,7 @@ const activities = Object.fromEntries(activitySeed.map(([id, title, venueId, sta
 const prizes = {
   "mock-hand-fan": {
     name: "พัดมือลายมังกร",
-    description: "ของรางวัลระดับเริ่มต้น เหมาะสำหรับผู้ที่ร่วมกิจกรรม 2-3 จุด",
+    description: "พัดมือลายมังกร ของที่ระลึกสำหรับผู้เข้าร่วมงาน",
     imageMediaId: "mock-prize-hand-fan",
     stock: 80,
     pointsRequired: 35,
@@ -140,7 +140,7 @@ const prizes = {
     isPublished: true,
   },
   "mock-tassel": {
-    name: "พู่ห้อยทอสับ",
+    name: "พู่ห้อยโทรศัพท์",
     description: "ของที่ระลึกงานฝีมือธีม Open House",
     imageMediaId: "mock-prize-tassel",
     stock: 50,
@@ -151,7 +151,7 @@ const prizes = {
   },
   "mock-hairpin": {
     name: "ปิ่นปักผม",
-    description: "ของรางวัลระดับกลางสำหรับผู้ร่วมกิจกรรมหลายฐาน",
+    description: "ปิ่นปักผมธีมจีน ของที่ระลึกงาน Open House",
     imageMediaId: "mock-prize-hairpin",
     stock: 40,
     pointsRequired: 75,
@@ -161,7 +161,7 @@ const prizes = {
   },
   "mock-small-doll": {
     name: "ตุ๊กตาเล็ก",
-    description: "รางวัลสำหรับผู้สะสมแต้มระดับสูง",
+    description: "ตุ๊กตาเล็ก ของรางวัลสำหรับผู้ร่วมสนุก",
     imageMediaId: "mock-prize-small-doll",
     stock: 20,
     pointsRequired: 110,
@@ -171,7 +171,7 @@ const prizes = {
   },
   "mock-giant-doll": {
     name: "ตุ๊กตายักษ์",
-    description: "รางวัลใหญ่สำหรับผู้พิชิตภารกิจหลายพื้นที่",
+    description: "ตุ๊กตายักษ์ รางวัลใหญ่ในหีบสมบัติ",
     imageMediaId: "mock-prize-giant-doll",
     stock: 5,
     pointsRequired: 170,
@@ -184,11 +184,11 @@ const prizes = {
 const faq = {
   "mock-faq-01": { question: "ต้องลงทะเบียนก่อนเข้าร่วมงานไหม?", answer: "แนะนำให้สร้างบัตร Open House ผ่านหน้า Pass เพื่อใช้สะสมแต้มและดูประวัติกิจกรรม", displayOrder: 1, isPublished: true },
   "mock-faq-02": { question: "สะสมแต้มอย่างไร?", answer: "ร่วมกิจกรรมที่เปิดให้คะแนน แล้วสแกน QR หรือให้เจ้าหน้าที่บันทึกตามกติกาของแต่ละกิจกรรม", displayOrder: 2, isPublished: true },
-  "mock-faq-03": { question: "แต้มใช้แลกอะไรได้บ้าง?", answer: "ดูของรางวัลและจำนวนแต้มที่ต้องใช้ได้ที่หน้า Rewards ของรางวัลจริงและจำนวนคงเหลือจะอัปเดตโดยทีมงาน", displayOrder: 3, isPublished: true },
-  "mock-faq-04": { question: "ถ้า QR Pass หายทำอย่างไร?", answer: "เก็บ Recovery Code ของ Pass ไว้เพื่อกู้บัตรบนเครื่องใหม่ หากยังมีปัญหาให้ติดต่อโต๊ะประชาสัมพันธ์", displayOrder: 4, isPublished: true },
+  "mock-faq-03": { question: "แต้มใช้แลกอะไรได้บ้าง?", answer: "สะสมครบ 200 แต้ม สุ่มได้ 1 ครั้งต่อคน โดยไม่หักคะแนน แสดง Voucher ให้ Staff ตรวจและจ่ายของรางวัล", displayOrder: 3, isPublished: true },
+  "mock-faq-04": { question: "ถ้า QR Pass หายทำอย่างไร?", answer: "เข้าสู่ระบบด้วยบัญชีเดิมเพื่อเปิดใบเบิกทาง หากลืมรหัสผ่านให้ใช้หน้ากู้คืนบัญชีหรือติดต่อทีมงาน", displayOrder: 4, isPublished: true },
   "mock-faq-05": { question: "แต่ละกิจกรรมต้องลงทะเบียนแยกไหม?", answer: "บางกิจกรรมเข้าร่วมได้เลย บางกิจกรรมรับจำนวนจำกัด ให้ดูสถานะในหน้ารายละเอียดกิจกรรม", displayOrder: 5, isPublished: true },
   "mock-faq-06": { question: "สามารถมาเฉพาะบางสถานที่ได้ไหม?", answer: "ได้ สามารถเลือกสำรวจตามความสนใจ แต่การเดินครบหลายจุดจะช่วยให้เห็นภาพรวมของคณะมากขึ้น", displayOrder: 6, isPublished: true },
-  "mock-faq-07": { question: "ของรางวัลหมดแล้วทำอย่างไร?", answer: "ระบบจะแสดงตามสต็อกที่ทีมงานกำหนด หากรางวัลหมดสามารถเลือกแลกชิ้นอื่นตามคะแนนที่มี", displayOrder: 7, isPublished: true },
+  "mock-faq-07": { question: "ของรางวัลหมดแล้วทำอย่างไร?", answer: "ระบบสุ่มเฉพาะรางวัลที่ยังมีของ หากหมดทั้งคลัง คะแนนและสิทธิ์ยังอยู่ ให้ติดต่อ Staff โดยไม่สแกนรับของซ้ำ", displayOrder: 7, isPublished: true },
   "mock-faq-08": { question: "ข้อมูลชุดนี้เป็นข้อมูลจริงหรือไม่?", answer: "ตอนนี้เป็น Mock Data สำหรับตรวจระบบและภาพรวม UX ก่อนนำข้อมูลกิจกรรมจริงมาแทน", displayOrder: 8, isPublished: true },
 };
 

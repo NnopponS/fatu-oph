@@ -167,24 +167,27 @@ assert.equal(result.status, 400);
 
 result = await call(checkinHandler, { qrPayload: "FATU26:paid_a:secure-a" }, participantToken);
 assert.equal(result.status, 200);
-assert.equal(result.data.pointsAdded, 20);
-assert.equal(result.data.pointTotal, 20);
+assert.equal(result.data.pointsAdded, 100);
+assert.equal(result.data.pointTotal, 100);
+
+await adminDb.ref("admin/venueQr/venue_a").set({ token:"venue-a-token" });
+await adminDb.ref("admin/venueQr/venue_b").set({ token:"venue-b-token" });
 
 console.log("4. Direct venue check-in is idempotent and preserves real point total");
-result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_a" }, participantToken);
+result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_a:venue-a-token" }, participantToken);
 assert.equal(result.status, 200);
-assert.equal(result.data.pointTotal, 20);
+assert.equal(result.data.pointTotal, 100);
 assert.equal(result.data.duplicate, true, "activity check-in already recorded the venue visit");
 
 await adminDb.ref("public/venues/venue_b").set({ name: "ตึกคณะ", visualLabel: "แดน B", isPublished: true });
-result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_b" }, participantToken);
+result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_b:venue-b-token" }, participantToken);
 assert.equal(result.status, 200);
 assert.equal(result.data.duplicate, false);
-assert.equal(result.data.pointTotal, 20);
-result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_b" }, participantToken);
+assert.equal(result.data.pointTotal, 200);
+result = await call(checkinHandler, { qrPayload: "FATU26:CHK:venue_b:venue-b-token" }, participantToken);
 assert.equal(result.status, 200);
 assert.equal(result.data.duplicate, true);
-assert.equal(result.data.pointTotal, 20);
+assert.equal(result.data.pointTotal, 200);
 
 console.log("5. Staff manual completion uses the same per-venue cap");
 await adminDb.ref("public/activities/paid_b").set({
@@ -204,7 +207,7 @@ result = await call(adminHandler, {
 }, adminToken);
 assert.equal(result.status, 200);
 assert.equal(result.data.pointsAdded, 0);
-assert.equal(result.data.pointTotal, 20);
+assert.equal(result.data.pointTotal, 200);
 
 console.log("6. Zero-point activity does not consume a venue's point entitlement");
 const participant2 = await registerParticipant("participant_b", "participant-b@example.com");
@@ -239,7 +242,7 @@ assert.equal(result.status, 200);
 assert.equal(result.data.pointsAdded, 0);
 result = await call(checkinHandler, { qrPayload: "FATU26:paid_c:paid-c-token" }, participant2Token);
 assert.equal(result.status, 200);
-assert.equal(result.data.pointsAdded, 30);
+assert.equal(result.data.pointsAdded, 100);
 
 console.log("7. Username claim is atomic under concurrent registration");
 const [raceA, raceB] = await Promise.all([
@@ -251,13 +254,17 @@ assert.deepEqual(statuses, [201, 409]);
 const raceIndex = (await adminDb.ref("operations/usernames/race_user").get()).val();
 assert.ok(raceIndex?.uid);
 
+await adminDb.ref("operations/accounting/participants/"+participant2Uid+"/pointTotal").set(200);
+await adminDb.ref("public/prizes/test_fan").set({name:"พัดทดสอบ",isPublished:true,stock:2,drawWeight:1,rarity:"common"});
+
 console.log("8. Lucky Draw status contract, one-time draw, and claimed status");
 result = await call(luckyDrawHandler, { action: "status" }, participant2Token);
 assert.equal(result.status, 200);
 assert.equal(result.data.status.eligible, true);
 assert.equal(result.data.status.claimed, false);
-assert.equal(result.data.status.conditions.hasVisitedVenue, true);
-assert.equal(result.data.status.conditions.hasCompletedActivity, true);
+assert.equal(result.data.status.conditions.visitedVenuesCount, 1);
+assert.equal(result.data.status.conditions.completedActivitiesCount, 2);
+assert.equal(result.data.status.progress.required, 200);
 
 result = await call(luckyDrawHandler, { action: "draw" }, participant2Token);
 assert.equal(result.status, 200);

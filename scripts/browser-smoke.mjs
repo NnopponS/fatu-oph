@@ -6,7 +6,7 @@ const edgePath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.
 
 const routes = [
   ["/", "FATU OPEN HOUSE 2026"],
-  ["/register", "เริ่มต้นเส้นทางของคุณ"],
+  ["/register", "รับใบเบิกทางแดนมังกร"],
   ["/login", "เข้าสู่ระบบ"],
   ["/venue/theater", "โรงละคอน"],
   ["/prizes", "ของรางวัล"],

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { loadRewardPolicy } from "./_lib/rewards.js";
 import {
   adminAuth,
   adminDb,
@@ -424,10 +425,8 @@ export async function POST(request: Request) {
         .map(([id, val]) => ({ id, ...(val as Record<string, unknown>) }))
         .sort((a, b) => String((b as Record<string, unknown>).createdAt || "").localeCompare(String((a as Record<string, unknown>).createdAt || "")));
 
-      // Lucky draw qualification: at least 1 completed activity and at least 1 location visit
-      const hasCompletedActivity = transactions.some((t) => (t as { activityId?: string }).activityId);
-      const hasCompletedVenue = Object.keys(visits).length >= 1;
-      const luckyEligible = hasCompletedActivity && hasCompletedVenue;
+      const rules = await loadRewardPolicy();
+      const luckyEligible = Number(account.pointTotal || 0) >= rules.pointsRequired;
 
       return json({
         user: {
@@ -451,8 +450,9 @@ export async function POST(request: Request) {
           eligible: luckyEligible,
           hasDrawn: luckySnap.exists(),
           record: luckySnap.val() || null,
+          pointsRequired: rules.pointsRequired,
         },
-        surveyCompleted: surveySnap.exists(),
+        surveyCompleted: surveySnap.exists() || Boolean(account.surveyBonus),
       });
     }
 

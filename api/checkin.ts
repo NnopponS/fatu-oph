@@ -5,6 +5,7 @@ import {
   bearerToken,
   enforceRateLimit,
   grantActivityPoints,
+  grantVenuePoints,
   json,
   publicError,
   readJson,
@@ -104,9 +105,15 @@ export async function POST(request: Request) {
         const venueSnap = await adminDb.ref(`public/venues/${qr.targetId}`).get();
         if (venueSnap.exists()) {
           const venue = venueSnap.val();
+          const config = (await adminDb.ref(`admin/venueQr/${qr.targetId}`).get()).val();
+          if (!venue.isPublished || !config?.token || !qr.token || !safeEqual(qr.token, config.token)) {
+            return json({ error: "QR สถานที่ไม่ถูกต้อง กรุณาสแกนป้ายล่าสุดจากเจ้าหน้าที่" }, 400);
+          }
+          const visitRef = adminDb.ref(`operations/locationVisits/${participantId}/${qr.targetId}`);
+          const visitSnapshot = await visitRef.get();
+          const grant = await grantVenuePoints(participantId, qr.targetId, venue.name, visitSnapshot.exists());
           // Record venue visit idempotently and preserve the first visit timestamp.
           const visitedAt = new Date().toISOString();
-          const visitRef = adminDb.ref(`operations/locationVisits/${participantId}/${qr.targetId}`);
           const visitResult = await visitRef.transaction((current) => {
             if (current) return;
             return {
@@ -115,14 +122,14 @@ export async function POST(request: Request) {
               visitedAt,
             };
           });
-          const accountSnap = await adminDb.ref(`operations/accounting/participants/${participantId}/pointTotal`).get();
-
           return json({
             ok: true,
             activityTitle: "สำรวจแดนศักดิ์สิทธิ์",
-            locationName: venue.visualLabel || venue.name,
-            pointsAdded: 0,
-            pointTotal: Number(accountSnap.val() || 0),
+            locationId: qr.targetId,
+            locationName: venue.name,
+            pointsAdded: grant.pointsAdded,
+            pointTotal: grant.pointTotal,
+            newlyVisitedLocation: visitResult.committed,
             duplicate: !visitResult.committed,
             message: visitResult.committed
               ? `เช็กอินสำรวจ ${venue.visualLabel || venue.name} สำเร็จ!`

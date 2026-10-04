@@ -1,512 +1,102 @@
-import React, { useState, useEffect } from "react";
-
-import { Shield, Users, MapPin, CheckCircle, Award, Search, Gift, QrCode } from "lucide-react";
+import { useState } from "react";
+import { Award, CheckCircle2, Gift, QrCode, Search, ShieldCheck, X } from "lucide-react";
 import { useAdminSession } from "@/pages/AdminPage";
-import { ThemedLoading } from "@/components/ThemedLoading";
-import { useAuth } from "@/contexts/AuthContext";
-import { readRealtime, realtimePaths } from "@/services/realtime";
+import { useActivities, useVenues } from "@/data/content";
+import { QrScanner } from "@/components/QrScanner";
 
-export const StaffDashboardPage: React.FC = () => {
-  const { user: firebaseUser, role } = useAdminSession();
-  const { profile } = useAuth();
+interface Participant { id: string; username: string; displayName: string }
+interface Voucher { voucherCode: string; displayName: string; username: string; prizeName: string; status: string; claimedAt?: string }
 
-  const [venues, setVenues] = useState<Record<string, { name: string; realmTitle?: string; isPublished?: boolean }>>({});
-  const [activities, setActivities] = useState<Record<string, { title: string; venueId?: string; isPublished?: boolean }>>({});
-  const [loading, setLoading] = useState(true);
+export function StaffDashboardPage() {
+  const { user: firebaseUser } = useAdminSession();
+  const activities = useActivities(); const venues = useVenues();
+  const [tab, setTab] = useState<"activity" | "voucher">("activity");
+  const [identifier, setIdentifier] = useState("");
+  const [activityId, setActivityId] = useState("");
+  const [reason, setReason] = useState("กล้องผู้เข้าร่วมขัดข้อง");
+  const [participant, setParticipant] = useState<Participant | null>(null);
+  const [code, setCode] = useState("");
+  const [voucher, setVoucher] = useState<Voucher | null>(null);
+  const [camera, setCamera] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const activity = activities.items.find(a => a.id === activityId);
+  const venue = venues.items.find(v => v.id === activity?.venueId);
 
-  // Manual Check-in Override Form State
-  const [targetUsername, setTargetUsername] = useState("");
-  const [selectedActivityId, setSelectedActivityId] = useState("");
-  const [overrideReason, setOverrideReason] = useState("");
-  const [overrideLoading, setOverrideLoading] = useState(false);
-  const [overrideResult, setOverrideResult] = useState<{ ok: boolean; msg: string } | null>(null);
-
-  // Lucky Draw Voucher Redemption State
-  const [voucherCode, setVoucherCode] = useState("");
-  const [voucherLoading, setVoucherLoading] = useState(false);
-  const [voucherResult, setVoucherResult] = useState<{ ok: boolean; msg: string; prize?: string; participant?: string } | null>(null);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [vSnap, aSnap] = await Promise.all([
-          readRealtime<Record<string, { name: string; realmTitle?: string; isPublished?: boolean }>>(realtimePaths.public.venues),
-          readRealtime<Record<string, { title: string; venueId?: string; isPublished?: boolean }>>(realtimePaths.public.activities),
-        ]);
-        if (vSnap) setVenues(vSnap);
-        if (aSnap) {
-          setActivities(aSnap);
-          const firstActKey = Object.keys(aSnap)[0];
-          if (firstActKey) setSelectedActivityId(firstActKey);
-        }
-      } catch (err) {
-        console.error("Error loading staff data:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  const handleManualOverride = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetUsername.trim() || !selectedActivityId) return;
-
-    setOverrideLoading(true);
-    setOverrideResult(null);
-
-    try {
-      const token = firebaseUser ? await firebaseUser.getIdToken() : "";
-      const lookup = await fetch("/api/admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action: "participantByUsername", username: targetUsername.trim() }),
-      });
-      const lookupData = await lookup.json();
-      if (!lookup.ok || !lookupData.participant?.id) throw new Error(lookupData.error || "ไม่พบผู้เข้าร่วมนี้");
-      const res = await fetch("/api/admin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          action: "completeActivity",
-          participantId: lookupData.participant.id,
-          activityId: selectedActivityId,
-          reason: overrideReason.trim() || "เจ้าหน้าที่บันทึกผ่าน Staff Portal",
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "ไม่สามารถบันทึกกิจกรรมได้");
-      }
-
-      setOverrideResult({
-        ok: true,
-        msg: data.duplicate
-          ? "ผู้เข้าร่วมเคยบันทึกกิจกรรมนี้แล้ว (ไม่เพิ่มแต้มซ้ำ)"
-          : `บันทึกกิจกรรมสำเร็จ! ได้รับ +${data.pointsAdded} คะแนน`,
-      });
-      setTargetUsername("");
-    } catch (err: unknown) {
-      setOverrideResult({
-        ok: false,
-        msg: err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึก",
-      });
-    } finally {
-      setOverrideLoading(false);
-    }
-  };
-
-  const handleRedeemVoucher = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!voucherCode.trim()) return;
-
-    setVoucherLoading(true);
-    setVoucherResult(null);
-
-    try {
-      const token = firebaseUser ? await firebaseUser.getIdToken() : "";
-      const res = await fetch("/api/lucky-draw", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          action: "redeem-voucher",
-          voucherCode: voucherCode.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "ไม่สามารถตัดสิทธิ์รับของรางวัลได้");
-      }
-
-      setVoucherResult({
-        ok: true,
-        msg: data.message || "ตัดรับของรางวัลเรียบร้อยแล้ว",
-        prize: data.voucher?.prizeName,
-        participant: data.voucher?.displayName,
-      });
-      setVoucherCode("");
-    } catch (err: unknown) {
-      setVoucherResult({
-        ok: false,
-        msg: err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการตัดสิทธิ์",
-      });
-    } finally {
-      setVoucherLoading(false);
-    }
-  };
-
-  if (loading) {
-    return <ThemedLoading fullscreen message="กำลังโหลดข้อมูลแดชบอร์ดเจ้าหน้าที่..." />;
+  async function request<T>(url: string, body: Record<string, unknown>): Promise<T> {
+    const token = await firebaseUser?.getIdToken();
+    if (!token) throw new Error("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "ทำรายการไม่สำเร็จ กรุณาลองอีกครั้ง");
+    return data;
   }
 
-  const venueList = Object.entries(venues);
-  const activityList = Object.entries(activities);
+  async function perform(run: () => Promise<void>) {
+    if (busy) return;
+    setBusy(true); setError(""); setMessage("");
+    try { await run(); } catch (err) { setError(err instanceof Error ? err.message : "ทำรายการไม่สำเร็จ"); }
+    finally { setBusy(false); }
+  }
+  async function inspect() {
+    await perform(async () => {
+      if (tab === "activity") {
+        const result = await request<{ participant: Participant }>("/api/admin", { action: "participantByUsername", username: identifier.trim().replace(/^FATU26PASS:/i, "") });
+        setParticipant(result.participant);
+      } else {
+        const result = await request<{ voucher: Voucher }>("/api/lucky-draw", { action: "peek-voucher", voucherCode: code.trim() });
+        setVoucher(result.voucher);
+      }
+    });
+  }
+  async function confirm() {
+    await perform(async () => {
+      if (tab === "activity" && participant && activity) {
+        const result = await request<{ duplicate: boolean; pointsAdded: number; venueCapped?: boolean }>("/api/admin", { action: "completeActivity", participantId: participant.id, activityId, reason });
+        setMessage(result.duplicate ? "บันทึกกิจกรรมนี้แล้ว ไม่เพิ่มคะแนนซ้ำ" : `${participant.displayName} · บันทึก ${activity.title} แล้ว${result.venueCapped ? " · รับแต้มจากสถานที่นี้แล้ว" : ` · +${result.pointsAdded} แต้ม`}`);
+        setParticipant(null); setIdentifier("");
+      } else if (tab === "voucher" && voucher?.status === "pending") {
+        const result = await request<{ message: string }>("/api/lucky-draw", { action: "redeem-voucher", voucherCode: voucher.voucherCode });
+        setMessage(result.message); setVoucher(null); setCode("");
+      }
+    });
+  }
 
-  return (
-    <div className="staff-field-page">
-
-      {/* Staff Header Bar */}
-      <div
-        style={{
-          background: "linear-gradient(180deg, #ffffff 0%, #fcfaf4 100%)",
-          padding: "16px 20px",
-          borderBottom: "1px solid var(--border-gold-subtle)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: "#fef3c7",
-              border: "1.5px solid var(--color-gold-500)",
-              display: "grid",
-              placeItems: "center",
-              color: "var(--color-gold-700)",
-            }}
-          >
-            <Shield style={{ width: 22, height: 22 }} />
-          </div>
-          <div>
-            <div style={{ color: "var(--color-red-900)", fontWeight: 800, fontSize: 16 }}>
-              {profile?.displayName || "Staff Member"}
-            </div>
-            <div style={{ color: "var(--color-gold-700)", fontSize: 12, fontWeight: 600 }}>
-              บทบาท: <span style={{ textTransform: "uppercase" }}>{role}</span>
-            </div>
-          </div>
-        </div>
-
-
-      </div>
-
-      <div style={{ padding: "20px 16px 80px" }}>
-        {/* KPI Summary Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 20 }}>
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-gold-subtle)",
-              borderRadius: 14,
-              padding: "14px 12px",
-              textAlign: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-            }}
-          >
-            <MapPin style={{ width: 20, height: 20, color: "var(--color-gold-600)", margin: "0 auto 6px" }} />
-            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-900)" }}>{venueList.length}</div>
-            <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", fontWeight: 600 }}>ดินแดน / จุดจัดงาน</div>
-          </div>
-
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-gold-subtle)",
-              borderRadius: 14,
-              padding: "14px 12px",
-              textAlign: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-            }}
-          >
-            <Award style={{ width: 20, height: 20, color: "#0284c7", margin: "0 auto 6px" }} />
-            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--color-red-900)" }}>{activityList.length}</div>
-            <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", fontWeight: 600 }}>กิจกรรมเปิดให้บริการ</div>
-          </div>
-
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-gold-subtle)",
-              borderRadius: 14,
-              padding: "14px 12px",
-              textAlign: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-            }}
-          >
-            <CheckCircle style={{ width: 20, height: 20, color: "#16a34a", margin: "0 auto 6px" }} />
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#16a34a" }}>ปกติ</div>
-            <div style={{ fontSize: 11, color: "var(--text-dark-secondary)", fontWeight: 600 }}>สถานะระบบ Self-QR</div>
-          </div>
-        </div>
-
-        {/* Operational Notice */}
-        <div
-          style={{
-            background: "#fdf8ea",
-            border: "1px solid rgba(205, 163, 79, 0.45)",
-            borderRadius: 12,
-            padding: 14,
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-          }}
-        >
-          <CheckCircle style={{ width: 20, height: 20, color: "var(--color-gold-700)", flexShrink: 0, marginTop: 2 }} />
-          <div style={{ fontSize: 12, color: "var(--text-dark-primary)", lineHeight: 1.5 }}>
-            <strong>คำแนะนำสำหรับ Staff:</strong> ผู้เข้าร่วมงานสามารถเปิดหน้า{" "}
-            <strong>/scan</strong> บนโทรศัพท์ของตนเองเพื่อสแกน QR ประจำจุดกิจกรรมได้ทันที
-            เจ้าหน้าที่ไม่ต้องเดินสแกนรหัสผู้เข้าร่วม ยกเว้นกรณีใช้อุปกรณ์บันทึกรับรองพิเศษ
-          </div>
-        </div>
-
-        {/* Active Locations & Status */}
-        <div style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--color-red-900)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-            <MapPin style={{ width: 18, height: 18, color: "var(--color-gold-600)" }} />
-            <span>สถานะดินแดนและอาคารจัดกิจกรรม</span>
-          </h3>
-
-          <div style={{ display: "grid", gap: 10 }}>
-            {venueList.map(([vId, v]) => (
-              <div
-                key={vId}
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid var(--border-gold-subtle)",
-                  borderRadius: 12,
-                  padding: "12px 16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
-                }}
-              >
-                <div>
-                  <div style={{ color: "var(--text-dark-primary)", fontWeight: 700, fontSize: 14 }}>{v.name}</div>
-                  <div style={{ color: "var(--color-gold-700)", fontSize: 12 }}>{v.realmTitle || vId}</div>
-                </div>
-                <span
-                  style={{
-                    padding: "3px 10px",
-                    borderRadius: 9999,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    background: v.isPublished ? "#dcfce7" : "#f1f5f9",
-                    color: v.isPublished ? "#166534" : "#64748b",
-                    border: `1px solid ${v.isPublished ? "#bbf7d0" : "#cbd5e1"}`,
-                  }}
-                >
-                  {v.isPublished ? "เปิดบริการ" : "ปิดชั่วคราว"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Manual Check-in Override Tool (Staff authorized) */}
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-gold-subtle)",
-            borderRadius: 16,
-            padding: 18,
-            boxShadow: "0 4px 14px rgba(0,0,0,0.03)",
-          }}
-        >
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--color-red-900)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>
-            <Users style={{ width: 18, height: 18, color: "var(--color-gold-600)" }} />
-            <span>เครื่องมือบันทึกกิจกรรมสำรอง (Manual Override)</span>
-          </h3>
-          <p style={{ fontSize: 12, color: "var(--text-dark-secondary)", marginBottom: 16 }}>
-            ใช้เฉพาะกรณีผู้เข้าร่วมกล้องขัดข้อง ไม่สามารถสแกน QR ได้เอง (บันทึก Audit ประวัติการทำรายการทุกครั้ง)
-          </p>
-
-          {overrideResult && (
-            <div
-              style={{
-                padding: "10px 14px",
-                borderRadius: 10,
-                fontSize: 13,
-                marginBottom: 14,
-                backgroundColor: overrideResult.ok ? "#ecfdf5" : "#fef2f2",
-                color: overrideResult.ok ? "#065f46" : "#991b1b",
-                border: `1px solid ${overrideResult.ok ? "#a7f3d0" : "#fecaca"}`,
-              }}
-            >
-              {overrideResult.msg}
-            </div>
-          )}
-
-          <form onSubmit={handleManualOverride}>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", color: "var(--text-dark-primary)", fontSize: 12, marginBottom: 4, fontWeight: 700 }}>
-                ชื่อผู้ใช้ หรือ UID ผู้เข้าร่วม
-              </label>
-              <div style={{ position: "relative" }}>
-                <Search style={{ position: "absolute", left: 12, top: 11, width: 16, height: 16, color: "var(--color-gold-600)" }} />
-                <input
-                  type="text"
-                  required
-                  placeholder="เช่น dragon_26"
-                  value={targetUsername}
-                  onChange={(e) => setTargetUsername(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px 10px 38px",
-                    background: "#fbf8f1",
-                    border: "1px solid rgba(205, 163, 79, 0.45)",
-                    borderRadius: 8,
-                    color: "var(--text-dark-primary)",
-                    fontSize: 13,
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", color: "var(--text-dark-primary)", fontSize: 12, marginBottom: 4, fontWeight: 700 }}>
-                กิจกรรมที่ต้องการบันทึก
-              </label>
-              <select
-                value={selectedActivityId}
-                onChange={(e) => setSelectedActivityId(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  background: "#fbf8f1",
-                  border: "1px solid rgba(205, 163, 79, 0.45)",
-                  borderRadius: 8,
-                  color: "var(--text-dark-primary)",
-                  fontSize: 13,
-                  boxSizing: "border-box",
-                }}
-              >
-                {activityList.map(([aId, a]) => (
-                  <option key={aId} value={aId}>
-                    {a.title} ({venues[a.venueId || ""]?.name || "ไม่ระบุจุด"})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "var(--text-dark-primary)", fontSize: 12, marginBottom: 4, fontWeight: 700 }}>
-                เหตุผลการบันทึกแทน (สำหรับ Audit Log)
-              </label>
-              <input
-                type="text"
-                placeholder="เช่น ผู้เข้าร่วมกล้องเสีย, ตรวจสอบผลงานหน้างานแล้ว"
-                value={overrideReason}
-                onChange={(e) => setOverrideReason(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  background: "#fbf8f1",
-                  border: "1px solid rgba(205, 163, 79, 0.45)",
-                  borderRadius: 8,
-                  color: "var(--text-dark-primary)",
-                  fontSize: 13,
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={overrideLoading}
-              className="button-imperial-red"
-              style={{ fontSize: 13, padding: "10px 18px", width: "100%", cursor: "pointer" }}
-            >
-              {overrideLoading ? "กำลังบันทึก..." : "ยืนยันการบันทึกกิจกรรมให้ผู้เข้าร่วม"}
-            </button>
-          </form>
-        </div>
-
-        {/* Lucky Draw Voucher Redemption Tool */}
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-gold-subtle)",
-            borderRadius: 16,
-            padding: 18,
-            marginTop: 20,
-            boxShadow: "0 4px 14px rgba(0,0,0,0.03)",
-          }}
-        >
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: "var(--color-red-900)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>
-            <Gift style={{ width: 18, height: 18, color: "var(--color-gold-600)" }} />
-            <span>ตรวจและตัดสิทธิ์รับของรางวัลกล่องสุ่มสวรรค์ (Voucher Redemption)</span>
-          </h3>
-          <p style={{ fontSize: 12, color: "var(--text-dark-secondary)", marginBottom: 16 }}>
-            เมื่อผู้เข้าร่วมนำ QR หรือรหัส Voucher มาแสดงที่บูธของรางวัล ให้กรอกหรือสแกนรหัสเพื่อยืนยันการมอบรางวัล
-          </p>
-
-          {voucherResult && (
-            <div
-              style={{
-                padding: "12px 14px",
-                borderRadius: 10,
-                fontSize: 13,
-                marginBottom: 14,
-                backgroundColor: voucherResult.ok ? "#ecfdf5" : "#fef2f2",
-                color: voucherResult.ok ? "#065f46" : "#991b1b",
-                border: `1px solid ${voucherResult.ok ? "#a7f3d0" : "#fecaca"}`,
-              }}
-            >
-              <div style={{ fontWeight: 700 }}>{voucherResult.msg}</div>
-              {voucherResult.prize && (
-                <div style={{ fontSize: 12, marginTop: 4 }}>
-                  ของรางวัล: <strong>{voucherResult.prize}</strong> | ผู้รับ: <strong>@{voucherResult.participant}</strong>
-                </div>
-              )}
-            </div>
-          )}
-
-          <form onSubmit={handleRedeemVoucher}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", color: "var(--text-dark-primary)", fontSize: 12, marginBottom: 4, fontWeight: 700 }}>
-                รหัส Voucher (Voucher Code)
-              </label>
-              <div style={{ position: "relative" }}>
-                <QrCode style={{ position: "absolute", left: 12, top: 11, width: 16, height: 16, color: "var(--color-gold-600)" }} />
-                <input
-                  type="text"
-                  required
-                  placeholder="เช่น FATU26LUCKY:usr_xxxx หรือสแกน QR"
-                  value={voucherCode}
-                  onChange={(e) => setVoucherCode(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px 10px 38px",
-                    background: "#fbf8f1",
-                    border: "1px solid rgba(205, 163, 79, 0.45)",
-                    borderRadius: 8,
-                    color: "var(--text-dark-primary)",
-                    fontSize: 13,
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={voucherLoading}
-              className="button-gold"
-              style={{ fontSize: 13, padding: "10px 18px", width: "100%", cursor: "pointer" }}
-            >
-              {voucherLoading ? "กำลังตรวจสอบ..." : "ตรวจสอบและตัดรับรางวัลให้ผู้เข้าร่วม"}
-            </button>
-          </form>
-        </div>
-      </div>
+  return <div className="field-workspace">
+    <header><span className="eyebrow"><ShieldCheck size={15} /> EVENT OPERATIONS</span><h1>จุดบริการผู้เข้าร่วม</h1><p>ตรวจผู้เข้าร่วมและรายการให้ตรงกัน แล้วค่อยยืนยัน</p></header>
+    <div className="field-tabs" role="tablist" aria-label="งานของเจ้าหน้าที่">
+      <button id="field-activity-tab" role="tab" aria-controls="field-panel" aria-selected={tab === "activity"} onClick={() => { setTab("activity"); setCamera(false); setError(""); setMessage(""); }} disabled={busy}><Award size={18} />บันทึกกิจกรรม</button>
+      <button id="field-voucher-tab" role="tab" aria-controls="field-panel" aria-selected={tab === "voucher"} onClick={() => { setTab("voucher"); setCamera(false); setError(""); setMessage(""); }} disabled={busy}><Gift size={18} />จ่ายรางวัล</button>
     </div>
-  );
-};
+    <div id="field-panel" role="tabpanel" aria-labelledby={`field-${tab}-tab`}>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      {message && <p className="field-success" role="status"><CheckCircle2 size={20} />{message}</p>}
+      <form onSubmit={event => { event.preventDefault(); void inspect(); }} className="field-form">
+        <span className="field-step">01 · ตรวจข้อมูล</span>
+        {tab === "activity" ? <>
+          <label htmlFor="field-activity">กิจกรรมที่ประจำจุด</label>
+          <select id="field-activity" value={activityId} onChange={event => { setActivityId(event.target.value); setParticipant(null); }} required disabled={busy || activities.loading}>
+            <option value="">เลือกกิจกรรมก่อนบันทึก</option>
+            {venues.items.map(v => <optgroup label={v.name} key={v.id}>{activities.items.filter(a => a.venueId === v.id).map(a => <option value={a.id} key={a.id}>{a.title}</option>)}</optgroup>)}
+          </select>
+          {activities.error && <p className="form-error">{activities.error}</p>}
+          <label htmlFor="field-identifier">ชื่อผู้ใช้ หรือ QR ใบเบิกทาง</label>
+          <input id="field-identifier" value={identifier} onChange={event => { setIdentifier(event.target.value); setParticipant(null); }} placeholder="เช่น dragon_26 หรือ FATU26PASS:..." required autoComplete="off" disabled={busy} />
+          <label htmlFor="field-reason">เหตุผลที่บันทึกแทนการสแกน</label>
+          <input id="field-reason" value={reason} onChange={event => { setReason(event.target.value); setParticipant(null); }} required minLength={3} disabled={busy} />
+        </> : <><label htmlFor="field-voucher">รหัส Voucher ของผู้เข้าร่วม</label><input id="field-voucher" value={code} onChange={event => { setCode(event.target.value); setVoucher(null); }} placeholder="FATU26LUCKY:LKY-..." required autoComplete="off" disabled={busy} /><p>สแกนหรือกรอกรหัสเพื่อตรวจชื่อและรางวัลก่อนจ่ายของ</p></>}
+        <div className="field-actions"><button className="admin-submit" type="submit" disabled={busy || tab === "activity" && !activityId}><Search size={17} />{busy ? "กำลังตรวจสอบ..." : "ตรวจข้อมูล"}</button><button className="secondary-button" type="button" disabled={busy} onClick={() => setCamera(!camera)}>{camera ? <X size={17} /> : <QrCode size={17} />}{camera ? "ปิดกล้อง" : "สแกน QR"}</button></div>
+        {camera && <QrScanner onScan={value => { if (tab === "activity") { setIdentifier(value); setParticipant(null); } else { setCode(value); setVoucher(null); } setCamera(false); }} />}
+      </form>
+      {(tab === "activity" && participant && activity || tab === "voucher" && voucher) && <section className="field-confirm" aria-label="ยืนยันรายการ">
+        <span className="field-step">02 · ยืนยันรายการ</span>
+        <h2>{tab === "activity" ? participant?.displayName : voucher?.displayName}</h2><p>@{tab === "activity" ? participant?.username : voucher?.username}</p>
+        {tab === "activity" ? <><strong>{activity?.title}</strong><p>{venue?.name} · ได้สูงสุด {activity?.pointsAwarded || 0} แต้ม หากยังไม่เคยรับแต้มจากสถานที่นี้</p><small>เหตุผล: {reason}</small></> : <><strong>{voucher?.prizeName}</strong><p>{voucher?.status === "claimed" ? "รับของรางวัลแล้ว · ไม่สามารถจ่ายซ้ำ" : "ยังไม่ได้รับของรางวัล"}</p></>}
+        <button className="admin-submit" onClick={() => void confirm()} disabled={busy || tab === "voucher" && voucher?.status !== "pending"}>{busy ? "กำลังบันทึก..." : tab === "activity" ? "ยืนยันบันทึกกิจกรรม" : "ยืนยันจ่ายของรางวัล"}</button>
+        <button className="secondary-button" disabled={busy} onClick={() => { setParticipant(null); setVoucher(null); }}>กลับไปแก้ไขข้อมูล</button>
+      </section>}
+    </div>
+    <p className="field-note">ผู้เข้าร่วมสแกน QR ประจำจุดด้วยโทรศัพท์ตนเองได้ หน้านี้ใช้ช่วยกรณีสแกนไม่ได้และยืนยันการรับของรางวัล</p>
+  </div>;
+}

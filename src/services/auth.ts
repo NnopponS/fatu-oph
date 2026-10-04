@@ -200,6 +200,8 @@ export async function fetchCurrentUserProfile(): Promise<AuthUserProfile | null>
       transactions: payload.transactions || [],
       claims: payload.claims || [],
       visits: payload.visits || {},
+      luckyDraw: { claimed: Boolean(payload.luckyDraw?.hasDrawn), voucherCode: payload.luckyDraw?.record?.voucherCode },
+      surveyCompleted: Boolean(payload.surveyCompleted),
     };
   } catch {
     return null;

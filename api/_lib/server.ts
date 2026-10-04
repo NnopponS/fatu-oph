@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
+import { activityAward, rewardPolicy } from "../../src/lib/reward-policy.js";
 
 function initAdmin() {
   if (getApps().length) return getApps()[0];
@@ -145,18 +146,20 @@ export async function grantActivityPoints(input: {
         : Number.POSITIVE_INFINITY;
   let pointsAdded = 0;
   let venueCapped = false;
+  const rules = rewardPolicy((await adminDb.ref("public/site/rewardPolicy").get()).val());
 
   const result = await accountRef.transaction((current) => {
     const next = current || { pointTotal: 0, grantCounts: {}, transactions: {}, claims: {} };
     next.grantCounts ||= {};
     next.transactions ||= {};
     next.venueGrantCounts ||= {};
+    next.venueVisits ||= {};
 
     const count = Number(next.grantCounts[grantKey] || 0);
     if (count >= limit) return; // duplicate activity checkin
 
     // Venue cap applies only to activities that actually award points.
-    const award = input.activity.pointsEnabled ? Math.max(0, Number(input.activity.pointsAwarded || 0)) : 0;
+    const award = activityAward(input.activity, rules);
     if (input.venueId && award > 0) {
       const venueCount = Number(next.venueGrantCounts[input.venueId] || 0);
       if (venueCount >= 1) {
@@ -171,6 +174,7 @@ export async function grantActivityPoints(input: {
     }
 
     next.grantCounts[grantKey] = count + 1;
+    if (input.venueId) next.venueVisits[input.venueId] = true;
     next.pointTotal = Number(next.pointTotal || 0) + pointsAdded;
     next.transactions[txId] = {
       points: pointsAdded,
@@ -196,6 +200,28 @@ export async function grantActivityPoints(input: {
     pointTotal: Number(account.pointTotal || 0),
     venueCapped,
   };
+}
+
+export async function grantVenuePoints(participantId: string, venueId: string, venueName: string, alreadyVisited: boolean) {
+  const rules = rewardPolicy((await adminDb.ref("public/site/rewardPolicy").get()).val());
+  const accountRef = adminDb.ref(`operations/accounting/participants/${participantId}`);
+  const txId = adminDb.ref().push().key || crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  if (alreadyVisited) {
+    const existing = await accountRef.get();
+    return { pointsAdded: 0, pointTotal: Number(existing.val()?.pointTotal || 0), createdAt };
+  }
+  const result = await accountRef.transaction(current => {
+    const next = current || { pointTotal: 0, transactions: {} };
+    next.venueVisits ||= {};
+    if (next.venueVisits[venueId]) return;
+    next.venueVisits[venueId] = true;
+    next.transactions ||= {};
+    next.pointTotal = Number(next.pointTotal || 0) + rules.pointsPerVenue;
+    next.transactions[txId] = { points: rules.pointsPerVenue, reason: `เช็กอิน ${venueName}`, venueId, source: "venue-qr", createdAt };
+    return next;
+  });
+  return { pointsAdded: result.committed ? rules.pointsPerVenue : 0, pointTotal: Number(result.snapshot.val()?.pointTotal || 0), createdAt };
 }
 
 export function publicError(error: unknown) {

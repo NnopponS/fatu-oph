@@ -1,0 +1,141 @@
+/* Chinese visual vocabulary: moon gates, silk, carved wood and hand-drawn clouds. */
+.lattice-corners { position:absolute; inset:10px; z-index:2; pointer-events:none; color:var(--ornament-gold,#d1af67); }
+.lattice-corners>svg { position:absolute; width:42px; height:42px; fill:none; stroke:currentColor; stroke-width:1.2; opacity:.75; }
+.lattice-corners>svg:nth-child(1) {top:0;left:0;}.lattice-corners>svg:nth-child(2) {top:0;right:0;transform:rotate(90deg);}.lattice-corners>svg:nth-child(3) {bottom:0;right:0;transform:rotate(180deg);}.lattice-corners>svg:nth-child(4) {bottom:0;left:0;transform:rotate(270deg);}
+.lattice-corners path {stroke-dasharray:240;stroke-dashoffset:0;animation:lattice-inscribe 1.5s ease-out both;}
+.fortune-knot {width:36px;height:58px;color:#bb913f;pointer-events:none;}
+.chinese-cloudscape {position:absolute;inset:0;overflow:hidden;pointer-events:none;color:#c0a973;z-index:0;}
+.chinese-cloudscape>svg {position:absolute;width:100%;bottom:0;left:0;}
+.cloudscape-mountains {height:65%;opacity:.7;}
+.chinese-cloudscape .cloudscape-cloud {width:120%;left:-10%;height:110px;opacity:.55;}
+.cloudscape-near {animation:imperial-cloud-drift 16s ease-in-out infinite alternate;}
+.cloudscape-far {bottom:35px!important;opacity:.28!important;animation:imperial-cloud-drift 22s ease-in-out infinite alternate-reverse;}
+.chinese-cloudscape .cloudscape-pavilion {width:90px;height:90px;left:auto;right:4%;bottom:7px;opacity:.34;}
+.chinese-cloudscape .cloudscape-cranes {width:105px;height:76px;left:7%;bottom:30%;opacity:.45;animation:crane-glide 14s ease-in-out infinite alternate;}
+.silk-divider {display:flex;align-items:center;gap:14px;margin:10px 22px;color:#96703a;font-size:11px;letter-spacing:.1em;}
+.silk-divider>span:first-child,.silk-divider>span:last-child {height:1px;flex:1;background:linear-gradient(90deg,transparent,#b99b60);position:relative;}
+.silk-divider>span:last-child {transform:rotate(180deg);}
+.silk-divider>span:first-child::after,.silk-divider>span:last-child::after {content:"";position:absolute;right:0;top:-3px;width:7px;height:7px;border:1px solid #b99b60;transform:rotate(45deg);background:#f6f0e1;}
+.silk-divider-word {display:flex;align-items:center;gap:10px;white-space:nowrap;}
+.silk-divider-word b {display:grid;place-items:center;width:28px;height:28px;border:1px solid #a88142;color:#8e201f;background:#f5ead2;font-size:17px;font-weight:500;transform:rotate(-6deg);}
+.chinese-palace-hero {--ornament-gold:#d8bb7c;position:relative;isolation:isolate;padding:42px 28px 36px;margin:0 0 26px;overflow:hidden;border:1px solid #ad8a4c;border-radius:4px 4px 36px 4px;color:#f8efd9;background:radial-gradient(ellipse at 20% 0,#3b6d66,transparent 70%),#103a36;box-shadow:0 12px 24px #122e2414;}
+.chinese-palace-hero[data-tone=crimson] {background:radial-gradient(ellipse at 0 0,#9b4440,transparent 75%),#561f25;}
+.chinese-palace-hero::before {content:"";position:absolute;inset:0;z-index:0;background-image:repeating-linear-gradient(45deg,transparent,transparent 15px,#ffffff03 15px,#ffffff03 16px),repeating-linear-gradient(-45deg,transparent,transparent 15px,#ffffff03 15px,#ffffff03 16px);}
+.palace-hero-content {position:relative;z-index:3;max-width:470px;margin:auto;}
+.chinese-palace-hero .section-kicker {color:#e2c78f;font-size:10px;letter-spacing:.14em;display:flex;align-items:center;gap:7px;max-width:90%;}
+.chinese-palace-hero h1 {font-size:34px;line-height:1.32;margin:25px 0 16px;font-weight:800;letter-spacing:-.02em;color:#fff9e9;}
+.chinese-palace-hero h1 em {font-style:normal;color:#ebc981;}
+.chinese-palace-hero p {font-size:13px;line-height:1.9;color:#d7e2d8;margin:0 0 22px;max-width:340px;}
+.chinese-palace-hero[data-tone=crimson] p {color:#f4ddcf;}
+.chinese-palace-hero .imperial-square-seal {position:absolute;right:0;top:31px;width:35px;height:44px;border:1px solid #d2b076;border-radius:3px;display:grid;place-items:center;background:#a72c29;font-size:25px;line-height:1;color:#f7dca2;transform:rotate(8deg);box-shadow:inset 0 0 0 3px #7f2526;opacity:.85;}
+.palace-lantern {position:absolute;top:-23px;width:40px;opacity:.8;z-index:2;pointer-events:none;transform-origin:50% 0;animation:palace-lantern-sway 6s ease-in-out infinite alternate;}
+.palace-lantern-left {left:8px;}.palace-lantern-right {right:8px;animation-delay:-3s;}
+.palace-lantern svg {width:100%;filter:drop-shadow(0 0 9px #eeb95744);}
+.palace-hero-content>h1,.palace-hero-content>p {animation:palace-title-arrive .7s cubic-bezier(.22,.7,.3,1) both;}
+.palace-hero-content>p {animation-delay:.09s;}
+.chinese-palace-hero .map-route-stops {margin:25px 0 0;position:relative;}
+.chinese-palace-hero .map-route-stops::before {border-color:#d4b97a77;}
+.chinese-palace-hero .map-route-stops a {color:#f5e5c0;font-size:10px;}
+.chinese-palace-hero .map-route-stops b {background:#163e35;box-shadow:0 0 0 5px #163e35;color:#edd69b;border-color:#caaa65;}
+.chinese-palace-hero .quest-banner-stats {display:flex;flex-wrap:wrap;gap:16px;color:#efd8a5;}
+.chinese-palace-hero .quest-banner-stats>span {display:inline-flex;align-items:center;gap:6px;font-size:12px;}
+.chinese-palace-hero .palace-map-link {display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 15px;border:1px solid #d0ae6b;border-radius:3px;color:#f3d595;text-decoration:none;font-size:13px;background:#ffffff06;}
+.moon-window {position:relative;width:202px;height:214px;margin:16px auto 23px;color:#d9b771;pointer-events:none;}
+.moon-window-rim {position:absolute;inset:12px 12px 24px;border:4px double #cfa95c;border-radius:50%;overflow:hidden;box-shadow:0 0 0 7px #af904024,0 0 0 8px #d6ba654d,0 14px 35px #0005;}
+.moon-window-rim img {width:100%;height:100%;object-fit:cover;animation:moon-guardian-arrive 1s cubic-bezier(.2,.7,.2,1) both;}
+.moon-window-light {position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffedbd44 49%,transparent 60%);transform:translateX(-100%);animation:moon-light-sweep 2s .5s ease-out both;}
+.moon-window-halo {position:absolute;inset:0 0 12px;background:radial-gradient(circle,#efd78b36,transparent 68%);border-radius:50%;}
+.moon-window-branches {position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 1px 3px #0a2723);}
+.moon-window-plaque {position:absolute;left:50%;bottom:0;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid #c5a05a;color:#f5dba2;background:#1a3934;border-radius:2px;white-space:nowrap;font-size:16px;}
+.moon-window-plaque small {font-size:10px;letter-spacing:.1em;}
+.imperial-couplet {position:absolute;top:72px;width:29px;padding:9px 5px;background:linear-gradient(90deg,#701b1d,#ad3030,#701b1d);border:1px solid #d4b36c;box-shadow:0 3px 15px #00191655;color:#f6d39a;z-index:2;pointer-events:none;}
+.imperial-couplet.left {left:18px;transform:rotate(-2deg);}.imperial-couplet.right {right:18px;transform:rotate(2deg);}
+.imperial-couplet>span {writing-mode:vertical-rl;font-size:20px;letter-spacing:9px;line-height:1;display:block;margin:5px auto;}
+.imperial-couplet>i {display:block;width:7px;height:7px;border:1px solid #edce8e;transform:rotate(45deg);margin:3px auto;}
+.home-cinematic {overflow:hidden;isolation:isolate;}
+.home-cinematic>.lattice-corners {inset:14px;}
+.home-cinematic .chinese-hero-title {font-size:clamp(32px,8vw,42px);line-height:1.3;text-shadow:0 3px 25px #102c28;}
+.home-cinematic>.chinese-cloudscape {opacity:.45;}
+.home-cinematic>.chinese-hero-tagline {padding-inline:22px;}
+.home-cinematic .chinese-hero-subtitle {color:#dfc184!important;letter-spacing:.12em;font-size:10px;}
+.home-cinematic .chinese-hero-desc {color:#d7e5d9!important;padding:0 12px;line-height:1.9;}
+.home-cinematic a.button-gold-outline {color:#f2dfb0!important;background:#123932bb!important;border-color:#bca065!important;}
+.home-cinematic button {color:#f3d69f!important;border-color:#baa06e!important;background:#163d3299!important;}
+.home-cinematic .chinese-hero-clouds {opacity:.15;}
+.home-cinematic .button-imperial-red {border-radius:4px 4px 15px 4px;min-height:50px;box-shadow:0 6px 20px #0003;}
+.scroll-rolls {position:absolute;inset:0;pointer-events:none;z-index:2;}
+.scroll-rolls>i {position:absolute;left:-7px;right:-7px;height:10px;border-radius:5px;background:linear-gradient(180deg,#70532c,#d4b177 20%,#f1dcaa 44%,#a3834e 85%,#6a4d29);box-shadow:0 2px 4px #2c24181a;}
+.scroll-rolls>i:first-child {top:-5px;}.scroll-rolls>i:last-child {bottom:-5px;}
+.scroll-rolls>i::before,.scroll-rolls>i::after {content:"";position:absolute;top:-2px;width:9px;height:14px;border:1px solid #8d692f;border-radius:3px;background:linear-gradient(90deg,#a37e44,#ebcf87,#a37e44);}
+.scroll-rolls>i::before {left:0;}.scroll-rolls>i::after {right:0;}
+.reward-journey {position:relative;border-radius:3px 3px 18px 3px;margin-top:25px;margin-bottom:25px;background:radial-gradient(ellipse at 100% 0,#ddc68a2a,transparent 70%),repeating-linear-gradient(0deg,#947d4a05 0,#947d4a05 1px,transparent 1px,transparent 4px),#fff8e8;}
+.reward-journey>.fortune-knot {position:absolute;right:18px;top:65px;width:28px;height:47px;opacity:.6;}
+.reward-journey-score {padding-right:35px;}
+.reward-journey .eyebrow {color:#8b682e;}
+.imperial-square-seal {pointer-events:none;}
+.reward-hub .reward-journey {margin-top:12px;margin-bottom:30px;}
+.passport-imperial-card {background:linear-gradient(110deg,#fffdf5,#f5ead4)!important;border-radius:4px 4px 24px 4px!important;box-shadow:0 8px 25px #70552018!important;}
+.passport-imperial-card>.lattice-corners {opacity:.5;}
+.realm-place-card {border-radius:4px 4px 24px 4px;transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease;}
+.realm-place-card .realm-photo-corners {inset:10px;--ornament-gold:#f7e2b4;filter:drop-shadow(0 1px 3px #0008);opacity:.9;}
+.realm-photo-corners>svg {width:30px;height:30px;}
+.realm-place-number {border-radius:2px;backdrop-filter:none;background:#173c34cf;border:1px solid #d5bb7d;color:#fff3d5;}
+.realm-place-image-link::after {content:"";position:absolute;inset:0;background:linear-gradient(180deg,#00291e12,transparent 50%,#0c30241f);pointer-events:none;}
+.realm-place-card .realm-place-title {color:#19483d;}.realm-place-theme {color:#87602c!important;letter-spacing:.08em;}
+.guardian-summon {border-radius:4px!important;border-color:color-mix(in srgb,var(--realm-color),#bc9c58 50%)!important;box-shadow:inset 0 0 0 2px #f8f0d1;}
+.guardian-manifestation {overflow:visible;}
+.guardian-seal-spark {position:absolute;inset:3px;pointer-events:none;color:var(--spark-color);z-index:0;}
+.guardian-seal-spark>svg {position:absolute;inset:0;width:100%;height:100%;animation:guardian-seal-inscribe .8s ease-out both;stroke-dasharray:600;stroke-dashoffset:0;}
+.guardian-seal-spark>span {position:absolute;top:50%;left:50%;width:4px;height:15px;border-radius:99px;background:var(--spark-color);transform:rotate(calc(var(--spark-index)*45deg)) translateY(-85px);animation:guardian-spark-release .75s cubic-bezier(.2,.7,.2,1) both;}
+.guardian-manifestation>img {animation:guardian-spirit-rise .75s cubic-bezier(.2,.8,.3,1) both;}
+.opening-gate>.lattice-corners {inset:-15px;opacity:.6;}
+.opening-atmosphere>.chinese-cloudscape {opacity:.55;}
+.opening-act .imperial-couplet {top:12%;}.opening-act>.imperial-couplet.left {left:3px;}.opening-act>.imperial-couplet.right {right:3px;}
+.route-silk-curtain {position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(90deg,#b4a37708 0,#b4a37708 1px,transparent 1px,transparent 8px),linear-gradient(90deg,#184d42,#10382f);border-inline:1px solid #c9a957;animation:silk-curtain-open .6s cubic-bezier(.65,0,.2,1) both;}
+.route-silk-curtain.left {left:0;--curtain-direction:-1;}.route-silk-curtain.right {right:0;--curtain-direction:1;}
+.route-silk-curtain .lattice-corners {opacity:.45;}
+.route-ritual>.chinese-cloudscape {animation:route-cloud-dismiss .6s ease both;color:#d1b577;}
+.prize-collection-card {border-radius:4px 4px 18px 4px;box-shadow:0 5px 18px #56411d0c;}
+.prize-collection-art {background:radial-gradient(circle,#dde8d1,#eee7cd);position:relative;}
+.prize-collection-art .lattice-corners {inset:7px;opacity:.75;}
+.prize-collection-art .lattice-corners>svg {width:25px;height:25px;}
+.prize-stock {border-radius:2px;}.prize-detail-sheet {border-radius:4px 4px 25px 4px;}
+.activity-scroll-heading {position:relative;padding:26px 22px;background:linear-gradient(110deg,#faf1db,#fffdf5);border:1px solid #d4bd8a;border-radius:3px 3px 25px 3px;}
+.activity-scroll-heading>.lattice-corners {opacity:.55;}.activity-scroll-heading h1 {color:#264c3c;}
+.venue-mission-card {border-radius:4px 4px 18px 4px;}.venue-directions,.travel-note {border-radius:4px 4px 20px 4px;}
+.venue-real-hero {border-radius:4px 4px 30px 4px;}
+.venue-real-hero>.lattice-corners {opacity:.65;}
+.venue-expedition>.silk-divider {margin:24px 10px;}
+.treasure-hero {isolation:isolate;border:1px solid #bd9a58;border-radius:4px 4px 38px 4px;}
+.treasure-hero>.chinese-cloudscape {opacity:.6;}
+.treasure-hero>.imperial-couplet {top:220px;}
+.treasure-hero>.imperial-couplet.left {left:14px;}.treasure-hero>.imperial-couplet.right {right:14px;}
+.treasure-hero>h1,.treasure-hero>p,.treasure-hero>.eyebrow,.treasure-hero>.treasure-hero-caption {position:relative;z-index:3;}
+.draw-ceremony>.chinese-cloudscape {color:#edd49b;opacity:.5;}
+.draw-ceremony>.lattice-corners {inset:20px;opacity:.55;}
+.scroll-scan-cta {border-radius:4px 4px 18px 4px;}
+.register-shell>header {position:relative;}.register-shell>header>.fortune-knot {position:absolute;top:0;right:10px;width:31px;opacity:.6;}
+.register-step {border-radius:4px 4px 24px 4px;}
+@media (hover:hover) and (prefers-reduced-motion:no-preference) {
+  .realm-place-card:hover {transform:translateY(-4px);box-shadow:0 12px 26px #1f4a351a;border-color:#b89b58;}
+  .realm-place-card:hover .realm-place-image-link img {transform:scale(1.035);}
+  .guardian-summon:hover {transform:translateY(-2px);box-shadow:0 4px 12px #4f492519,inset 0 0 0 2px #f8f0d1;}
+}
+@keyframes lattice-inscribe {from{stroke-dashoffset:240;opacity:.15;}to{stroke-dashoffset:0;opacity:1;}}
+@keyframes imperial-cloud-drift {from{transform:translateX(-12px);}to{transform:translateX(12px);}}
+@keyframes crane-glide {from{transform:translate(0,0);}to{transform:translate(16px,-7px);}}
+@keyframes palace-lantern-sway {from{transform:rotate(-4deg);}to{transform:rotate(4deg);}}
+@keyframes palace-title-arrive {from{opacity:.2;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes moon-guardian-arrive {from{opacity:.2;transform:scale(1.15);}to{opacity:1;transform:scale(1);}}
+@keyframes moon-light-sweep {to{transform:translateX(110%);}}
+@keyframes guardian-seal-inscribe {from{stroke-dashoffset:600;opacity:0;transform:scale(.65) rotate(-20deg);}to{stroke-dashoffset:0;opacity:.7;transform:scale(1) rotate(0);}}
+@keyframes guardian-spark-release {from{opacity:1;transform:rotate(calc(var(--spark-index)*45deg)) translateY(-35px) scaleY(1.5);}to{opacity:0;transform:rotate(calc(var(--spark-index)*45deg)) translateY(-105px) scaleY(.3);}}
+@keyframes guardian-spirit-rise {from{opacity:.15;transform:translateY(25px) scale(.7);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes silk-curtain-open {0%{transform:translateX(0);opacity:.95;}100%{transform:translateX(calc(var(--curtain-direction)*105%));opacity:0;}}
+@keyframes route-cloud-dismiss {to{opacity:0;transform:translateY(30px);}}
+@media(max-width:360px) {.chinese-palace-hero{padding:35px 22px 30px;}.chinese-palace-hero h1{font-size:30px;}.imperial-couplet.left{left:12px;}.imperial-couplet.right{right:12px;}.moon-window{width:184px;height:195px;}.palace-hero-content .imperial-square-seal{right:-4px;}.silk-divider{margin-inline:18px;font-size:10px;gap:10px;}}
+@media(prefers-reduced-motion:reduce) {
+  .lattice-corners path,.cloudscape-near,.cloudscape-far,.cloudscape-cranes,.palace-lantern,.palace-hero-content>h1,.palace-hero-content>p,.moon-window-rim img,.moon-window-light,.guardian-seal-spark>svg,.guardian-seal-spark>span,.guardian-manifestation>img,.route-silk-curtain,.route-ritual>.chinese-cloudscape {animation:none!important;}
+  .guardian-seal-spark>span,.route-silk-curtain,.moon-window-light {display:none;}
+  .realm-place-card,.guardian-summon {transition:none!important;}
+}

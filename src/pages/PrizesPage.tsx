@@ -1,27 +1,45 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Gift, QrCode, ShieldCheck, Sparkles, X } from "lucide-react";
+import { ArrowRight, Gift, QrCode, ShieldCheck, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMedia, usePrizes, resolveMediaUrl } from "@/data/content";
+import { useMedia, usePrizes, useRewardPolicy, resolveMediaUrl } from "@/data/content";
 import { PrizeArtwork } from "@/components/PrizeArtwork";
-import { RitualChest } from "@/components/WuxiaScene";
+import { RewardProgress } from "@/components/RewardProgress";
+import { ChineseHero, LatticeCorners } from "@/components/ChineseOrnaments";
 
 type Filter = "all" | "affordable" | "stock";
 export function PrizesPage() {
   const { firebaseUser, profile } = useAuth();
   const prizes = usePrizes(); const media = useMedia(); const reduced = useReducedMotion();
+  const { rules } = useRewardPolicy();
+  const [exchange, setExchange] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [stock, setStock] = useState<Record<string, number> | null>(null);
+  const [stockError, setStockError] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const participant = Boolean(firebaseUser && profile?.username);
   const points = profile?.pointTotal ?? 0;
-  const selected = prizes.items.find(prize => prize.id === selectedId);
+  const pointMode = exchange && rules.pointExchangeEnabled;
+  const collection = prizes.items.filter(p => pointMode || p.drawWeight > 0).map(p => ({ ...p, remaining: stock?.[p.id] }));
+  const selected = collection.find(prize => prize.id === selectedId);
   const modalVisible = Boolean(selected);
-  const needsPoints = participant && selected && points < selected.pointsRequired;
-  const claimPath = selected?.stock === 0 ? "/prizes" : !participant ? "/login" : needsPoints ? "/schedule" : "/profile";
-  const claimLabel = selected?.stock === 0 ? "เลือกสมบัติชิ้นอื่น" : !participant ? "เข้าสู่ระบบเพื่อรับรางวัล" : needsPoints ? "ไปทำภารกิจสะสมแต้ม" : "แสดง QR ใบเบิกทาง";
-  const items = prizes.items.filter(prize => filter === "stock" ? prize.stock > 0 : filter === "affordable" ? participant && prize.stock > 0 && points >= prize.pointsRequired : true);
+  const needsPoints = participant && selected && points < (pointMode ? selected.pointsRequired : rules.pointsRequired);
+  const outOfStock = selected?.remaining === 0;
+  const claimPath = outOfStock ? "/rewards" : !participant ? "/register" : needsPoints ? "/schedule" : pointMode ? "/profile" : "/lucky-draw";
+  const claimLabel = outOfStock ? "ดูรางวัลที่ยังมีของ" : !participant ? "ลงทะเบียนรับใบเบิกทาง" : needsPoints ? "ไปทำภารกิจสะสมแต้ม" : pointMode ? "แสดง QR ใบเบิกทาง" : profile?.luckyDraw?.claimed ? "ดู Voucher ของฉัน" : "ไปเปิดหีบลุ้นรางวัล";
+  const items = collection.filter(prize => filter === "stock" ? (prize.remaining || 0) > 0 : filter === "affordable" ? participant && (prize.remaining || 0) > 0 && points >= prize.pointsRequired : true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/lucky-draw", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"catalog"}), signal:controller.signal }).then(async response => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "ตรวจจำนวนของรางวัลไม่สำเร็จ");
+      if (!controller.signal.aborted) setStock(Object.fromEntries((data.prizes as {id:string;stockRemaining:number}[]).map(p => [p.id,p.stockRemaining])));
+    }).catch(error => { if (!controller.signal.aborted) setStockError(error instanceof Error ? error.message : "ตรวจจำนวนของรางวัลไม่สำเร็จ"); });
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     if (!modalVisible) return;
     const previousFocus = document.activeElement as HTMLElement | null;
@@ -40,16 +58,26 @@ export function PrizesPage() {
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keys); previousFocus?.focus({ preventScroll: true }); };
   }, [modalVisible]);
 
-  return <div className="prizes-expedition places-page">
-    <header className="prizes-heading"><span className="section-kicker"><Gift size={16} /> TREASURES OF THE FOUR REALMS</span><h1>สมบัติรอ<br /><em>จอมยุทธคนใหม่</em></h1><p>ทำกิจกรรม เก็บตราประทับ แล้วนำแต้มมาแลกของที่ระลึก</p><div className="prizes-points"><ShieldCheck size={22} /><span>{participant ? <><strong>{points.toLocaleString("th-TH")}</strong> แต้มในใบเบิกทาง</> : <Link to="/login">เข้าสู่ระบบเพื่อดูแต้มของคุณ <ArrowRight size={17} /></Link>}</span></div></header>
-    <Link className="prizes-draw-link" to="/lucky-draw"><div><Sparkles size={19} /><span className="section-kicker">ONE CHANCE · YOUR DESTINY</span><h2>เปิดหีบ<br />ลุ้นสมบัติพิเศษ</h2><p>เช็กอินสถานที่และร่วมกิจกรรม<br />เพื่อปลดล็อกสิทธิ์ลุ้นรางวัล</p><span className="prizes-draw-action">ดูสิทธิ์เปิดหีบ <ArrowRight size={16} /></span></div><RitualChest /></Link>
-    <section><div className="places-section-heading"><div><span className="section-kicker">REWARD COLLECTION</span><h2>เลือกสมบัติที่คุณชอบ</h2></div><Gift size={22} /></div><div className="prize-filters" aria-label="กรองของรางวัล">{([{ id: "all", label: "ทั้งหมด" }, { id: "affordable", label: "แต้มของฉันแลกได้" }, { id: "stock", label: "ยังมีของเหลือ" }] as const).map(option => <button key={option.id} aria-pressed={filter === option.id} disabled={option.id === "affordable" && !participant} onClick={() => setFilter(option.id)}>{option.label}</button>)}</div>
-      {prizes.loading && <p role="status">กำลังเปิดคลังสมบัติ...</p>}{prizes.error && <p role="alert">{prizes.error}</p>}{!prizes.loading && !prizes.error && !items.length && <div className="prize-empty"><Gift size={28} /><p>{filter === "all" ? "ติดตามรายการของรางวัลได้เร็ว ๆ นี้" : "ยังไม่มีของรางวัลในกลุ่มนี้ ลองดูรายการทั้งหมด"}</p>{filter !== "all" && <button className="button-gold-outline" onClick={() => setFilter("all")}>ดูสมบัติทั้งหมด</button>}</div>}
-      <div className="prize-collection">{items.map((prize, index) => <motion.article key={prize.id} className={`prize-collection-card ${prize.stock === 0 ? "out-of-stock" : ""}`} initial={{ opacity: 0, y: reduced ? 0 : 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .35, delay: reduced ? 0 : Math.min(index * .06, .3) }}>
-        <div className="prize-collection-art"><PrizeArtwork name={prize.name} source={resolveMediaUrl(prize.imageMediaId, media.items)} /><span className="prize-stock">{prize.stock > 0 ? `เหลือ ${prize.stock} ชิ้น` : "หมดแล้ว"}</span></div><div className="prize-collection-copy"><h3>{prize.name}</h3><p>{prize.description || "ของที่ระลึกจากการเดินทางในแดนมังกร"}</p><div className="prize-cost"><b>{prize.pointsRequired.toLocaleString("th-TH")}</b><span>แต้ม</span></div><button className="prize-details-button" aria-label={`ดูวิธีรับ${prize.name}`} onClick={() => setSelectedId(prize.id)}>ดูวิธีรับรางวัล <ArrowRight size={15} /></button></div>
+  return <div className="prizes-expedition places-page reward-hub">
+    <ChineseHero className="prizes-heading" tone="crimson" seal="福" kicker={<><Gift size={16} /> TREASURES OF THE FOUR REALMS</>} title={<>รางวัลแห่ง<br /><em>แดนมังกร</em></>} description="สะสมคะแนน เปิดหีบ แล้วรับของรางวัลด้วย Voucher" />
+    <RewardProgress />
+    {rules.pointExchangeEnabled && <div className="prize-filters" aria-label="วิธีรับรางวัล"><button aria-pressed={!pointMode} onClick={() => {setExchange(false);setFilter("all");}}>ลุ้นรางวัล 1 ครั้ง</button><button aria-pressed={pointMode} onClick={() => {setExchange(true);setFilter("all");}}>แลกด้วยแต้ม</button></div>}
+    <section><div className="places-section-heading"><div><span className="section-kicker">REWARD COLLECTION</span><h2>{pointMode ? "ของรางวัลที่เปิดแลก" : "มีอะไรให้ลุ้นบ้าง?"}</h2></div><Gift size={22} /></div>
+      <div className="prize-filters" aria-label="กรองของรางวัล"><button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>ทั้งหมด</button>{pointMode && <button aria-pressed={filter === "affordable"} disabled={!participant || !stock} onClick={() => setFilter("affordable")}>แต้มของฉันแลกได้</button>}<button aria-pressed={filter === "stock"} disabled={!stock} onClick={() => setFilter("stock")}>ยังมีของเหลือ</button></div>
+      {prizes.loading && <p role="status">กำลังเปิดคลังสมบัติ...</p>}{prizes.error && <p role="alert">{prizes.error}</p>}{stockError && <p className="stock-notice" role="status">ยังตรวจจำนวนคงเหลือไม่ได้ สอบถามเจ้าหน้าที่จุดรับรางวัลได้</p>}
+      {!prizes.loading && !prizes.error && !items.length && <div className="prize-empty"><Gift size={28} /><p>{filter === "all" ? "ทีมงานกำลังประกาศรายการของรางวัล" : "ยังไม่มีของรางวัลในกลุ่มนี้ ลองดูรายการทั้งหมด"}</p>{filter !== "all" && <button className="button-gold-outline" onClick={() => setFilter("all")}>ดูสมบัติทั้งหมด</button>}</div>}
+      <div className="prize-collection">{items.map((prize,index) => <motion.article key={prize.id} className={`prize-collection-card ${prize.remaining === 0 ? "out-of-stock" : ""}`} initial={{opacity:0,y:reduced ? 0 : 18}} animate={{opacity:1,y:0}} transition={{duration:reduced ? 0 : .35,delay:reduced ? 0 : Math.min(index*.06,.3)}}>
+        <div className="prize-collection-art"><LatticeCorners /><PrizeArtwork name={prize.name} source={resolveMediaUrl(prize.imageMediaId,media.items)} /><span className="prize-stock">{prize.remaining === undefined ? stockError ? "รอตรวจจำนวน" : "กำลังตรวจของ..." : prize.remaining > 0 ? `เหลือ ${prize.remaining} ชิ้น` : "หมดแล้ว"}</span></div>
+        <div className="prize-collection-copy"><h3>{prize.name}</h3><p>{prize.description || "ของที่ระลึกจากการเดินทางในแดนมังกร"}</p>{pointMode && <div className="prize-cost"><b>{prize.pointsRequired.toLocaleString("th-TH")}</b><span>แต้ม</span></div>}<button className="prize-details-button" aria-label={`ดูวิธีรับ${prize.name}`} onClick={() => setSelectedId(prize.id)}>ดูวิธีรับรางวัล <ArrowRight size={15} /></button></div>
       </motion.article>)}</div>
     </section>
-    <aside className="travel-note"><ShieldCheck size={24} /><div><strong>รับของรางวัลที่บูธกลาง</strong><p>แสดง QR ในใบเบิกทางให้เจ้าหน้าที่ตรวจสอบแต้มและบันทึกการรับของรางวัล</p><Link to="/profile">เปิดใบเบิกทาง <ArrowRight size={16} /></Link></div></aside>
-    <AnimatePresence>{selected && <motion.div ref={dialogRef} tabIndex={-1} className="prize-detail-modal" role="dialog" aria-modal="true" aria-labelledby="prize-detail-title" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .2 }}><div className="prize-detail-sheet"><button className="prize-detail-close" aria-label="ปิดรายละเอียดรางวัล" onClick={() => setSelectedId(null)}><X size={21} /></button><span className="section-kicker">YOUR NEXT TREASURE</span><PrizeArtwork name={selected.name} source={resolveMediaUrl(selected.imageMediaId, media.items)} /><h2 id="prize-detail-title">{selected.name}</h2><p>{selected.description || "ของที่ระลึกแห่งแดนมังกร"}</p><dl><div><dt>ใช้แต้ม</dt><dd>{selected.pointsRequired.toLocaleString("th-TH")} แต้ม</dd></div><div><dt>จำนวนคงเหลือ</dt><dd>{selected.stock} ชิ้น</dd></div><div><dt>สิทธิ์ต่อคน</dt><dd>{selected.claimLimit} ชิ้น</dd></div></dl>{selected.stock === 0 ? <p className="prize-detail-notice">ของรางวัลรายการนี้หมดแล้ว เลือกสมบัติชิ้นอื่นได้จากคลังรางวัล</p> : participant && points < selected.pointsRequired ? <p className="prize-detail-notice">สะสมอีก {selected.pointsRequired - points} แต้ม แล้วกลับมารับสมบัติชิ้นนี้</p> : <p className="prize-detail-notice">นำใบเบิกทางไปให้เจ้าหน้าที่ที่บูธรับของรางวัลตรวจสอบและบันทึกการแลก</p>}<Link className="button-imperial-red" to={claimPath} onClick={() => setSelectedId(null)}><QrCode size={19} />{claimLabel}</Link></div></motion.div>}</AnimatePresence>
+    <aside className="travel-note"><ShieldCheck size={24} /><div><strong>ขั้นตอนรับของรางวัล</strong><p>{pointMode ? "เลือกของที่เปิดแลก แสดง QR ใบเบิกทางให้ Staff ตรวจแต้มและยืนยัน" : `สะสม ${rules.pointsRequired} แต้ม → เปิดหีบ 1 ครั้ง → แสดง Voucher ที่จุดรับรางวัล`}</p><Link to={pointMode ? "/profile" : "/lucky-draw"}>{pointMode ? "เปิดใบเบิกทาง" : "ดูสิทธิ์และ Voucher ของฉัน"} <ArrowRight size={15} /></Link></div></aside>
+    <AnimatePresence>{selected && <motion.div ref={dialogRef} tabIndex={-1} className="prize-detail-modal" role="dialog" aria-modal="true" aria-labelledby="prize-detail-title" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:reduced ? 0 : .2}}>
+      <div className="prize-detail-sheet"><button className="prize-detail-close" aria-label="ปิดรายละเอียดรางวัล" onClick={() => setSelectedId(null)}><X size={21} /></button><div className="prize-detail-art"><PrizeArtwork name={selected.name} source={resolveMediaUrl(selected.imageMediaId,media.items)} /></div><span className="section-kicker">YOUR TREASURE</span><h2 id="prize-detail-title">{selected.name}</h2><p>{selected.description}</p>
+        {pointMode ? <div className="prize-detail-cost"><b>{selected.pointsRequired} แต้ม</b><span>{selected.remaining === undefined ? "รอตรวจจำนวนคงเหลือ" : `เหลือ ${selected.remaining} ชิ้น`}</span></div> : <p className="draw-rule-note">ครบ {rules.pointsRequired} แต้ม เปิดหีบสุ่มได้ 1 ครั้ง ผลรางวัลและ Voucher จะบันทึกไว้ในบัญชีของคุณ</p>}
+        <div className="prize-redemption-guide"><QrCode size={21} /><div><strong>{outOfStock ? "ของรางวัลชิ้นนี้หมดแล้ว" : pointMode ? "ให้ Staff ตรวจแต้มก่อนแลก" : "แสดง Voucher ของรางวัลที่ได้รับ"}</strong><p>{outOfStock ? "ดูรายการของรางวัลที่ยังมีอยู่" : pointMode ? "เปิด QR ใบเบิกทางให้เจ้าหน้าที่ตรวจและยืนยันการแลก" : "หลังเปิดหีบ นำ QR Voucher ให้เจ้าหน้าที่จุดรับรางวัลตรวจและยืนยัน"}</p></div></div>
+        <Link className="button-imperial-red" to={claimPath} onClick={() => setSelectedId(null)}>{claimLabel}<ArrowRight size={17} /></Link>
+      </div>
+    </motion.div>}</AnimatePresence>
   </div>;
 }

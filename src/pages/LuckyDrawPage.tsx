@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Award, CheckCircle2, Gift, MapPin, RefreshCw, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, Gift, RefreshCw, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
 import QRCode from "qrcode";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { QiParticles, RitualChest } from "@/components/WuxiaScene";
+import { Cloudscape, ImperialCouplet, LatticeCorners } from "@/components/ChineseOrnaments";
 import { PrizeArtwork } from "@/components/PrizeArtwork";
-import { resolveMediaUrl, useMedia, usePrizes } from "@/data/content";
+import { resolveMediaUrl, useMedia, usePrizes, useRewardPolicy } from "@/data/content";
+import { rewardProgress, type RewardPolicy } from "@/lib/reward-policy";
 
 interface DrawPrize {
   id: string; title: string; description?: string; tier?: string; claimedAt?: string;
@@ -14,7 +16,9 @@ interface DrawPrize {
 }
 interface DrawStatus {
   eligible: boolean; claimed: boolean; prize: DrawPrize | null;
-  conditions: { hasVisitedVenue: boolean; hasCompletedActivity: boolean; visitedVenuesCount: number; completedActivitiesCount: number };
+  conditions: { visitedVenuesCount: number; completedActivitiesCount: number };
+  progress: ReturnType<typeof rewardProgress>;
+  rules: RewardPolicy;
   catalogCount: number;
 }
 type Phase = "idle" | "charging" | "summoning" | "opening" | "revealed";
@@ -22,7 +26,7 @@ const rarityLabels: Record<string, string> = { legendary: "ระดับตำ
 
 export function LuckyDrawPage() {
   const { firebaseUser, refreshProfile, loading: authLoading } = useAuth();
-  const prizes = usePrizes(); const media = useMedia();
+  const prizes = usePrizes(); const media = useMedia(); const { rules } = useRewardPolicy();
   const reduced = useReducedMotion();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<DrawStatus | null>(null);
@@ -48,6 +52,7 @@ export function LuckyDrawPage() {
     const response = await fetch("/api/lucky-draw", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "status" }), signal });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "โหลดข้อมูลรางวัลไม่สำเร็จ");
+    if (!data.status?.progress || !data.status?.rules) throw new Error("ระบบรางวัลกำลังปรับปรุงกติกา กรุณาลองใหม่หรือติดต่อเจ้าหน้าที่");
     return data.status;
   }, [firebaseUser]);
 
@@ -153,13 +158,14 @@ export function LuckyDrawPage() {
 
   return <div className="treasure-page">
     <section className="treasure-hero">
+      <Cloudscape /><LatticeCorners /><ImperialCouplet side="left" /><ImperialCouplet side="right" />
       <QiParticles count={10} /><span className="eyebrow"><Sparkles size={15} /> THE DRAGON'S TREASURE</span>
       <h1>หีบสมบัติ<br /><em>แห่งแดนมังกร</em></h1><p>ภารกิจของคุณ อาจนำไปสู่สมบัติชิ้นพิเศษ</p>
       <RitualChest opened={Boolean(prize)} />
       <div className="treasure-hero-caption"><span /><small>{prize ? "สมบัติของคุณถูกบันทึกแล้ว" : "หนึ่งโอกาส · หนึ่งสมบัติ · สำหรับคุณ"}</small><span /></div>
     </section>
     <div className="treasure-content">
-      {loading || authLoading ? <div className="treasure-notice" role="status"><img src="/assets/animations/loading-seal.svg" alt="" width={54} /><p>กำลังตรวจสอบใบเบิกทาง...</p></div> : !firebaseUser ? <section className="treasure-notice"><Gift size={26} /><h2>เริ่มภารกิจเพื่อเปิดหีบ</h2><p>ลงทะเบียน เข้าร่วมอย่างน้อย 1 กิจกรรม<br />และเช็กอินอย่างน้อย 1 สถานที่</p><Link className="button-imperial-red" to="/register">รับใบเบิกทาง <ArrowRight size={17} /></Link><Link className="treasure-text-link" to="/login">มีบัญชีแล้ว · เข้าสู่ระบบ</Link></section> : prize ? <section className="reward-voucher" aria-label="บัตรรับรางวัล">
+      {loading || authLoading ? <div className="treasure-notice" role="status"><img src="/assets/animations/loading-seal.svg" alt="" width={54} /><p>กำลังตรวจสอบใบเบิกทาง...</p></div> : !firebaseUser ? <section className="treasure-notice"><Gift size={26} /><h2>เริ่มภารกิจเพื่อเปิดหีบ</h2><p>ลงทะเบียน แล้วสะสมให้ครบ {rules.pointsRequired} แต้ม<br />เพื่อสุ่มรางวัลหนึ่งครั้ง โดยไม่หักคะแนน</p><Link className="button-imperial-red" to="/register">รับใบเบิกทาง <ArrowRight size={17} /></Link><Link className="treasure-text-link" to="/login">มีบัญชีแล้ว · เข้าสู่ระบบ</Link></section> : prize ? <section className="reward-voucher" aria-label="บัตรรับรางวัล">
         <span className="reward-rarity">{rarityLabels[prize.tier || ""] || "สมบัติของคุณ"}</span><div className="reward-voucher-art"><PrizeArtwork name={prize.title} source={image} /></div><h2>{prize.title}</h2>{prize.description && <p>{prize.description}</p>}
         <div className={`voucher-state ${prize.redeemed ? "redeemed" : ""}`}><ShieldCheck size={17} />{prize.redeemed ? "รับของรางวัลเรียบร้อยแล้ว" : "แสดง Voucher นี้กับเจ้าหน้าที่จุดรับรางวัล"}</div>
         {!prize.redeemed && qr && <img className="voucher-qr" src={qr} alt="QR Voucher สำหรับรับของรางวัล" />}
@@ -168,14 +174,14 @@ export function LuckyDrawPage() {
         <Link className="button-gold-outline" to="/schedule">ออกเดินทางต่อ <ArrowRight size={16} /></Link>
       </section> : status && <section className="treasure-notice">
         <span className="eyebrow">YOUR QUEST PROGRESS</span><h2>{status.eligible ? "ผู้พิทักษ์ยอมรับคุณแล้ว" : "อีกนิดเดียว สมบัติรออยู่"}</h2><p>{status.eligible ? "พร้อมเปิดหีบและลุ้นรางวัลของคุณ" : "ทำภารกิจต่อไปนี้เพื่อปลดล็อกสิทธิ์"}</p>
-        <div className="unlock-checklist"><div className={status.conditions.hasVisitedVenue ? "done" : ""}><MapPin size={20} /><span>เช็กอิน 1 สถานที่<small>ไปถึงจุดกิจกรรมแล้วสแกน QR</small></span>{status.conditions.hasVisitedVenue ? <CheckCircle2 size={19} /> : <b>0/1</b>}</div><div className={status.conditions.hasCompletedActivity ? "done" : ""}><Award size={20} /><span>ร่วมสนุก 1 กิจกรรม<small>ทำกิจกรรมเพื่อรับบันทึกการผ่านด่าน</small></span>{status.conditions.hasCompletedActivity ? <CheckCircle2 size={19} /> : <b>0/1</b>}</div></div>
-        {status.eligible && !needsRecovery ? <><button className="ceremony-button" onClick={() => void handleDraw()} disabled={drawBusy || phase !== "idle"}><Gift size={20} />{drawBusy ? "กำลังรอผลจากเซิร์ฟเวอร์..." : "เปิดหีบสมบัติ"} <ArrowRight size={18} /></button><button className="sound-toggle" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? <Volume2 size={16} /> : <VolumeX size={16} />}{sound ? "เสียงพิธีเปิด · เปิด" : "เสียงพิธีเปิด · ปิด"}</button><small>สุ่มได้ 1 ครั้งต่อคน ผลรางวัลบันทึกในระบบ</small></> : !needsRecovery && <Link className="button-imperial-red" to="/scan">ไปสแกน QR ทำภารกิจ <ArrowRight size={17} /></Link>}
+        <div className="draw-points-progress"><strong>{status.progress.points} / {status.progress.required} แต้ม</strong><div className="reward-journey-bar" role="progressbar" aria-label="คะแนนเพื่อเปิดหีบ" aria-valuemin={0} aria-valuemax={status.progress.required || 1} aria-valuenow={Math.min(status.progress.points,status.progress.required)}><span style={{width:`${status.progress.percent}%`}} /></div><p>{status.eligible ? "คะแนนครบตามกติกาแล้ว" : `สะสมอีก ${status.progress.remaining} แต้ม`}</p><small>ไปแล้ว {status.conditions.visitedVenuesCount} สถานที่ · ร่วม {status.conditions.completedActivitiesCount} กิจกรรม</small></div>
+        {status.eligible && !needsRecovery ? <><button className="ceremony-button" onClick={() => void handleDraw()} disabled={drawBusy || phase !== "idle" || status.catalogCount === 0}><Gift size={20} />{drawBusy ? "กำลังรอผลจากเซิร์ฟเวอร์..." : status.catalogCount === 0 ? "รอทีมงานเติมของรางวัล" : "เปิดหีบสมบัติ"} <ArrowRight size={18} /></button><button className="sound-toggle" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? <Volume2 size={16} /> : <VolumeX size={16} />}{sound ? "เสียงพิธีเปิด · เปิด" : "เสียงพิธีเปิด · ปิด"}</button><small>สุ่มได้ 1 ครั้งต่อคน · คะแนนคงเดิมหลังสุ่ม · ผลบันทึกในระบบ</small></> : !needsRecovery && <><Link className="button-imperial-red" to="/schedule">เลือกกิจกรรมสะสมแต้ม <ArrowRight size={17} /></Link><Link className="treasure-text-link" to="/survey">ทำแบบประเมิน · โบนัส {status.rules.surveyPoints} แต้ม</Link></>}
       </section>}
       {error && <div className="treasure-error" role="alert"><p>{error}</p><button className="button-gold-outline" disabled={loading} onClick={() => void recover()}><RefreshCw size={16} />ตรวจสอบผลล่าสุด</button></div>}
       <div className="treasure-next-quest"><img src="/assets/brand/dragon-seal.svg" alt="" /><div><strong>การเดินทางยังไม่จบ</strong><p>เก็บตราประทับให้ครบทุกสถานที่<br />ยังมีอีกหลายกิจกรรมให้ค้นพบ</p><Link to="/schedule">เลือกภารกิจถัดไป <ArrowRight size={14} /></Link></div></div>
     </div>
     <AnimatePresence>{phase !== "idle" && <motion.div ref={dialogRef} tabIndex={-1} className={`draw-ceremony phase-${phase}`} role="dialog" aria-modal="true" aria-labelledby="draw-heading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .3 }}>
-      <QiParticles count={24} /><div className="ceremony-rays" /><div className="ceremony-inner">
+      <Cloudscape /><LatticeCorners /><QiParticles count={24} /><div className="ceremony-rays" /><div className="ceremony-inner">
         {phase !== "revealed" ? <><span className="eyebrow">THE GUARDIANS HAVE ANSWERED</span><RitualChest active opened={phase === "opening"} /><h2 id="draw-heading" aria-live="polite">{stageText[phase]}</h2><p>ผู้พิทักษ์ทั้งสี่กำลังปลดผนึกสมบัติ</p><div className="ceremony-phase-legend">{["รวมพลัง", "ปลดผนึก", "เผยสมบัติ"].map((label, index) => <span key={label} className={index <= ["charging", "summoning", "opening"].indexOf(phase) ? "active" : ""}><b>{index + 1}</b>{label}</span>)}</div></> : <motion.div className="ceremony-reward" initial={{ scale: reduced ? 1 : .65, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 16 }}><span className="eyebrow">DESTINY HAS CHOSEN</span><span className="ceremony-rarity">{rarityLabels[prize?.tier || ""] || "สมบัติมงคล"}</span><div className="ceremony-prize-art"><div className="treasure-reveal-burst" aria-hidden="true" /><PrizeArtwork name={prize?.title || "สมบัติมงคล"} source={image} /><div className="prize-sparkle one" /><div className="prize-sparkle two" /></div><h2 id="draw-heading">{prize?.title}</h2><p>นี่คือสมบัติที่ผู้พิทักษ์มอบให้คุณ<br />บัตรรับรางวัลถูกเก็บไว้แล้ว</p><button autoFocus className="ceremony-button" onClick={() => setPhase("idle")}>เก็บสมบัติ · ดูบัตรรับรางวัล <ArrowRight size={18} /></button></motion.div>}
         {phase !== "revealed" && <button className="ceremony-skip" onClick={() => { skipAnimation.current = true; releaseReveal.current?.(); setPhase("idle"); }}>ข้ามภาพเคลื่อนไหว · รอผลที่หน้ารางวัล</button>}
       </div>

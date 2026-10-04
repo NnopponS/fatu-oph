@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { loadRewardPolicy } from "./_lib/rewards.js";
 import { adminAuth, adminDb, grantActivityPoints, isValidUsername, json, normalizeUsername, publicError, randomToken, readJson, requireStaff, resolveParticipant } from "./_lib/server.js";
 
 const adjustSchema = z.object({
@@ -34,6 +35,7 @@ const completeSchema = z.object({
   action: z.literal("completeActivity"),
   participantId: z.string().min(1),
   activityId: z.string().min(1),
+  reason: z.string().trim().max(200).optional().default(""),
 });
 
 const participantDetailSchema = z.object({
@@ -112,6 +114,12 @@ const saveSiteConfigSchema = z.object({
   dateLabel: z.string().trim().max(120).optional().default(""),
   locationLabel: z.string().trim().max(200).optional().default(""),
   registrationOpen: z.boolean().optional().default(true),
+  rewardPolicy: z.object({
+    pointsPerVenue: z.number().int().min(0).max(100000),
+    surveyPoints: z.number().int().min(0).max(100000),
+    pointsRequired: z.number().int().min(0).max(100000),
+    pointExchangeEnabled: z.boolean(),
+  }).optional(),
 });
 
 async function appendAudit(entry: Record<string, unknown>) {
@@ -313,6 +321,7 @@ export async function POST(request: Request) {
           activityId: input.activityId,
           staffId: actor.uid,
           pointsAdded: grant.pointsAdded,
+          reason: input.reason,
           createdAt: grant.createdAt,
         });
         await appendAudit({
@@ -321,9 +330,16 @@ export async function POST(request: Request) {
           activityId: input.activityId,
           pointsAdded: grant.pointsAdded,
           staffId: actor.uid,
+          reason: input.reason,
         });
       }
-      return json({ ok: true, pointsAdded: grant.pointsAdded, pointTotal: grant.pointTotal, duplicate: !grant.committed });
+      const venueId = activity.venueId || activity.locationId;
+      if (grant.committed && venueId) {
+        const venue = (await adminDb.ref(`public/venues/${venueId}`).get()).val();
+        await adminDb.ref(`operations/locationVisits/${input.participantId}/${venueId}`).transaction(current =>
+          current ? undefined : { locationId: venueId, locationName: venue?.name || venueId, byActivityId: input.activityId, visitedAt: grant.createdAt });
+      }
+      return json({ ok: true, pointsAdded: grant.pointsAdded, pointTotal: grant.pointTotal, duplicate: !grant.committed, venueCapped: grant.venueCapped });
     }
 
     if (body.action === "adjustPoints") {
@@ -452,6 +468,7 @@ export async function POST(request: Request) {
 
     if (body.action === "redeemPrize") {
       if (actor.role !== "admin" && actor.role !== "staff") return json({ error: "ไม่มีสิทธิ์แลกรางวัล" }, 403);
+      if (!(await loadRewardPolicy()).pointExchangeEnabled) return json({ error: "งานนี้ใช้สิทธิ์สุ่มรางวัลตามคะแนน กรุณาตรวจ Voucher ที่ผู้เข้าร่วมได้รับ" }, 400);
       const input = redeemSchema.parse(body);
       const [prizeSnap, participantSnap] = await Promise.all([
         adminDb.ref(`public/prizes/${input.prizeId}`).get(),
@@ -522,6 +539,7 @@ export async function POST(request: Request) {
         const available = configuredStock - migratedClaimed;
         if (available <= 0) return;
         return {
+          ...current,
           configuredStock,
           claimedCount: migratedClaimed + 1,
           stockRemaining: available - 1,
@@ -662,6 +680,20 @@ export async function POST(request: Request) {
       await adminDb.ref("public/registrationConfig").set(configData);
       await appendAudit({ type: "config-registration-save", staffId: actor.uid });
       return json({ ok: true });
+    }
+
+    if (body.action === "venueQr") {
+      if (actor.role !== "admin" && actor.role !== "editor") return json({ error: "ไม่มีสิทธิ์จัดการ QR สถานที่" }, 403);
+      const input = z.object({ venueId: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_-]+$/), rotate: z.boolean().optional() }).parse(body);
+      if (!(await adminDb.ref(`public/venues/${input.venueId}`).get()).exists()) return json({ error: "ไม่พบสถานที่" }, 404);
+      const ref = adminDb.ref(`admin/venueQr/${input.venueId}`);
+      let config = (await ref.get()).val();
+      if (!config?.token || input.rotate) {
+        config = { token: randomToken(24), updatedAt: new Date().toISOString(), updatedBy: actor.uid };
+        await ref.set(config);
+        await appendAudit({ type: "venue-qr-rotate", venueId: input.venueId, staffId: actor.uid });
+      }
+      return json({ qrPayload: `FATU26:CHK:${input.venueId}:${config.token}` });
     }
 
     if (body.action === "saveSiteConfig") {

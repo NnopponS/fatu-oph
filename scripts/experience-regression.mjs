@@ -51,7 +51,7 @@ try {
     window.__fatuTest = data;
     window.__fatuTest.profile = { uid: "fixture-participant", username: "fixture", displayName: "ผู้ทดสอบ", role: data.role, pointTotal: 20, transactions: [], visits: {} };
     window.__fatuTest.user = { uid: "fixture-participant", email: "fixture@example.test", getIdToken: async () => "local-fixture-token" };
-    window.__fatuTest.refreshProfile = async () => {};
+    window.__fatuTest.refreshProfile = async () => {window.__profileRefreshCalls=(window.__profileRefreshCalls||0)+1;};
     sessionStorage.setItem("fatu_story_intro_seen", "1");
     window.__cameraStreams = [];
     Object.defineProperty(navigator.mediaDevices, "getUserMedia", { configurable: true, value: async () => {
@@ -68,6 +68,10 @@ try {
   }, fixture);
   await page.setRequestInterception(true);
   let drawn = false;
+  let manualCompletions=0;
+  let voucherClaims=0;
+  let surveySubmitted=false;
+  let surveyPayload=null;
   let drawCalls = 0;
   let blockDecorativeMedia = false;
   let duplicateCheckin = false;
@@ -80,30 +84,37 @@ try {
       return request.abort();
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/src/services/auth.ts") {
-      return request.respond({ contentType: "application/javascript", body: `export const staffRoles=["admin","editor","staff","staff_pending","viewer"]; export async function getStaffRole(){return staffRoles.includes(window.__fatuTest.role)?window.__fatuTest.role:null;} export function subscribeToAuthState(cb){let active=true;queueMicrotask(()=>{if(active)cb(window.__fatuTest.user);});return()=>{active=false;};} export async function signOutAdmin(){} export async function signInAdmin(){return {user:window.__fatuTest.user};} export async function usernameLogin(){return {user:window.__fatuTest.user,profile:window.__fatuTest.profile};} export function getAdminAuthErrorMessage(){return "เข้าสู่ระบบไม่สำเร็จ";} export async function requestPasswordReset(){return "ตรวจสอบอีเมล";}` });
+      return request.respond({ contentType: "application/javascript", body: `export async function checkUsername(){return {available:true};} export const staffRoles=["admin","editor","staff","staff_pending","viewer"]; export async function getStaffRole(){return staffRoles.includes(window.__fatuTest.role)?window.__fatuTest.role:null;} export function subscribeToAuthState(cb){let active=true;queueMicrotask(()=>{if(active)cb(window.__fatuTest.user);});return()=>{active=false;};} export async function signOutAdmin(){} export async function signInAdmin(){return {user:window.__fatuTest.user};} export async function usernameLogin(){return {user:window.__fatuTest.user,profile:window.__fatuTest.profile};} export function getAdminAuthErrorMessage(){return "เข้าสู่ระบบไม่สำเร็จ";} export async function requestPasswordReset(){return "ตรวจสอบอีเมล";}` });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/src/contexts/AuthContext.tsx") {
-      return request.respond({ contentType: "application/javascript", body: `export function AuthProvider({children}) { return children; } export function useAuth() { const f = window.__fatuTest; return { firebaseUser:f.user, profile:f.profile, role:f.role, loading:false, isStaff:["admin","editor","staff"].includes(f.role), isAdmin:f.role==="admin", isPendingStaff:f.role==="staff_pending", refreshProfile:f.refreshProfile, logout:async()=>{}, login:async()=>f.profile }; }` });
+      return request.respond({ contentType: "application/javascript", body: `export function AuthProvider({children}) { return children; } export function useAuth() { const f = window.__fatuTest; return { firebaseUser:f.user, profile:f.profile, role:f.role, loading:false, isStaff:["admin","editor","staff"].includes(f.role), isAdmin:f.role==="admin", isPendingStaff:f.role==="staff_pending", refreshProfile:f.refreshProfile, logout:async()=>{}, login:async()=>f.profile, register:async(input)=>{window.__registeredInput=input;return f.profile;} }; }` });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/src/services/realtime.ts") {
       return request.respond({ contentType: "application/javascript", body: `export const realtimePaths = {public:Object.fromEntries(["site","venues","activities","prizes","media","announcements","faq","settings","registrationConfig"].map(k=>[k,"public/"+k])),admin:{roles:"admin/roles"}}; export async function readRealtime(path) { if(path.startsWith("admin/roles"))return window.__fatuTest.role; return path.split("/").reduce((o,k)=>o?.[k],window.__fatuTest) || null; } export function subscribeRealtime(path,cb) { let active=true;queueMicrotask(async()=>{if(active)cb(await readRealtime(path));});return()=>{active=false;}; } export async function setRealtime() {} export async function updateRealtime() {} export async function pushRealtime() { return "fixture"; }` });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/api/lucky-draw") {
       const body = JSON.parse(request.postData() || "{}");
+      if(body.action === "catalog") return request.respond({contentType:"application/json",body:JSON.stringify({prizes:Object.entries(fixture.public.prizes).map(([id,p])=>({id,...p,stockRemaining:p.stock}))})});
+      if(body.action === "peek-voucher" || body.action === "redeem-voucher") {if(body.action === "redeem-voucher")voucherClaims++;return request.respond({contentType:"application/json",body:JSON.stringify({ok:true,voucher:{voucherCode:prize.voucherCode,displayName:"ผู้ทดสอบ",username:"fixture",prizeName:prize.title,status:"pending"},message:"จ่ายรางวัลสำเร็จ"})});}
       if (body.action === "draw") {
         drawn = true; drawCalls++;
         if (loseDrawResponse) return request.respond({ status: 502, contentType: "application/json", body: JSON.stringify({ error: "การตอบกลับขาดหายระหว่างเปิดหีบ" }) });
       }
-      return request.respond({ contentType: "application/json", body: JSON.stringify(body.action === "draw" ? { ok: true, prize: { id: prize.id, name: prize.title, description: prize.description, rarity: prize.tier }, voucher: { voucherCode: prize.voucherCode, prizeId: prize.id, prizeName: prize.title, description: prize.description, rarity: prize.tier, status: "pending" } } : { ok: true, status: { eligible: true, claimed: drawn, prize: drawn ? prize : null, conditions: { hasVisitedVenue: true, hasCompletedActivity: true, visitedVenuesCount: 1, completedActivitiesCount: 1 }, catalogCount: 1 } }) });
+      return request.respond({ contentType: "application/json", body: JSON.stringify(body.action === "draw" ? { ok: true, prize: { id: prize.id, name: prize.title, description: prize.description, rarity: prize.tier }, voucher: { voucherCode: prize.voucherCode, prizeId: prize.id, prizeName: prize.title, description: prize.description, rarity: prize.tier, status: "pending" } } : { ok: true, status: { eligible: true, claimed: drawn, prize: drawn ? prize : null, progress:{points:200,required:200,remaining:0,percent:100,eligible:true},rules:{pointsPerVenue:100,surveyPoints:100,pointsRequired:200,pointExchangeEnabled:false},conditions: { visitedVenuesCount: 1, completedActivitiesCount: 1 }, catalogCount: 1 } }) });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/api/admin") {
-      return request.respond({ contentType: "application/json", body: JSON.stringify({ participants: [], applications: [], roles: {}, entries: [] }) });
+      const body=JSON.parse(request.postData() || "{}");
+      if(body.action === "participantByUsername")return request.respond({contentType:"application/json",body:JSON.stringify({participant:{id:"fixture-participant",username:"fixture",displayName:"ผู้ทดสอบ"}})});
+      if(body.action === "completeActivity")manualCompletions++;
+      return request.respond({ contentType: "application/json", body: JSON.stringify({ok:true,pointsAdded:100,pointTotal:200, participants: [], applications: [], roles: {}, entries: [] }) });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/api/checkin") {
       return request.respond({ contentType: "application/json", body: JSON.stringify({ ok: true, activityTitle: "เวิร์กช็อปพู่กัน", locationName: checkinLocationName, pointsAdded: duplicateCheckin ? 0 : 20, pointTotal: 40, duplicate: duplicateCheckin, message: duplicateCheckin ? "เข้าร่วมกิจกรรมนี้แล้ว" : "เช็กอินสำเร็จ" }) });
     }
     if (url.origin === new URL(baseUrl).origin && url.pathname === "/api/survey") {
-      return request.respond({ contentType: "application/json", body: JSON.stringify({ ok: true, completed: false, status: { completed: false } }) });
+      const body=JSON.parse(request.postData() || "{}");
+      if(body.action === "submit"){surveyPayload=body;surveySubmitted=true;}
+      return request.respond({ contentType: "application/json", body: JSON.stringify({ ok: true, submitted:surveySubmitted,record:surveySubmitted?{createdAt:"2026-10-04T12:00:00+07:00"}:null,pointsAdded:100,message:"ได้รับคะแนนโบนัส +100 แต้ม" }) });
     }
     return request.continue();
   });
@@ -421,25 +432,72 @@ try {
     assert.equal(await page.$eval(".activity-location-photo img", image => image.getAttribute("src")), "/images/venues/theater.webp");
     assert.equal(await page.$eval(".activity-actions .scroll-scan-cta", link => link.getAttribute("href")), "/scan");
   });
-  await check("prize catalog uses published stock and points, and filters affordable items", async () => {
-    await page.goto(`${baseUrl}/prizes`, { waitUntil: "networkidle2" });
-    await page.waitForFunction(() => document.querySelectorAll(".prize-collection-card").length === 6);
-    const catalog = await page.$eval(".prize-collection", node => node.innerText);
-    for (const name of ["ตุ๊กตายักษ์", "ตุ๊กตาเล็ก", "ปิ่นปักผม", "พู่ห้อยโทรศัพท์", "พัดมือ", "ซองแดง"]) assert.ok(catalog.includes(name));
-    assert.ok(catalog.includes("เหลือ 1 ชิ้น"));
-    assert.ok(catalog.includes("หมดแล้ว"));
-    assert.equal(await page.$$(".prize-illustration-label").then(nodes => nodes.length), 6);
-    await page.$eval('button::-p-text(แต้มของฉันแลกได้)', button => button.scrollIntoView({ block: "center", behavior: "instant" }));
-    await page.locator('button::-p-text(แต้มของฉันแลกได้)').click();
-    await page.waitForFunction(() => document.querySelectorAll(".prize-collection-card").length === 3);
-    await page.$eval('button[aria-label="ดูวิธีรับปิ่นปักผม"]', button => button.scrollIntoView({ block: "center", behavior: "instant" }));
+  await check("reward hub shows the single draw rule and actual stock", async () => {
+    await page.goto(`${baseUrl}/prizes`, {waitUntil:"networkidle2"});
+    await page.waitForFunction(()=>document.querySelectorAll(".prize-collection-card").length===6);
+    const refreshed=await page.evaluate(()=>window.__profileRefreshCalls||0);
+    await page.locator(".reward-refresh").click();
+    assert.equal(await page.evaluate(()=>window.__profileRefreshCalls),refreshed+1);
+    const catalog=await page.$eval(".prize-collection",node=>node.innerText);
+    for(const name of ["ตุ๊กตายักษ์","ตุ๊กตาเล็ก","ปิ่นปักผม","พู่ห้อยโทรศัพท์","พัดมือ","ซองแดง"])assert.ok(catalog.includes(name));
+    assert.ok(catalog.includes("เหลือ 1 ชิ้น"));assert.ok(catalog.includes("หมดแล้ว"));
+    assert.equal(await page.$('button::-p-text(แต้มของฉันแลกได้)'),null);
+    assert.ok((await page.$eval(".reward-journey",n=>n.innerText)).includes("200"));
+    await page.$eval('.prize-filters[aria-label="กรองของรางวัล"] button:last-child',button=>button.scrollIntoView({block:"center",behavior:"instant"}));
+    await page.locator('.prize-filters[aria-label="กรองของรางวัล"] button:last-child').click();
+    await page.waitForFunction(()=>document.querySelectorAll(".prize-collection-card").length===5,{timeout:3000});
+    await page.$eval('button[aria-label="ดูวิธีรับปิ่นปักผม"]',button=>button.scrollIntoView({block:"center",behavior:"instant"}));
     await page.locator('button[aria-label="ดูวิธีรับปิ่นปักผม"]').click();
     await page.waitForSelector(".prize-detail-modal");
-    assert.ok((await page.$eval(".prize-detail-sheet dl", node => node.innerText)).includes("15 แต้ม"));
-    assert.equal(await page.$eval(".prize-detail-sheet .button-imperial-red", link => link.getAttribute("href")), "/profile");
-    await page.keyboard.press("Escape");
-    await page.waitForSelector(".prize-detail-modal", { hidden: true });
-    assert.equal(await page.evaluate(() => document.body.style.overflow), "");
+    assert.ok((await page.$eval(".prize-detail-sheet",n=>n.innerText)).includes("200"));
+    await page.keyboard.press("Escape");await page.waitForSelector(".prize-detail-modal",{hidden:true});
+    assert.equal(await page.evaluate(()=>document.body.style.overflow),"");
+    if(process.env.CAPTURE_EXPERIENCE)await page.screenshot({path:"previews/rework/reward-hub.png",fullPage:true});
+  });
+  await check("staff preview never commits until explicit confirmation",async()=>{
+    const script=await page.evaluateOnNewDocument(()=>{window.__fatuTest.role="staff";});
+    try {
+      await page.goto(`${baseUrl}/admin/field`,{waitUntil:"networkidle2"});
+      await page.waitForSelector("#field-activity");await page.select("#field-activity","morning");
+      await page.type("#field-identifier","fixture");const before=manualCompletions;
+      await page.locator('button::-p-text(ตรวจข้อมูล)').click();await page.waitForSelector(".field-confirm");
+      assert.equal(manualCompletions,before);assert.ok((await page.$eval(".field-confirm",n=>n.innerText)).includes("ผู้ทดสอบ"));
+      if(process.env.CAPTURE_EXPERIENCE)await page.screenshot({path:"previews/rework/staff-confirm.png",fullPage:true});
+      await page.locator('button::-p-text(ยืนยันบันทึกกิจกรรม)').click();await page.waitForSelector(".field-success");
+      assert.equal(manualCompletions,before+1);
+      await page.locator('button[role="tab"]::-p-text(จ่ายรางวัล)').click();await page.type("#field-voucher",prize.voucherCode);
+      const claimsBefore=voucherClaims;await page.locator('button::-p-text(ตรวจข้อมูล)').click();await page.waitForSelector(".field-confirm");
+      assert.equal(voucherClaims,claimsBefore);
+      await page.locator('button::-p-text(ยืนยันจ่ายของรางวัล)').click();await page.waitForSelector(".field-success");assert.equal(voucherClaims,claimsBefore+1);
+    } finally{await page.removeScriptToEvaluateOnNewDocument(script.identifier);}
+  });
+  await check("registration steps preserve details and support general visitors",async()=>{
+    await page.goto(`${baseUrl}/register`,{waitUntil:"networkidle2"});await page.waitForSelector("#register-first");
+    assert.equal(await page.$eval("#register-grade",n=>n.value),"");
+    await page.type("#register-first","ทดสอบ");await page.type("#register-last","ผู้ปกครอง");
+    await page.select("#register-grade","บุคคลทั่วไป / ผู้ปกครอง / ครู");assert.equal(await page.$("#register-track"),null);
+    await page.type("#register-phone","0812345678");await page.type("#register-email","fixture@example.test");
+    await page.click('button[type="submit"]');await page.waitForSelector("#register-username");
+    await page.locator('button::-p-text(กติกาเข้าร่วมงาน)').click();await page.waitForSelector(".registration-info-modal");
+    assert.ok((await page.$eval(".registration-info-modal",n=>n.innerText)).includes("200"));await page.keyboard.press("Escape");
+    await page.locator('.register-actions button::-p-text(กลับ)').click();await page.waitForSelector("#register-first");
+    assert.equal(await page.$eval("#register-first",n=>n.value),"ทดสอบ");
+    await page.click('button[type="submit"]');await page.waitForSelector("#register-username");
+    await page.type("#register-username","parent_fixture");await page.type("#register-password","test-password");await page.type("#register-confirm","test-password");await page.click("#consent");
+    if(process.env.CAPTURE_EXPERIENCE)await page.screenshot({path:"previews/rework/register-step.png",fullPage:true});
+    await page.click('button[type="submit"]');await page.waitForFunction(()=>location.pathname==="/profile");
+    const input=await page.evaluate(()=>window.__registeredInput);assert.equal(input.academicTrack,"บุคคลทั่วไป");assert.equal(input.school,"บุคคลทั่วไป");assert.equal(input.consent,true);
+  });
+  await check("survey requires four deliberate ratings and sends the server contract",async()=>{
+    surveySubmitted=false;surveyPayload=null;
+    await page.goto(`${baseUrl}/survey`,{waitUntil:"networkidle2"});await page.waitForSelector('button[aria-label*="จาก 5 ดาว"]');
+    await page.click('button[type="submit"]');assert.equal(surveyPayload,null);
+    const groups=await page.$$eval('button[aria-label*="จาก 5 ดาว"]',nodes=>[...new Set(nodes.map(n=>n.getAttribute("aria-label").split(" · ")[0]))]);
+    assert.equal(groups.length,4);
+    for(const group of groups)await page.locator(`button[aria-label="${group} · 4 จาก 5 ดาว"]`).click();
+    await page.click('button[type="submit"]');await page.waitForFunction(()=>document.body.innerText.includes("ได้รับคะแนนโบนัส +100 แต้ม"));
+    assert.equal(surveyPayload.overallRating,4);assert.equal(surveyPayload.venueRating,4);assert.equal(surveyPayload.activityRating,4);assert.equal(surveyPayload.staffRating,4);
+    await page.reload({waitUntil:"networkidle2"});assert.equal(await page.$('main button[type="submit"]'),null);
   });
   await check("blocked decorative media leaves opening and activity navigation usable", async () => {
     blockDecorativeMedia = true;
@@ -458,6 +516,36 @@ try {
       await page.waitForSelector(".scan-page");
       assert.ok(await page.$('button::-p-text(อัปโหลดรูป QR)'));
     } finally { blockDecorativeMedia = false; }
+  });
+  await check("Chinese ornaments respect reduced motion and do not intercept controls", async () => {
+    await page.setViewport({width:360,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1});
+    await page.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"reduce"}]);
+    try {
+      for (const route of ["/map","/prizes","/profile","/lucky-draw"]) {
+        await page.goto(`${baseUrl}${route}`,{waitUntil:"networkidle2"});
+        const art=await page.evaluate(()=>[...document.querySelectorAll(".chinese-cloudscape,.lattice-corners,.imperial-couplet,.fortune-knot,.scroll-rolls")].map(n=>({hidden:n.getAttribute("aria-hidden"),pointer:getComputedStyle(n).pointerEvents})));
+        assert.ok(art.length>0,`${route} has decorative art`);
+        assert.ok(art.every(n=>n.hidden==="true"&&n.pointer==="none"),`${route} art must not capture input or duplicate screen-reader content`);
+        const moving=await page.evaluate(()=>[...document.querySelectorAll(".lattice-corners path,.cloudscape-near,.cloudscape-far,.cloudscape-cranes,.palace-lantern,.palace-hero-content>h1,.palace-hero-content>p")].filter(n=>getComputedStyle(n).animationName!=="none").length);
+        assert.equal(moving,0,`${route} ornamental motion must stop with OS reduced motion`);
+        const button=await page.$('.guardian-summon');
+        if(button) {
+          await button.evaluate(node=>node.scrollIntoView({block:"center",behavior:"instant"}));
+          assert.ok(await button.evaluate(node=>{const rect=node.getBoundingClientRect();return document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2)?.closest('button')===node;}),`${route} guardian button must accept taps`);
+          await button.click();await page.waitForSelector('.guardian-manifestation',{timeout:3000});await button.click();await page.waitForSelector('.guardian-manifestation',{hidden:true,timeout:3000});
+        }
+      }
+    } finally {await page.emulateMediaFeatures([]);}
+  });
+  await check("Chinese layouts stay within mobile and desktop viewports",async()=>{
+    for(const width of [360,1280]) {
+      await page.setViewport({width,height:844,isMobile:width===360,hasTouch:width===360,deviceScaleFactor:1});
+      for(const route of ["/","/map","/schedule","/prizes","/lucky-draw"]) {
+        await page.goto(`${baseUrl}${route}`,{waitUntil:"networkidle2"});
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),`${route} overflowed at ${width}px`);
+        assert.equal(await page.$$(".bottom-nav").then(nodes=>nodes.length),1);
+      }
+    }
   });
   for (const width of [360, 412]) {
     await check(`navigation and end-of-page content fit at ${width}px`, async () => {
@@ -485,11 +573,22 @@ try {
   if (process.env.CAPTURE_EXPERIENCE) {
     drawn = false;
     const guestScript = await page.evaluateOnNewDocument(() => { window.__fatuTest.user = null; window.__fatuTest.profile = null; });
-    await page.goto(baseUrl, { waitUntil: "networkidle2" }); await page.screenshot({ path: "previews/rework/home-visitor.png", fullPage: true });
+    await page.goto(baseUrl, { waitUntil: "networkidle2" });
+    await page.waitForFunction(()=>[...document.querySelectorAll('.moon-window-rim img')].every(img=>img.complete&&img.getAnimations().every(animation=>animation.playState==="finished")));
+    await page.screenshot({path:"previews/rework/home-imperial-mobile.png"});
+    await page.evaluate(async()=>{for(let y=0;y<document.documentElement.scrollHeight;y+=600){window.scrollTo(0,y);await new Promise(resolve=>setTimeout(resolve,120));}window.scrollTo(0,0);});
+    await page.waitForFunction(()=>[...document.querySelectorAll('.realm-place-image-link img')].every(img=>img.complete));
+    await page.screenshot({ path: "previews/rework/home-visitor.png", fullPage: true });
+    await page.setViewport({width:1280,height:900,isMobile:false,hasTouch:false,deviceScaleFactor:1});
+    await page.goto(baseUrl,{waitUntil:"networkidle2"});
+    await page.waitForFunction(()=>[...document.querySelectorAll('.route-ritual,.moon-window-rim img')].every(node=>node.getAnimations().every(animation=>animation.playState==="finished")));
+    await page.screenshot({path:"previews/rework/home-imperial-desktop.png"});
+    await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1});
     await page.removeScriptToEvaluateOnNewDocument(guestScript.identifier);
     for (const [route, name] of [["/", "home"], ["/schedule", "schedule"], ["/scan", "scan"], ["/lucky-draw", "lucky-draw"], ["/admin/login", "portal"], ["/map", "map"], ["/profile", "passport"], ["/venue/theater", "venue"], ["/prizes", "prizes"], ["/activity/morning", "activity"]]) {
       await page.goto(`${baseUrl}${route}`, { waitUntil: "networkidle2" });
       await page.waitForFunction(() => !document.querySelector(".scroll-route-reveal") || getComputedStyle(document.querySelector(".scroll-route-reveal")).visibility === "hidden");
+      await page.waitForFunction(()=>[...document.querySelectorAll('.route-ritual')].every(node=>node.getAnimations().every(animation=>animation.playState==="finished")));
       await page.screenshot({ path: `previews/rework/${name}.png`, fullPage: true });
     }
   }

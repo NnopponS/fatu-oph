@@ -3,11 +3,12 @@ import { ArrowUpRight, MapPin, Navigation, Route } from "lucide-react";
 import { useActivities, useVenues } from "@/data/content";
 import { useAuth } from "@/contexts/AuthContext";
 import { RealmPlaceCard } from "@/components/RealmPlaces";
+import { ChineseHero } from "@/components/ChineseOrnaments";
 
 export function MapPage() {
   const venues = useVenues(); const activities = useActivities(); const { profile } = useAuth();
   return <div className="places-page map-expedition">
-    <section className="places-intro"><span className="section-kicker"><Route size={16} /> EXPEDITION MAP</span><h1>ออกเดินทาง<br /><em>สู่แดนมังกร</em></h1><p>คณะศิลปกรรมศาสตร์ · มธ. ศูนย์รังสิต<br />ดูภาพอาคาร เลือกสถานที่ แล้วเปิดเส้นทางนำทาง</p><div className="map-route-stops" aria-label="สถานที่จัดงาน">{venues.items.map((venue, index) => <a key={venue.id} href={`#place-${venue.id}`} onClick={event => { event.preventDefault(); document.getElementById(`place-${venue.id}`)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}><b>{index + 1}</b><span>{venue.name}</span></a>)}</div></section>
+    <ChineseHero className="places-intro" kicker={<><Route size={16} /> EXPEDITION MAP</>} title={<>ออกเดินทาง<br /><em>สู่แดนมังกร</em></>} description={<>คณะศิลปกรรมศาสตร์ · มธ. ศูนย์รังสิต<br />ดูภาพอาคาร เลือกสถานที่ แล้วเปิดเส้นทางนำทาง</>} seal="遊"><div className="map-route-stops" aria-label="สถานที่จัดงาน">{venues.items.map((venue, index) => <a key={venue.id} href={`#place-${venue.id}`} onClick={event => { event.preventDefault(); document.getElementById(`place-${venue.id}`)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }); }}><b>{index + 1}</b><span>{venue.name}</span></a>)}</div></ChineseHero>
     {venues.loading && <p role="status">กำลังโหลดแผนที่...</p>}{venues.error && <p role="alert">{venues.error}</p>}
     <div className="map-places-list">{venues.items.map((venue, index) => <section id={`place-${venue.id}`} key={venue.id} className="map-place-stop">
       <RealmPlaceCard venue={venue} index={index} count={activities.items.filter(activity => activity.venueId === venue.id).length} visited={Boolean(profile?.visits?.[venue.id])} />

@@ -12,9 +12,11 @@ import {
 } from "lucide-react";
 import { ThemedLoading } from "@/components/ThemedLoading";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRewardPolicy } from "@/data/content";
 
 export const SurveyPage: React.FC = () => {
   const { firebaseUser, refreshProfile } = useAuth();
+  const { rules } = useRewardPolicy();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -24,13 +26,15 @@ export const SurveyPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Ratings 1 to 5
-  const [ratingOverall, setRatingOverall] = useState<number>(5);
-  const [ratingVenues, setRatingVenues] = useState<number>(5);
-  const [ratingActivities, setRatingActivities] = useState<number>(5);
-  const [ratingStaff, setRatingStaff] = useState<number>(5);
+  const [ratingOverall, setRatingOverall] = useState<number>(0);
+  const [ratingVenues, setRatingVenues] = useState<number>(0);
+  const [ratingActivities, setRatingActivities] = useState<number>(0);
+  const [ratingStaff, setRatingStaff] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
 
   useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
     async function checkSurvey() {
       try {
         setLoading(true);
@@ -38,28 +42,33 @@ export const SurveyPage: React.FC = () => {
         const headers: Record<string, string> = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        const res = await fetch("/api/survey", { headers });
+        headers["Content-Type"] = "application/json";
+        const res = await fetch("/api/survey", { method: "POST", headers, body: JSON.stringify({action:"status"}), signal:controller.signal });
         const data = await res.json();
-        if (res.ok) {
-          setCompleted(Boolean(data.completed));
-          setCompletedAt(data.completedAt || null);
+        if (!res.ok) throw new Error(data.error || "ตรวจแบบประเมินไม่สำเร็จ กรุณาลองใหม่");
+        if (active) {
+          setCompleted(Boolean(data.submitted));
+          setCompletedAt(data.record?.createdAt || null);
         }
       } catch (err: unknown) {
-        console.warn("Survey check error:", err);
+        if (active) setError(err instanceof Error ? err.message : "ตรวจแบบประเมินไม่สำเร็จ");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     if (firebaseUser) {
       void checkSurvey();
     } else {
+      setCompleted(false); setCompletedAt(null);
       setLoading(false);
     }
+    return () => { active = false; controller.abort(); };
   }, [firebaseUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firebaseUser) return;
+    if ([ratingOverall,ratingVenues,ratingActivities,ratingStaff].some(value=>value===0)) { setError("กรุณาเลือกคะแนนให้ครบทั้ง 4 ด้าน"); return; }
     setSubmitting(true);
     setError(null);
 
@@ -73,11 +82,11 @@ export const SurveyPage: React.FC = () => {
         },
         body: JSON.stringify({
           action: "submit",
-          ratingOverall,
-          ratingVenues,
-          ratingActivities,
-          ratingStaff,
-          comment: comment.trim(),
+          overallRating: ratingOverall,
+          venueRating: ratingVenues,
+          activityRating: ratingActivities,
+          staffRating: ratingStaff,
+          feedback: comment.trim(),
         }),
       });
 
@@ -87,9 +96,9 @@ export const SurveyPage: React.FC = () => {
       }
 
       setCompleted(true);
-      setCompletedAt(data.completedAt || new Date().toISOString());
-      setSuccessMessage(data.message || "ส่งแบบประเมินสำเร็จและได้รับคะแนนโบนัส +10 แต้ม!");
-      await refreshProfile();
+      setCompletedAt(data.record?.createdAt || new Date().toISOString());
+      setSuccessMessage(data.message || `ส่งแบบประเมินสำเร็จและได้รับคะแนนโบนัส +${rules.surveyPoints} แต้ม!`);
+      void refreshProfile().catch(() => undefined);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการส่งแบบประเมิน");
     } finally {
@@ -113,12 +122,16 @@ export const SurveyPage: React.FC = () => {
             <button
               key={star}
               type="button"
+              aria-label={`${label} · ${star} จาก 5 ดาว`}
+              aria-pressed={value===star}
               onClick={() => onChange(star)}
               style={{
                 background: "none",
                 border: "none",
                 cursor: "pointer",
                 padding: 4,
+                minWidth: 44,
+                minHeight: 44,
                 color: star <= value ? "#eab308" : "#cbd5e1",
                 transition: "transform 0.15s ease",
               }}
@@ -152,7 +165,7 @@ export const SurveyPage: React.FC = () => {
           แบบประเมินความพึงพอใจ
         </h1>
         <p className="chinese-hero-desc">
-          ความคิดเห็นของคุณมีค่ามาก เพื่อนำไปพัฒนาการจัดงานในครั้งต่อไป (รับแต้มโบนัส +10 แต้ม)
+          ความคิดเห็นของคุณช่วยพัฒนาการจัดงานครั้งต่อไป · รับโบนัส +{rules.surveyPoints} แต้ม ครั้งเดียว
         </p>
       </div>
 
@@ -192,7 +205,7 @@ export const SurveyPage: React.FC = () => {
               เข้าสู่ระบบเพื่อทำแบบประเมิน
             </h3>
             <p style={{ fontSize: 13, color: "var(--text-dark-secondary)", marginBottom: 16 }}>
-              กรุณาเข้าสู่ระบบเพื่อรับคะแนนโบนัส +10 แต้มหลังทำแบบประเมินเสร็จสิ้น
+              กรุณาเข้าสู่ระบบเพื่อรับคะแนนโบนัส +{rules.surveyPoints} แต้มหลังทำแบบประเมินเสร็จสิ้น
             </p>
             <Link to="/login" className="chinese-btn-primary" style={{ padding: "8px 20px", fontSize: 13, textDecoration: "none" }}>
               เข้าสู่ระบบ
@@ -217,7 +230,7 @@ export const SurveyPage: React.FC = () => {
               คุณได้ทำแบบประเมินเรียบร้อยแล้ว
             </h2>
             <p style={{ fontSize: 13, color: "#166534", margin: "0 0 16px" }}>
-              {successMessage || "ขอบคุณสำหรับข้อเสนอแนะอันมีค่า และได้รับโบนัส +10 แต้มสะสมแล้ว"}
+              {successMessage || "ขอบคุณสำหรับความคิดเห็น บันทึกแบบประเมินนี้ไว้ในบัญชีของคุณแล้ว"}
             </p>
 
             <div
@@ -235,7 +248,7 @@ export const SurveyPage: React.FC = () => {
               }}
             >
               <Award style={{ width: 16, height: 16 }} />
-              <span>โบนัส +10 แต้มถูกเพิ่มในใบเบิกทางของคุณแล้ว</span>
+              <span>ดูยอดคะแนนล่าสุดในใบเบิกทางของคุณ</span>
             </div>
 
             <div style={{ marginTop: 20 }}>
@@ -253,7 +266,7 @@ export const SurveyPage: React.FC = () => {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                 <Award style={{ width: 20, height: 20, color: "var(--color-gold-600)" }} />
                 <span style={{ fontSize: 14, fontWeight: 800, color: "var(--color-red-900)" }}>
-                  ทำแบบประเมินรับโบนัสทันที +10 แต้ม
+                  ทำแบบประเมินรับโบนัส +{rules.surveyPoints} แต้ม
                 </span>
               </div>
 
@@ -300,7 +313,7 @@ export const SurveyPage: React.FC = () => {
               }}
             >
               <Send style={{ width: 18, height: 18 }} />
-              <span>{submitting ? "กำลังส่งแบบประเมิน..." : "ส่งแบบประเมิน & รับ +10 แต้ม"}</span>
+              <span>{submitting ? "กำลังส่งแบบประเมิน..." : `ส่งแบบประเมิน & รับ +${rules.surveyPoints} แต้ม`}</span>
             </button>
           </form>
         )}

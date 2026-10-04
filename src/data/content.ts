@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { z, type ZodType } from "zod";
 import { realtimePaths, subscribeRealtime } from "@/services/realtime";
 import { formatPlaceText, realmFor } from "@/lib/realms";
+import { activityAward, rewardPolicy, type RewardPolicy } from "@/lib/reward-policy";
 
 export const siteSchema = z.object({
   name: z.string().min(1),
@@ -12,6 +13,7 @@ export const siteSchema = z.object({
   dateLabel: z.string().default(""),
   locationLabel: z.string().default(""),
   registrationOpen: z.boolean().default(true),
+  rewardPolicy: z.unknown().optional(),
 });
 
 export const venueSchema = z.object({
@@ -51,7 +53,7 @@ export const activitySchema = z.object({
   isPublished: z.boolean().default(false),
   isArchived: z.boolean().default(false),
   pointsEnabled: z.boolean().default(false),
-  pointsAwarded: z.number().int().nonnegative().default(0),
+  pointsAwarded: z.number().int().nonnegative().default(100),
   pointGrantMode: z.enum(["once", "per-session", "repeat-limited", "manual-only"]).default("once"),
   repeatLimit: z.number().int().positive().nullable().default(null),
   completionMethod: z.enum(["qr", "staff", "none"]).default("none"),
@@ -66,6 +68,8 @@ export const prizeSchema = z.object({
   imageMediaId: z.string().default(""),
   stock: z.number().int().nonnegative().default(0),
   pointsRequired: z.number().int().nonnegative().default(0),
+  drawWeight: z.number().nonnegative().default(1),
+  rarity: z.enum(["legendary", "epic", "rare", "uncommon", "common"]).default("common"),
   claimLimit: z.number().int().positive().default(1),
   displayOrder: z.number().int().nonnegative().default(0),
   isPublished: z.boolean().default(false),
@@ -174,13 +178,21 @@ export function useVenues(publishedOnly = true) {
 
 export function useActivities(publishedOnly = true) {
   const state = useCollection<Activity>(realtimePaths.public.activities, activitySchema, publishedOnly);
+  const { rules } = useRewardPolicy();
   return useMemo(
     () => ({
       ...state,
-      items: state.items.filter((item) => !publishedOnly || !item.isArchived),
+      items: state.items.filter((item) => !publishedOnly || !item.isArchived).map(item =>
+        publishedOnly ? { ...item, pointsAwarded: activityAward(item, rules) } : item),
     }),
-    [state, publishedOnly],
+    [state, publishedOnly, rules],
   );
+}
+
+export function useRewardPolicy(): { rules: RewardPolicy; loading: boolean } {
+  const site = useSite();
+  const rules = useMemo(() => rewardPolicy(site.item?.rewardPolicy), [site.item?.rewardPolicy]);
+  return { rules, loading: site.loading };
 }
 
 export function usePrizes(publishedOnly = true) {

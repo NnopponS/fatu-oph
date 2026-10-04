@@ -7,19 +7,17 @@ process.env.FIREBASE_ADMIN_PROJECT_ID = "demo-fatu-oph-2026";
 process.env.FIREBASE_DATABASE_URL =
   "https://demo-fatu-oph-2026-default-rtdb.firebaseio.com";
 
-const [participantModule, checkinModule, adminModule, assistantModule, server] =
+const [participantModule, checkinModule, adminModule, server] =
   await Promise.all([
     import("../api/participant.ts"),
     import("../api/checkin.ts"),
     import("../api/admin.ts"),
-    import("../api/assistant.ts"),
     import("../api/_lib/server.ts"),
   ]);
 
 const participantHandler = participantModule.POST;
 const checkinHandler = checkinModule.POST;
 const adminHandler = adminModule.POST;
-const assistantHandler = assistantModule.POST;
 
 const { adminDb } = server;
 
@@ -377,17 +375,6 @@ assert.equal(editorContentAudit.status, 200);
 const editorAudit = await call(adminHandler, { action: "audit" }, editorUser.idToken);
 assert.equal(editorAudit.status, 403);
 
-const assistant = await call(assistantHandler, { question: "โรงละครมีกิจกรรมอะไรบ้าง" });
-assert.equal(assistant.status, 200);
-assert.ok(String(assistant.data.answer).includes("กิจกรรมทดสอบ"));
-
-const assistantPoints = await call(assistantHandler, {
-  question: "ตอนนี้ฉันมีแต้มเท่าไหร่",
-  passToken,
-});
-assert.equal(assistantPoints.status, 200);
-assert.ok(String(assistantPoints.data.answer).includes("50 คะแนน"));
-
 const after = await call(participantHandler, { action: "me", passToken });
 assert.equal(after.status, 200);
 assert.equal(after.data.pointTotal, 50);
@@ -426,7 +413,6 @@ console.log(
         "editor-role-boundaries",
         "content-audit",
         "staff-creation",
-        "assistant-search",
       ],
     },
     null,

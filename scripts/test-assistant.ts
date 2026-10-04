@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { buildGuideTopics, guideCategories } from "../src/lib/guardian-guide";
+import { rewardPolicy } from "../src/lib/reward-policy";
+
+const topics = buildGuideTopics(rewardPolicy({ pointsRequired: 350, pointsPerVenue: 80, surveyPoints: 60 }));
+const find = (id: string) => { const found = topics.find(topic => topic.id === id); assert.ok(found); return found; };
+assert.match(find("event-rewards").answer, /350 แต้ม/);
+assert.match(find("event-rewards").answer, /80 แต้ม/);
+assert.match(find("event-rewards").answer, /60 แต้ม/);
+assert.match(find("event-rewards").answer, /ไม่หักแต้ม/);
+assert.match(find("admissions-2570-theatre-portfolio").answer, /2\.75/);
+assert.equal(find("admissions-2570-theatre-portfolio").sources[0].academicYear, 2570);
+assert.match(find("admissions-2570-round3").answer, /ยังไม่ได้ยืนยัน/);
+assert.match(find("admissions-2569-fashion-historical").label, /ย้อนหลัง 2569/);
+assert.ok(find("contact-youtube").links.some(link => link.href === "https://www.youtube.com/@fineartstu8432"));
+assert.equal(find("admissions-2570-plan-organizer").sources[0].authority, "organizer");
+assert.equal(find("admissions-2570-plan-organizer").sources[0].confidence, "needs-confirmation");
+assert.equal(new Set(topics.map(topic => topic.id)).size, topics.length);
+assert.ok(topics.every(topic => guideCategories.some(category => category.id === topic.category)));
+assert.match(buildGuideTopics(rewardPolicy(), [{ id: "example", question: "คำถามผู้จัด", answer: "คำตอบจาก CMS" }]).find(topic => topic.id === "faq-example")!.answer, /คำตอบจาก CMS/);
+console.log("GUIDE PASSED: published reward policy, official evidence, year separation, social links and CMS answers");

@@ -6,9 +6,14 @@ export function QrScanner({ onScan }: { onScan: (value: string) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
+  const generation = useRef(0);
+  const mounted = useRef(false);
+  const callback = useRef(onScan);
+  callback.current = onScan;
   const [error, setError] = useState<string | null>(null);
 
   const stop = useCallback(() => {
+    generation.current++;
     if (frameRef.current) cancelAnimationFrame(frameRef.current);
     frameRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -17,14 +22,17 @@ export function QrScanner({ onScan }: { onScan: (value: string) => void }) {
 
   const start = useCallback(async () => {
     stop();
+    const attempt = generation.current;
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      if (!mounted.current || attempt !== generation.current) { stream.getTracks().forEach(track => track.stop()); return; }
       streamRef.current = stream;
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) { stop(); return; }
       video.srcObject = stream;
       await video.play();
+      if (!mounted.current || attempt !== generation.current) return;
 
       const scan = () => {
         const canvas = canvasRef.current;
@@ -40,7 +48,7 @@ export function QrScanner({ onScan }: { onScan: (value: string) => void }) {
             const code = jsQR(image.data, image.width, image.height);
             if (code?.data) {
               stop();
-              onScan(code.data);
+              callback.current(code.data);
               return;
             }
           }
@@ -49,13 +57,14 @@ export function QrScanner({ onScan }: { onScan: (value: string) => void }) {
       };
       frameRef.current = requestAnimationFrame(scan);
     } catch {
-      setError("เปิดกล้องไม่ได้ กรุณาอนุญาตสิทธิ์กล้องหรือกรอกโค้ดด้วยตนเอง");
+      if (mounted.current && attempt === generation.current) setError("เปิดกล้องไม่ได้ กรุณาอนุญาตสิทธิ์กล้องหรือกรอกโค้ดด้วยตนเอง");
     }
-  }, [onScan, stop]);
+  }, [stop]);
 
   useEffect(() => {
+    mounted.current = true;
     void start();
-    return stop;
+    return () => { mounted.current = false; stop(); };
   }, [start, stop]);
 
   return (

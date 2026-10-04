@@ -5,6 +5,7 @@ import { ArrowUpRight, Check, MapPin, Sparkles, X } from "lucide-react";
 import { resolveMediaUrl, useMedia, type Venue } from "@/data/content";
 import { realmFor } from "@/lib/realms";
 import { CelestialArray } from "@/components/CelestialArray";
+import { LatticeCorners, SealSpark } from "@/components/ChineseOrnaments";
 
 export function VenuePhoto({ identity, name, cover = "", priority = false }: { identity: string; name: string; cover?: string; priority?: boolean }) {
   const meta = realmFor(identity);
@@ -23,7 +24,7 @@ export function GuardianButton({ identity, children, className = "" }: { identit
       <img src={meta.art} alt="" /><span>{children || "เรียกผู้พิทักษ์"}</span>{visible ? <X size={14} /> : <Sparkles size={14} />}
     </button>
     <AnimatePresence>{visible && <motion.div className="guardian-manifestation" initial={{ opacity: 0, y: reduced ? 0 : 20, scale: reduced ? 1 : .5 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: reduced ? 1 : .8 }} transition={{ type: "spring", damping: 16 }}>
-      <CelestialArray color={meta.color} /><div className="guardian-manifest-ring" /><img src={meta.art} alt={`ผู้พิทักษ์${meta.guardian}`} /><strong>{meta.guardian}</strong><small>{meta.title}</small>
+      <CelestialArray color={meta.color} /><SealSpark color={meta.color} /><div className="guardian-manifest-ring" /><img src={meta.art} alt={`ผู้พิทักษ์${meta.guardian}`} /><strong>{meta.guardian}</strong><small>{meta.title}</small>
     </motion.div>}</AnimatePresence>
   </div>;
 }
@@ -34,6 +35,7 @@ export function RealmPlaceCard({ venue, count = 0, visited = false, index = 0 }:
   return <article className={`realm-place-card ${visited ? "visited" : ""}`} style={{ "--realm-color": meta.color } as CSSProperties}>
     <Link to={`/venue/${venue.id}`} className="realm-place-image-link" aria-label={`สำรวจ${venue.name}`}>
       <VenuePhoto identity={venue.visualIdentityKey} name={venue.name} cover={cover} />
+      <LatticeCorners className="realm-photo-corners" />
       <span className="realm-place-number">{String(index + 1).padStart(2, "0")}</span>
       {visited && <span className="realm-place-visited"><Check size={13} />ประทับตราแล้ว</span>}
     </Link>

@@ -19,6 +19,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useVenues } from "@/data/content";
 import { VenuePhoto, GuardianButton } from "@/components/RealmPlaces";
 import { placeName, realmFor } from "@/lib/realms";
+import { RewardProgress } from "@/components/RewardProgress";
+import { LatticeCorners, ScrollRolls } from "@/components/ChineseOrnaments";
 
 export function PassPage() {
   const { firebaseUser, profile, logout } = useAuth();
@@ -87,7 +89,7 @@ export function PassPage() {
       {/* 1. PARTICIPANT PASS IDENTITY CARD (Reference 6)                           */}
       {/* ========================================================================= */}
       <div
-        className="ivory-card"
+        className="ivory-card passport-imperial-card"
         style={{
           marginTop: 8,
           padding: "24px 20px",
@@ -97,6 +99,7 @@ export function PassPage() {
         }}
       >
         {/* Background watermark */}
+        <LatticeCorners /><ScrollRolls />
         <div style={{ position: "absolute", top: -10, right: -10, opacity: 0.05, pointerEvents: "none" }}>
           <img src="/assets/brand/dragon-seal.svg" alt="" style={{ width: 180, height: 180 }} />
         </div>
@@ -251,6 +254,7 @@ export function PassPage() {
       {/* ========================================================================= */}
       {/* 2. 4 MYTHOLOGICAL REALM STAMPS MATRIX (Reference 6)                       */}
       {/* ========================================================================= */}
+      <RewardProgress />
       <div className="card-mythology" style={{ padding: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>

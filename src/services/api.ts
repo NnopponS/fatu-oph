@@ -71,10 +71,3 @@ export function completeActivity(qrPayload: string, passToken?: string) {
 export function adminAction<T>(action: string, payload: Record<string, unknown> = {}) {
   return request<T>("/api/admin", { action, ...payload }, true);
 }
-
-export function askAssistant(question: string) {
-  return request<{ answer: string; links: Array<{ label: string; href: string }> }>(
-    "/api/assistant",
-    { question, passToken: loadPass()?.token },
-  );
-}

@@ -1,302 +1,145 @@
+import crypto from "node:crypto";
 import { z } from "zod";
-import {
-  adminAuth,
-  adminDb,
-  appendAudit,
-  bearerToken,
-  enforceRateLimit,
-  json,
-  publicError,
-  readJson,
-  requireActor,
-} from "./_lib/server.js";
+import { adminAuth, adminDb, appendAudit, bearerToken, enforceRateLimit, json, publicError, readJson, requireActor } from "./_lib/server.js";
+import { loadRewardPolicy } from "./_lib/rewards.js";
+import { rewardProgress } from "../src/lib/reward-policy.js";
 
-const DEFAULT_LUCKY_PRIZES = [
-  {
-    id: "lucky_arttoy",
-    name: "Art Toy มังกรฟ้า FATU Limited Edition",
-    rarity: "legendary",
-    rarityLabel: "ระดับตำนาน (ทอง)",
-    description: "ฟิกเกอร์มังกรฟ้าสุดพิเศษ ผลิตจำนวนจำกัดสำหรับงาน Open House 2026",
-    weight: 10,
-    image: "/assets/mythology/azure-dragon.svg",
-  },
-  {
-    id: "lucky_totebag",
-    name: "กระเป๋าผ้าแคนวาส ลายสัตว์เทพ 4 ทิศ",
-    rarity: "epic",
-    rarityLabel: "ระดับมหากาพย์ (ม่วง)",
-    description: "กระเป๋าผ้าเนื้อหนา พิมพ์ลายสีทองพรีเมียม สไตล์จีนร่วมสมัย",
-    weight: 25,
-    image: "/assets/decorations/dragon-seal.svg",
-  },
-  {
-    id: "lucky_keychain",
-    name: "พวงกุญแจอะคริลิก สัตว์เทพพิทักษ์",
-    rarity: "rare",
-    rarityLabel: "ระดับหายาก (ฟ้า)",
-    description: "พวงกุญแจอะคริลิกสองด้าน ลายมาสคอตสัตว์เทพประจำแดนศิลปกรรม",
-    weight: 35,
-    image: "/assets/animations/reward-chest.svg",
-  },
-  {
-    id: "lucky_stickers",
-    name: "เซ็ตสติกเกอร์โฮโลแกรม ตะลุยแดนมังกร",
-    rarity: "common",
-    rarityLabel: "ระดับทั่วไป (เขียว)",
-    description: "สติกเกอร์ไดคัทเคลือบโฮโลแกรมกันน้ำ ลวดลายมังกรและตราประทับมงคล",
-    weight: 30,
-    image: "/assets/decorations/chinese-cloud.svg",
-  },
-];
+interface DrawPrize { id: string; name: string; description: string; rarity: string; weight: number; stock: number; imageMediaId: string }
+interface DrawReceipt { draw: Record<string, string>; voucher: Record<string, string>; prize: DrawPrize }
+interface PrizeRuntime { claimedCount?: number; configuredStock?: number; stockRemaining?: number }
 
-const drawSchema = z.object({
-  action: z.literal("draw"),
-});
+function usedStock(runtime?: PrizeRuntime) {
+  return Math.max(0, Number(runtime?.claimedCount ?? (Number(runtime?.configuredStock || 0) - Number(runtime?.stockRemaining || 0))));
+}
 
-const statusSchema = z.object({
-  action: z.literal("status"),
-});
+async function catalog() {
+  const [prizesSnap, runtimeSnap] = await Promise.all([adminDb.ref("public/prizes").get(), adminDb.ref("operations/prizeRuntime").get()]);
+  const runtime = runtimeSnap.val() || {};
+  const prizes = Object.entries(prizesSnap.val() || {}).flatMap(([id, value]) => {
+    const p = value as Record<string, unknown>;
+    const weight = Number(p.drawWeight ?? 1);
+    if (!p.isPublished || !Number.isFinite(weight) || weight <= 0) return [];
+    return [{ id, name: String(p.name || "ของรางวัล"), description: String(p.description || ""), rarity: String(p.rarity || "common"), weight, stock: Math.max(0, Number(p.stock || 0)), imageMediaId: String(p.imageMediaId || "") }];
+  });
+  return { prizes, runtime, available: prizes.map(p => ({ ...p, stockRemaining: Math.max(0, p.stock - usedStock(runtime[p.id])) })) };
+}
 
-const redeemSchema = z.object({
-  action: z.literal("redeem-voucher"),
-  voucherCode: z.string().trim().min(3),
-});
+// The stock reservation and the participant's single draw are committed together.
+// Derived voucher indexes can be recovered after a lost network response.
+async function restoreReceipt(uid: string, receipt: DrawReceipt) {
+  const voucherRef = adminDb.ref(`operations/luckyVouchers/${receipt.voucher.voucherId}`);
+  await voucherRef.transaction(current => current ? undefined : receipt.voucher);
+  await adminDb.ref(`operations/luckyDraws/${uid}`).transaction(current => current ? undefined : receipt.draw);
+}
+
+const voucherInput = z.object({ voucherCode: z.string().trim().min(3).max(160).regex(/^(?:FATU26LUCKY:)?[A-Z0-9-]+$/i) });
+function voucherId(code: string) {
+  const id = code.replace(/^FATU26LUCKY:/i, "").trim().toUpperCase();
+  if (!/^[A-Z0-9-]+$/.test(id)) throw new Error("รหัสบัตรรับรางวัลไม่ถูกต้อง");
+  return id;
+}
 
 export async function POST(request: Request) {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
-
   try {
     const body = await readJson(request);
-
-    // 1. Status Check
-    if (body.action === "status") {
-      statusSchema.parse(body);
-      const token = bearerToken(request);
-      if (!token) return json({ error: "กรุณาเข้าสู่ระบบ" }, 401);
-
-      let decoded;
-      try {
-        decoded = await adminAuth.verifyIdToken(token);
-      } catch {
-        return json({ error: "เซสชันหมดอายุ" }, 401);
-      }
-
-      const uid = decoded.uid;
-      const [accountSnap, visitsSnap, luckySnap] = await Promise.all([
-        adminDb.ref(`operations/accounting/participants/${uid}`).get(),
-        adminDb.ref(`operations/locationVisits/${uid}`).get(),
-        adminDb.ref(`operations/luckyDraws/${uid}`).get(),
-      ]);
-
-      const account = accountSnap.val() || {};
-      const visits = visitsSnap.val() || {};
-      const transactions = Object.values(account.transactions || {}) as Array<{ activityId?: string }>;
-      const completedActivityIds = new Set(transactions.map((t) => t.activityId).filter(Boolean));
-
-      const hasActivity = completedActivityIds.size >= 1;
-      const visitedVenuesCount = Object.keys(visits).length;
-      const hasVenue = visitedVenuesCount >= 1;
-      const eligible = hasActivity && hasVenue;
-      const hasDrawn = luckySnap.exists();
-      const drawRecord = luckySnap.val() || null;
-
-      let voucher = null;
-      if (drawRecord?.voucherId) {
-        const vSnap = await adminDb.ref(`operations/luckyVouchers/${drawRecord.voucherId}`).get();
-        voucher = vSnap.val() || null;
-      }
-
-      const prize = hasDrawn ? {
-        id: String(voucher?.prizeId || drawRecord?.prizeId || ""),
-        title: String(voucher?.prizeName || drawRecord?.prizeName || ""),
-        description: voucher?.description || "",
-        tier: String(voucher?.rarity || drawRecord?.rarity || ""),
-        claimedAt: drawRecord?.drawnAt || voucher?.createdAt || "",
-        voucherCode: String(voucher?.voucherCode || drawRecord?.voucherCode || ""),
-        redeemed: voucher?.status === "claimed",
-        redeemedAt: voucher?.claimedAt || "",
-      } : null;
-
-      return json({
-        ok: true,
-        status: {
-          eligible,
-          claimed: hasDrawn,
-          prize,
-          conditions: {
-            hasVisitedVenue: hasVenue,
-            hasCompletedActivity: hasActivity,
-            visitedVenuesCount,
-            completedActivitiesCount: completedActivityIds.size,
-          },
-          catalogCount: DEFAULT_LUCKY_PRIZES.length,
-        },
-      });
+    if (body.action === "catalog") {
+      const pool = await catalog();
+      return json({ prizes: pool.available.map(({ weight: _weight, stock: _stock, ...prize }) => prize) });
     }
 
-    // 2. Perform 1-Time Lucky Draw
-    if (body.action === "draw") {
-      await enforceRateLimit(request, "lucky-draw", 5, 60_000);
-      drawSchema.parse(body);
-      const token = bearerToken(request);
-      if (!token) return json({ error: "กรุณาเข้าสู่ระบบ" }, 401);
-
-      let decoded;
-      try {
-        decoded = await adminAuth.verifyIdToken(token);
-      } catch {
-        return json({ error: "เซสชันหมดอายุ" }, 401);
-      }
-
-      const uid = decoded.uid;
-
-      // Check eligibility and one-time limit
-      const [participantSnap, accountSnap, visitsSnap, existingSnap] = await Promise.all([
-        adminDb.ref(`operations/participants/${uid}`).get(),
-        adminDb.ref(`operations/accounting/participants/${uid}`).get(),
-        adminDb.ref(`operations/locationVisits/${uid}`).get(),
-        adminDb.ref(`operations/luckyDraws/${uid}`).get(),
-      ]);
-
-      if (existingSnap.exists()) {
-        return json({ error: "คุณได้รับสิทธิ์สุ่มกล่องสมบัติครบแล้ว (จำกัด 1 ครั้ง/คน)" }, 400);
-      }
-
-      const account = accountSnap.val() || {};
-      const visits = visitsSnap.val() || {};
-      const transactions = Object.values(account.transactions || {});
-
-      const hasActivity = transactions.some((t) => (t as { activityId?: string }).activityId);
-      const hasVenue = Object.keys(visits).length >= 1;
-
-      if (!hasActivity || !hasVenue) {
-        return json({
-          error: "กรุณาเข้าร่วมกิจกรรมอย่างน้อย 1 กิจกรรมและ 1 สถานที่เพื่อปลดล็อกกล่องสุ่มสมบัติ",
-        }, 400);
-      }
-
-      const participant = participantSnap.val() || {};
-
-      // Select prize based on random weight
-      const totalWeight = DEFAULT_LUCKY_PRIZES.reduce((acc, p) => acc + p.weight, 0);
-      let rand = Math.random() * totalWeight;
-      let selectedPrize = DEFAULT_LUCKY_PRIZES[DEFAULT_LUCKY_PRIZES.length - 1];
-      for (const p of DEFAULT_LUCKY_PRIZES) {
-        if (rand < p.weight) {
-          selectedPrize = p;
-          break;
-        }
-        rand -= p.weight;
-      }
-
-      const voucherId = "LKY-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const voucherCode = `FATU26LUCKY:${voucherId}`;
-      const drawnAt = new Date().toISOString();
-
-      const voucherData = {
-        voucherId,
-        voucherCode,
-        uid,
-        username: participant.username || decoded.name || uid.slice(0, 8),
-        displayName: participant.displayName || decoded.name || "จอมยุทธ์",
-        prizeId: selectedPrize.id,
-        prizeName: selectedPrize.name,
-        rarity: selectedPrize.rarity,
-        rarityLabel: selectedPrize.rarityLabel,
-        description: selectedPrize.description,
-        status: "pending",
-        createdAt: drawnAt,
-      };
-
-      const drawRecord = {
-        voucherId,
-        voucherCode,
-        prizeId: selectedPrize.id,
-        prizeName: selectedPrize.name,
-        rarity: selectedPrize.rarity,
-        drawnAt,
-      };
-
-      // Atomic write to prevent race conditions
-      const drawRef = adminDb.ref(`operations/luckyDraws/${uid}`);
-      const tx = await drawRef.transaction((current) => {
-        if (current) return; // already drawn
-        return drawRecord;
-      });
-
-      if (!tx.committed) {
-        return json({ error: "คุณได้รับสิทธิ์สุ่มไปแล้ว" }, 409);
-      }
-
-      // Save voucher in vouchers index
-      await adminDb.ref(`operations/luckyVouchers/${voucherId}`).set(voucherData);
-
-      await appendAudit({
-        type: "lucky-draw-win",
-        participantId: uid,
-        prizeId: selectedPrize.id,
-        prizeName: selectedPrize.name,
-        voucherId,
-      });
-
-      return json({
-        ok: true,
-        prize: selectedPrize,
-        voucher: voucherData,
-      });
-    }
-
-    // 3. Staff / Admin Redeem Voucher
-    if (body.action === "redeem-voucher") {
+    if (body.action === "peek-voucher" || body.action === "redeem-voucher") {
       const actor = await requireActor(request);
-      if (actor.role !== "admin" && actor.role !== "staff" && actor.role !== "editor") {
-        return json({ error: "ไม่มีสิทธิ์ดำเนินการแจกรางวัล" }, 403);
-      }
-
-      const input = redeemSchema.parse(body);
-      const cleanCode = input.voucherCode.replace(/^FATU26LUCKY:/i, "").trim().toUpperCase();
-
-      const vRef = adminDb.ref(`operations/luckyVouchers/${cleanCode}`);
-      const vSnap = await vRef.get();
-      if (!vSnap.exists()) {
-        return json({ error: "ไม่พบรหัสบัตรรับรางวัลนี้ในระบบ" }, 404);
-      }
-
-      const voucher = vSnap.val();
-      if (voucher.status === "claimed") {
-        return json({
-          error: `บัตรรางวัลนี้ถูกใช้งานไปแล้วเมื่อ ${new Date(voucher.claimedAt).toLocaleString("th-TH")}`,
-          voucher,
-        }, 400);
-      }
-
+      if (actor.role !== "admin" && actor.role !== "staff") return json({ error: "ไม่มีสิทธิ์จ่ายของรางวัล" }, 403);
+      const id = voucherId(voucherInput.parse(body).voucherCode);
+      const ref = adminDb.ref(`operations/luckyVouchers/${id}`);
+      const snap = await ref.get();
+      if (!snap.exists()) return json({ error: "ไม่พบบัตรรับรางวัล กรุณาตรวจรหัสอีกครั้ง" }, 404);
+      const voucher = snap.val();
+      const preview = (v: typeof voucher) => ({ voucherCode: v.voucherCode, displayName: v.displayName, username: v.username, prizeName: v.prizeName, status: v.status, claimedAt: v.claimedAt || "" });
+      if (body.action === "peek-voucher") return json({ ok: true, voucher: preview(voucher) });
       const claimedAt = new Date().toISOString();
-      await vRef.update({
-        status: "claimed",
-        claimedAt,
-        dispensedBy: actor.uid,
+      const claim = await ref.transaction(current => {
+        // Firebase may invoke the first callback with an empty local cache.
+        // A conflict retries against server state, including another staff's claim.
+        const next = current || voucher;
+        if (next.status !== "pending") return;
+        return { ...next, status: "claimed", claimedAt, dispensedBy: actor.uid };
       });
-
-      await appendAudit({
-        type: "lucky-voucher-claimed",
-        staffId: actor.uid,
-        voucherId: cleanCode,
-        participantUid: voucher.uid,
-      });
-
-      return json({
-        ok: true,
-        message: `จ่ายของรางวัล ${voucher.prizeName} ให้คุณ ${voucher.displayName} สำเร็จ!`,
-        voucher: { ...voucher, status: "claimed", claimedAt, dispensedBy: actor.uid },
-      });
+      if (!claim.committed) return json({ error: "บัตรนี้รับของรางวัลแล้ว กรุณาอย่าจ่ายซ้ำ", voucher: preview(claim.snapshot.val() || voucher) }, 409);
+      await appendAudit({ type: "lucky-voucher-claimed", staffId: actor.uid, voucherId: id, participantUid: voucher.uid });
+      return json({ ok: true, message: `จ่าย ${voucher.prizeName} ให้คุณ ${voucher.displayName} สำเร็จ`, voucher: preview(claim.snapshot.val()) });
     }
 
-    return json({ error: "Unknown action" }, 400);
+    if (body.action !== "status" && body.action !== "draw") return json({ error: "Unknown action" }, 400);
+    const token = bearerToken(request);
+    if (!token) return json({ error: "กรุณาเข้าสู่ระบบ" }, 401);
+    let decoded;
+    try { decoded = await adminAuth.verifyIdToken(token); }
+    catch { return json({ error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง" }, 401); }
+    const uid = decoded.uid;
+    const [participantSnap, accountSnap, visitsSnap, drawSnap, receiptSnap, rules, pool] = await Promise.all([
+      adminDb.ref(`operations/participants/${uid}`).get(),
+      adminDb.ref(`operations/accounting/participants/${uid}`).get(),
+      adminDb.ref(`operations/locationVisits/${uid}`).get(),
+      adminDb.ref(`operations/luckyDraws/${uid}`).get(),
+      adminDb.ref(`operations/prizeRuntime/__luckyDraws/${uid}`).get(),
+      loadRewardPolicy(), catalog(),
+    ]);
+    if (!participantSnap.exists()) return json({ error: "บัญชีนี้ไม่ใช่ผู้เข้าร่วมงาน" }, 403);
+    const receipt = receiptSnap.val() as DrawReceipt | null;
+    if (receipt && !drawSnap.exists()) await restoreReceipt(uid, receipt);
+    const draw = drawSnap.val() || receipt?.draw || null;
+    const account = accountSnap.val() || {};
+    const progress = rewardProgress(Number(account.pointTotal || 0), rules);
+
+    if (body.action === "status") {
+      if (receipt) await restoreReceipt(uid, receipt);
+      const voucher = draw?.voucherId ? (await adminDb.ref(`operations/luckyVouchers/${draw.voucherId}`).get()).val() || receipt?.voucher : null;
+      const completed = new Set(Object.values(account.transactions || {}).map(t => (t as { activityId?: string }).activityId).filter(Boolean));
+      return json({ ok: true, status: {
+        eligible: progress.eligible, claimed: Boolean(draw),
+        prize: draw ? { id: voucher?.prizeId || draw.prizeId, title: voucher?.prizeName || draw.prizeName, description: voucher?.description || "", tier: voucher?.rarity || draw.rarity, claimedAt: draw.drawnAt, voucherCode: voucher?.voucherCode || draw.voucherCode, redeemed: voucher?.status === "claimed", redeemedAt: voucher?.claimedAt || "" } : null,
+        progress, rules,
+        conditions: { visitedVenuesCount: Object.keys(visitsSnap.val() || {}).length, completedActivitiesCount: completed.size },
+        catalogCount: pool.available.filter(p => p.stockRemaining > 0).length,
+      } });
+    }
+
+    await enforceRateLimit(request, "lucky-draw", 5, 60_000);
+    if (draw) return json({ error: "คุณใช้สิทธิ์สุ่มแล้ว เปิดบัตรรางวัลเดิมได้ทุกเมื่อ" }, 409);
+    if (!progress.eligible) return json({ error: `สะสมอีก ${progress.remaining} แต้มให้ครบ ${rules.pointsRequired} แต้มเพื่อเปิดหีบ` }, 400);
+    const participant = participantSnap.val();
+    const id = `LKY-${crypto.randomUUID().toUpperCase()}`;
+    const code = `FATU26LUCKY:${id}`;
+    const drawnAt = new Date().toISOString();
+    const fraction = crypto.randomInt(0, 0x100000000) / 0x100000000;
+    const stockRef = adminDb.ref("operations/prizeRuntime");
+    let duplicate = false;
+    const result = await stockRef.transaction(current => {
+      const next = current || structuredClone(pool.runtime);
+      next.__luckyDraws ||= {};
+      duplicate = Boolean(next.__luckyDraws[uid]);
+      if (duplicate) return;
+      const candidates = pool.prizes.filter(p => p.stock - usedStock(next[p.id]) > 0);
+      const totalWeight = candidates.reduce((sum, p) => sum + p.weight, 0);
+      if (!candidates.length || !Number.isFinite(totalWeight)) return;
+      let roll = fraction * totalWeight;
+      const prize = candidates.find(p => { roll -= p.weight; return roll < 0; }) || candidates[candidates.length - 1];
+      const used = usedStock(next[prize.id]) + 1;
+      next[prize.id] = { ...next[prize.id], configuredStock: prize.stock, claimedCount: used, stockRemaining: prize.stock - used, updatedAt: drawnAt };
+      const voucher = { voucherId: id, voucherCode: code, uid, username: participant.username || "", displayName: participant.displayName || "ผู้ร่วมงาน", prizeId: prize.id, prizeName: prize.name, rarity: prize.rarity, description: prize.description, status: "pending", createdAt: drawnAt };
+      const record = { voucherId: id, voucherCode: code, prizeId: prize.id, prizeName: prize.name, rarity: prize.rarity, drawnAt };
+      next.__luckyDraws[uid] = { draw: record, voucher, prize };
+      return next;
+    });
+    if (!result.committed) return json({ error: duplicate ? "คุณใช้สิทธิ์สุ่มไปแล้ว กรุณาดูบัตรรางวัลเดิม" : "รางวัลหมดชั่วคราว คะแนนและสิทธิ์ของคุณยังอยู่" }, 409);
+    const winner = result.snapshot.val().__luckyDraws[uid] as DrawReceipt;
+    await restoreReceipt(uid, winner);
+    await appendAudit({ type: "lucky-draw-win", participantId: uid, prizeId: winner.prize.id, voucherId: id });
+    return json({ ok: true, prize: winner.prize, voucher: winner.voucher });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return json({ error: error.issues[0]?.message || "ข้อมูลไม่ถูกต้อง" }, 400);
-    }
+    if (error instanceof z.ZodError) return json({ error: "ข้อมูลไม่ถูกต้อง" }, 400);
     return publicError(error);
   }
 }

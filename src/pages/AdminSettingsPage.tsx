@@ -17,6 +17,7 @@ import { siteSchema, useSite } from "@/data/content";
 import { AdminAccess, useAdminSession } from "@/pages/AdminPage";
 import { adminAction } from "@/services/api";
 import { readRealtime, realtimePaths, setRealtime } from "@/services/realtime";
+import { rewardPolicy } from "@/lib/reward-policy";
 
 interface StaffRow {
   uid: string;
@@ -40,6 +41,7 @@ export function AdminSettingsPage() {
   const [dateLabel, setDateLabel] = useState("21-22 มีนาคม 2026");
   const [locationLabel, setLocationLabel] = useState("คณะศิลปกรรมศาสตร์ มธ. รังสิต");
   const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [rules, setRules] = useState(() => rewardPolicy());
 
   // Registration Options Customizer
   const [tracks, setTracks] = useState<Array<{ id: string; label: string }>>([
@@ -73,6 +75,7 @@ export function AdminSettingsPage() {
       setDateLabel(site.item.dateLabel || "21-22 มีนาคม 2026");
       setLocationLabel(site.item.locationLabel || "คณะศิลปกรรมศาสตร์ มธ. รังสิต");
       setRegistrationOpen(site.item.registrationOpen !== false);
+      setRules(rewardPolicy(site.item.rewardPolicy));
     }
   }, [site.item]);
 
@@ -122,6 +125,7 @@ export function AdminSettingsPage() {
         dateLabel,
         locationLabel,
         registrationOpen,
+        rewardPolicy: rules,
       });
       setMessage("บันทึกการตั้งค่าเว็บไซต์เรียบร้อยแล้ว");
     } catch (err) {
@@ -204,7 +208,7 @@ export function AdminSettingsPage() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div className="admin-settings-grid">
           {/* ======================================================================= */}
           {/* SECTION 1: SITE & HERO CONTENT CMS                                      */}
           {/* ======================================================================= */}
@@ -217,6 +221,12 @@ export function AdminSettingsPage() {
             </div>
 
             <form onSubmit={handleSaveSite} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <fieldset className="reward-settings"><legend>กติกาคะแนนและรางวัล</legend><p>ค่าเริ่มต้นอ้างอิงระบบปี 2025 · กิจกรรมแรกที่ให้คะแนนในแต่ละสถานที่ · สุ่ม 1 ครั้งต่อคน</p>
+                <label htmlFor="rule-venue">แต้มต่อสถานที่ / กิจกรรมแรก</label><input id="rule-venue" type="number" min="0" max="100000" value={rules.pointsPerVenue} onChange={e => setRules({...rules,pointsPerVenue:Number(e.target.value)})} required />
+                <label htmlFor="rule-survey">โบนัสแบบประเมิน (ครั้งเดียว)</label><input id="rule-survey" type="number" min="0" max="100000" value={rules.surveyPoints} onChange={e => setRules({...rules,surveyPoints:Number(e.target.value)})} required />
+                <label htmlFor="rule-threshold">แต้มที่ใช้ปลดล็อกสิทธิ์สุ่ม</label><input id="rule-threshold" type="number" min="0" max="100000" value={rules.pointsRequired} onChange={e => setRules({...rules,pointsRequired:Number(e.target.value)})} required />
+                <label className="reward-setting-check"><input type="checkbox" checked={rules.pointExchangeEnabled} onChange={e => setRules({...rules,pointExchangeEnabled:e.target.checked})} />เปิดการแลกรางวัลด้วยแต้มเพิ่มเติม</label><small>เมื่อเปิด ระบบแลกด้วยแต้มจะเป็นอีกวิธีรับรางวัลและหักแต้มตามรายการ การสุ่มใช้คะแนนเป็นเงื่อนไขและไม่หักแต้ม</small>
+              </fieldset>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-dark-primary)" }}>ชื่องานหลัก</label>
                 <input

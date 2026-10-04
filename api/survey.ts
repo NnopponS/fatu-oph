@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { loadRewardPolicy } from "./_lib/rewards.js";
 import {
   adminAuth,
   adminDb,
@@ -50,9 +51,10 @@ export async function POST(request: Request) {
 
       const uid = decoded.uid;
       const snap = await adminDb.ref(`operations/surveys/${uid}`).get();
+      const savedBonus = (await adminDb.ref(`operations/accounting/participants/${uid}/surveyBonus`).get()).val();
       return json({
-        submitted: snap.exists(),
-        record: snap.val() || null,
+        submitted: snap.exists() || Boolean(savedBonus),
+        record: snap.val() || savedBonus || null,
       });
     }
 
@@ -77,6 +79,7 @@ export async function POST(request: Request) {
       }
 
       const participantSnap = await adminDb.ref(`operations/participants/${uid}`).get();
+      if (!participantSnap.exists()) return json({ error: "บัญชีนี้ไม่ใช่ผู้เข้าร่วมงาน" }, 403);
       const participant = participantSnap.val() || {};
       const createdAt = new Date().toISOString();
 
@@ -94,23 +97,25 @@ export async function POST(request: Request) {
         createdAt,
       };
 
-      await adminDb.ref(`operations/surveys/${uid}`).set(surveyRecord);
-
-      // Award 10 bonus points for survey completion
+      const rules = await loadRewardPolicy();
       const bonusTxId = adminDb.ref().push().key || crypto.randomUUID();
       const accountRef = adminDb.ref(`operations/accounting/participants/${uid}`);
-      await accountRef.transaction((current) => {
+      const bonus = await accountRef.transaction((current) => {
         const next = current || { pointTotal: 0, grantCounts: {}, transactions: {} };
         next.transactions ||= {};
-        next.pointTotal = Number(next.pointTotal || 0) + 10;
+        if (next.surveyBonus || Object.values(next.transactions).some(t => (t as { source?: string }).source === "survey-bonus")) return;
+        next.surveyBonus = surveyRecord;
+        next.pointTotal = Number(next.pointTotal || 0) + rules.surveyPoints;
         next.transactions[bonusTxId] = {
-          points: 10,
+          points: rules.surveyPoints,
           reason: "โบนัสตอบแบบประเมินความพึงพอใจ Open House",
           source: "survey-bonus",
           createdAt,
         };
         return next;
       });
+      if (!bonus.committed) return json({ error: "บันทึกแบบประเมินนี้แล้ว ไม่เพิ่มโบนัสซ้ำ" }, 409);
+      await adminDb.ref(`operations/surveys/${uid}`).set(surveyRecord);
 
       await appendAudit({
         type: "survey-submitted",
@@ -120,7 +125,9 @@ export async function POST(request: Request) {
 
       return json({
         ok: true,
-        message: "บันทึกแบบประเมินสำเร็จ! คุณได้รับโบนัส 10 คะแนน",
+        message: `บันทึกแบบประเมินสำเร็จ! คุณได้รับโบนัส ${rules.surveyPoints} คะแนน`,
+        pointsAdded: rules.surveyPoints,
+        pointTotal: Number(bonus.snapshot.val()?.pointTotal || 0),
         record: surveyRecord,
       });
     }

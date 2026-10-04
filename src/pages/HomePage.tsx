@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivities, useAnnouncements, useSite, useVenues } from "@/data/content";
-import { FloatingMythologyAura } from "@/components/AnimatedMythology";
+import { Cloudscape, ImperialCouplet, LatticeCorners, MoonWindow, SilkDivider } from "@/components/ChineseOrnaments";
 import { RealmPlaceCard } from "@/components/RealmPlaces";
 import { JourneyBoard } from "@/components/JourneyBoard";
+import { RewardProgress } from "@/components/RewardProgress";
 import { Lantern, QiParticles } from "@/components/WuxiaScene";
 
 // Canonical mythology data map for fallback & visual metadata
@@ -102,6 +103,7 @@ export function HomePage() {
           }}
         >
           <div className="chinese-hero-clouds" />
+          <Cloudscape /><LatticeCorners /><ImperialCouplet /><ImperialCouplet side="right" />
           <QiParticles count={12} />
           <div className="hero-lantern left"><Lantern /></div><div className="hero-lantern right"><Lantern /></div>
           <div className="chinese-hero-tagline" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
@@ -110,13 +112,7 @@ export function HomePage() {
           </div>
 
           {/* Lightweight hero artwork; optional Google Flow video can replace this media later. */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "14px 0 10px" }}>
-            <FloatingMythologyAura duration={3400} distance={5}>
-              <div style={{ width: 116, height: 116, borderRadius: "50%", padding: 3, background: "linear-gradient(135deg, var(--color-gold-400), var(--color-gold-700), var(--color-gold-300))", boxShadow: "0 4px 18px rgba(179, 134, 40, 0.35)" }}>
-                <img src="/images/azure-dragon-art.webp" alt="Azure Dragon" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-              </div>
-            </FloatingMythologyAura>
-          </div>
+          <MoonWindow source="/images/azure-dragon-art.webp" />
 
           <h1 className="chinese-hero-title">{site.item?.theme || "ตะลุยแดนมังกร"}</h1>
           <div className="chinese-hero-subtitle" style={{ color: "var(--color-gold-700)" }}>FACULTY OF FINE AND APPLIED ARTS</div>
@@ -432,6 +428,8 @@ export function HomePage() {
       )}
 
       {/* ========================================================================= */}
+      <SilkDivider label="เส้นทางสู่ 4 แดนศักดิ์สิทธิ์" />
+      <RewardProgress />
       <JourneyBoard />
 
       {/* 2. IMPORTANT ANNOUNCEMENTS                                                */}

@@ -1,490 +1,108 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, School, GraduationCap, Phone, Mail, Lock, Eye, EyeOff, BookOpen, AlertCircle } from "lucide-react";
-import { TopHeader } from "@/components/TopHeader";
-import { ThemedLoading } from "@/components/ThemedLoading";
-import { checkUsername } from "@/services/auth";
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, ScrollText, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { checkUsername } from "@/services/auth";
 import { readRealtime, realtimePaths } from "@/services/realtime";
+import { useRewardPolicy, useSite } from "@/data/content";
+import { FortuneKnot } from "@/components/ChineseOrnaments";
 
-export const RegisterPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { register } = useAuth();
+const defaultGrades = ["ประถมต้น (ป.1 - ป.3)","ประถมปลาย (ป.4 - ป.6)","มัธยมศึกษาปีที่ 1 (ม.1)","มัธยมศึกษาปีที่ 2 (ม.2)","มัธยมศึกษาปีที่ 3 (ม.3)","มัธยมศึกษาปีที่ 4 (ม.4)","มัธยมศึกษาปีที่ 5 (ม.5)","มัธยมศึกษาปีที่ 6 (ม.6)","ประกาศนียบัตรวิชาชีพ (ปวช.)","ประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.)","บุคคลทั่วไป / ผู้ปกครอง / ครู"];
+const defaultTracks = ["วิทย์–คณิต","ศิลป์–คำนวณ","ศิลป์–ภาษา","ศิลป์–สังคม / ทั่วไป","อาชีวศึกษา / ปวช.","อื่น ๆ"].map((label,index) => ({id:String(index),label}));
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [school, setSchool] = useState("");
-  const [grade, setGrade] = useState("มัธยมศึกษาปีที่ 5 (ม.5)");
-  const [academicTrack, setAcademicTrack] = useState("วิทย์–คณิต");
-  const [academicTrackOther, setAcademicTrackOther] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [consent, setConsent] = useState(false);
-
-  const [usernameStatus, setUsernameStatus] = useState<{ checked: boolean; available: boolean; msg?: string }>({
-    checked: false,
-    available: true,
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [registrationOpen, setRegistrationOpen] = useState(true);
-
-  // Dynamic config loaded from Realtime Database if available
-  const [tracks, setTracks] = useState<Array<{ id: string; label: string }>>([
-    { id: "sci-math", label: "วิทย์–คณิต" },
-    { id: "arts-math", label: "ศิลป์–คำนวณ" },
-    { id: "arts-lang", label: "ศิลป์–ภาษา" },
-    { id: "arts-general", label: "ศิลป์–สังคม / ทั่วไป" },
-    { id: "vocational", label: "อาชีวศึกษา / ปวช." },
-    { id: "other", label: "อื่น ๆ" },
-  ]);
-
-  const [gradeOptions, setGradeOptions] = useState<string[]>([
-    "ประถมต้น (ป.1 - ป.3)",
-    "ประถมปลาย (ป.4 - ป.6)",
-    "มัธยมศึกษาปีที่ 1 (ม.1)",
-    "มัธยมศึกษาปีที่ 2 (ม.2)",
-    "มัธยมศึกษาปีที่ 3 (ม.3)",
-    "มัธยมศึกษาปีที่ 4 (ม.4)",
-    "มัธยมศึกษาปีที่ 5 (ม.5)",
-    "มัธยมศึกษาปีที่ 6 (ม.6)",
-    "ประกาศนียบัตรวิชาชีพ (ปวช.)",
-    "ประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.)",
-    "บุคคลทั่วไป / ผู้ปกครอง / ครู",
-  ]);
+export function RegisterPage() {
+  const navigate = useNavigate(); const { register } = useAuth(); const site = useSite(); const { rules } = useRewardPolicy();
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({firstName:"",lastName:"",school:"",grade:"",academicTrack:"",academicTrackOther:"",phone:"",email:"",username:"",password:"",confirmPassword:""});
+  const [tracks, setTracks] = useState(defaultTracks); const [grades, setGrades] = useState(defaultGrades);
+  const [configOpen, setConfigOpen] = useState(true); const [consentText, setConsentText] = useState("");
+  const [consent, setConsent] = useState(false); const [showPassword, setShowPassword] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<{available:boolean;checked:boolean;msg:string}>({available:true,checked:false,msg:""});
+  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const [information, setInformation] = useState<"terms" | "privacy" | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null); const dialog = useRef<HTMLDivElement>(null);
+  const general = /บุคคลทั่วไป|ผู้ปกครอง|ครู/.test(form.grade);
+  const otherTrack = form.academicTrack === "อื่น ๆ" || form.academicTrack.toLowerCase().includes("other");
+  const registrationOpen = configOpen && site.item?.registrationOpen !== false;
+  const change = (key: keyof typeof form, value:string) => { setForm(current => ({...current,[key]:value})); setError(""); };
 
   useEffect(() => {
-    async function loadConfig() {
-      try {
-        const config = await readRealtime<{
-          academicTracks?: Array<{ id: string; label: string }>;
-          grades?: string[];
-          registrationOpen?: boolean;
-        }>(realtimePaths.public.registrationConfig);
-        if (config?.academicTracks?.length) setTracks(config.academicTracks);
-        if (config?.grades?.length) setGradeOptions(config.grades);
-        if (config?.registrationOpen === false) setRegistrationOpen(false);
-      } catch {
-        // Fallback to defaults
-      }
-    }
-    loadConfig();
+    let active = true;
+    void readRealtime<{academicTracks?:typeof defaultTracks;grades?:string[];registrationOpen?:boolean;consentText?:string}>(realtimePaths.public.registrationConfig).then(config => {
+      if (!active) return;
+      if (config?.academicTracks?.length) setTracks(config.academicTracks);
+      if (config?.grades?.length) setGrades(config.grades);
+      setConfigOpen(config?.registrationOpen !== false); setConsentText(config?.consentText || "");
+    }).catch(() => undefined);
+    return () => {active=false;};
   }, []);
-
-  // Debounced username availability check
   useEffect(() => {
-    if (!username || username.trim().length < 3) {
-      setUsernameStatus({ checked: false, available: true });
-      return;
+    let active = true;
+    setUsernameStatus({available:true,checked:false,msg:""});
+    if (form.username.trim().length < 3) return;
+    const timer = setTimeout(() => {
+      void checkUsername(form.username.trim()).then(result => {
+        if (active) setUsernameStatus({available:result.available,checked:true,msg:result.available ? "ชื่อผู้ใช้นี้ว่างอยู่" : result.reason || "ชื่อผู้ใช้นี้ถูกใช้แล้ว"});
+      }).catch(() => { if (active) setUsernameStatus({available:true,checked:false,msg:"ระบบจะตรวจชื่อผู้ใช้อีกครั้งตอนลงทะเบียน"}); });
+    },400);
+    return () => {active=false;clearTimeout(timer);};
+  }, [form.username]);
+  useEffect(() => { heading.current?.focus({preventScroll:true}); }, [step]);
+  useEffect(() => {
+    if (!information) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previous = document.body.style.overflow; document.body.style.overflow="hidden";
+    dialog.current?.focus();
+    const key = (e:KeyboardEvent) => { if (e.key==="Escape") setInformation(null); if (e.key==="Tab") {e.preventDefault();dialog.current?.querySelector<HTMLButtonElement>("button")?.focus();} };
+    document.addEventListener("keydown",key);
+    return () => {document.body.style.overflow=previous;document.removeEventListener("keydown",key);previousFocus?.focus();};
+  }, [information]);
+
+  async function submit(event:React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError("");
+    if (!registrationOpen) {setError("ขณะนี้ปิดรับลงทะเบียน");return;}
+    if (step === 1) {
+      if (!form.firstName.trim() || !form.lastName.trim() || !general && !form.school.trim()) {setError("กรุณากรอกชื่อ นามสกุล และสถานศึกษาให้ครบ");return;}
+      setStep(2); return;
     }
-
-    const timer = setTimeout(async () => {
-      const res = await checkUsername(username);
-      setUsernameStatus({
-        checked: true,
-        available: res.available,
-        msg: res.available ? "ชื่อผู้ใช้นี้สามารถใช้งานได้" : (res.reason || "ชื่อผู้ใช้นี้ถูกใช้งานแล้ว"),
-      });
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [username]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!registrationOpen) {
-      setError("ขณะนี้ปิดรับลงทะเบียน กรุณาติดตามประกาศจากผู้จัดงาน");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
-      return;
-    }
-
-    if (!consent) {
-      setError("กรุณายอมรับข้อกำหนดและเงื่อนไข");
-      return;
-    }
-
-    if (usernameStatus.checked && !usernameStatus.available) {
-      setError("กรุณาเลือกชื่อผู้ใช้อื่นที่ยังว่างอยู่");
-      return;
-    }
-
-    const isOtherTrack = academicTrack === "อื่น ๆ" || academicTrack.toLowerCase().includes("other");
-    if (isOtherTrack && !academicTrackOther.trim()) {
-      setError("กรุณาระบุสายการเรียนในช่องที่ระบุ");
-      return;
-    }
-
-    setLoading(true);
+    if (form.password !== form.confirmPassword) {setError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");return;}
+    if (!consent) {setError("กรุณารับทราบกติกาและการใช้ข้อมูลก่อนลงทะเบียน");return;}
+    if (usernameStatus.checked && !usernameStatus.available) {setError("กรุณาเลือกชื่อผู้ใช้ที่ยังว่าง");return;}
+    setBusy(true);
     try {
-      await register({
-        firstName,
-        lastName,
-        school,
-        grade,
-        academicTrack,
-        academicTrackOther: isOtherTrack ? academicTrackOther.trim() : undefined,
-        phone,
-        email,
-        username,
-        password,
-        consent: true,
-      });
-      navigate("/");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลงทะเบียน");
-    } finally {
-      setLoading(false);
-    }
-  };
+      await register({...form,firstName:form.firstName.trim(),lastName:form.lastName.trim(),school:form.school.trim() || "บุคคลทั่วไป",email:form.email.trim(),phone:form.phone.trim(),username:form.username.trim(),academicTrack:general ? "บุคคลทั่วไป" : form.academicTrack,academicTrackOther:general ? "" : otherTrack ? form.academicTrackOther.trim() : undefined,consent:true});
+      navigate("/profile");
+    } catch (err) {setError(err instanceof Error ? err.message : "ลงทะเบียนไม่สำเร็จ กรุณาลองอีกครั้ง");}
+    finally {setBusy(false);}
+  }
 
-  return (
-    <div className="mobile-viewport">
-      <TopHeader title="OPH" />
-
-      {/* Hero Section */}
-      <div className="chinese-hero">
-        <div className="chinese-hero-clouds" />
-        <span className="chinese-hero-tagline">ยินดีต้อนรับสู่</span>
-        <h1 className="chinese-hero-title">ตะลุยแดน มังกร</h1>
-        <div className="chinese-hero-subtitle">OPEN HOUSE 2026</div>
-        <p className="chinese-hero-desc">ค้นพบ เรียนรู้ เติบโต ไปด้วยกันที่ OPH</p>
-      </div>
-
-      {/* Segmented Auth Switch */}
-      <div className="segmented-auth-switch">
-        <Link to="/login" className="auth-switch-btn">
-          เข้าสู่ระบบ
-        </Link>
-        <div className="auth-switch-btn active">ลงทะเบียน</div>
-      </div>
-
-      {/* Main Ivory Content Card */}
-      <div className="ivory-card">
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--color-red-900)", margin: 0 }}>
-            เริ่มต้นเส้นทางของคุณ
-          </h2>
-          <p style={{ fontSize: 13, color: "var(--text-dark-secondary)", marginTop: 4 }}>
-            สมัครสมาชิกเพื่อร่วมตะลุยแดนมังกรกับ OPH
-          </p>
-        </div>
-
-        {!registrationOpen && (
-          <div style={{ padding: "12px 14px", backgroundColor: "#fff7ed", border: "1px solid #fdba74", borderRadius: 10, color: "#9a3412", fontSize: 13, marginBottom: 16 }}>
-            ขณะนี้ปิดรับลงทะเบียน ผู้ที่มีบัญชีแล้วสามารถเข้าสู่ระบบได้ตามปกติ
-          </div>
-        )}
-
-        {error && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 14px",
-              backgroundColor: "#fef2f2",
-              border: "1px solid #fecaca",
-              borderRadius: 10,
-              color: "#991b1b",
-              fontSize: 13,
-              marginBottom: 16,
-            }}
-          >
-            <AlertCircle style={{ width: 18, height: 18, flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          {/* First Name & Last Name */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">ชื่อ</label>
-              <div className="chinese-input-wrapper">
-                <User className="chinese-input-icon" />
-                <input
-                  type="text"
-                  required
-                  placeholder="ชื่อจริง"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="chinese-input"
-                />
-              </div>
-            </div>
-
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">นามสกุล</label>
-              <div className="chinese-input-wrapper">
-                <input
-                  type="text"
-                  required
-                  placeholder="นามสกุล"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="chinese-input"
-                  style={{ paddingLeft: 14 }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* School */}
-          <div className="chinese-form-group">
-            <label className="chinese-form-label">โรงเรียน</label>
-            <div className="chinese-input-wrapper">
-              <School className="chinese-input-icon" />
-              <input
-                type="text"
-                required
-                placeholder="ชื่อโรงเรียน หรือสถาบันการศึกษา"
-                value={school}
-                onChange={(e) => setSchool(e.target.value)}
-                className="chinese-input"
-              />
-            </div>
-          </div>
-
-          {/* Grade & Academic Track */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">ระดับชั้น</label>
-              <div className="chinese-input-wrapper">
-                <GraduationCap className="chinese-input-icon" />
-                <select
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  className="chinese-select"
-                >
-                  {gradeOptions.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">สายการเรียน</label>
-              <div className="chinese-input-wrapper">
-                <BookOpen className="chinese-input-icon" />
-                <select
-                  value={academicTrack}
-                  onChange={(e) => setAcademicTrack(e.target.value)}
-                  className="chinese-select"
-                >
-                  {tracks.map((t) => (
-                    <option key={t.id} value={t.label}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Conditional Academic Track Other input */}
-          {(academicTrack === "อื่น ๆ" || academicTrack.toLowerCase().includes("other")) && (
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">
-                ระบุสายการเรียน <span style={{ color: "var(--color-red-600)" }}>*</span>
-              </label>
-              <div className="chinese-input-wrapper">
-                <input
-                  type="text"
-                  required
-                  placeholder="กรุณาระบุสายการเรียนของคุณ เช่น ดนตรี, คอมพิวเตอร์, กศน...."
-                  value={academicTrackOther}
-                  onChange={(e) => setAcademicTrackOther(e.target.value)}
-                  className="chinese-input"
-                  style={{ paddingLeft: 14 }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Phone */}
-          <div className="chinese-form-group">
-            <label className="chinese-form-label">เบอร์โทรศัพท์</label>
-            <div className="chinese-input-wrapper">
-              <Phone className="chinese-input-icon" />
-              <input
-                type="tel"
-                required
-                placeholder="08X-XXX-XXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="chinese-input"
-              />
-            </div>
-          </div>
-
-          {/* Email (Contact & Recovery) */}
-          <div className="chinese-form-group">
-            <label className="chinese-form-label">
-              อีเมล <span style={{ fontSize: 11, color: "var(--text-dark-muted)", fontWeight: 400 }}>(สำหรับติดต่อและกู้คืนรหัสผ่าน)</span>
-            </label>
-            <div className="chinese-input-wrapper">
-              <Mail className="chinese-input-icon" />
-              <input
-                type="email"
-                required
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="chinese-input"
-              />
-            </div>
-          </div>
-
-          {/* Username */}
-          <div className="chinese-form-group">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <label className="chinese-form-label">ชื่อผู้ใช้ (ใช้เข้าสู่ระบบ)</label>
-              {usernameStatus.checked && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: usernameStatus.available ? "#15803d" : "#b91c1c",
-                  }}
-                >
-                  {usernameStatus.msg}
-                </span>
-              )}
-            </div>
-            <div className="chinese-input-wrapper">
-              <User className="chinese-input-icon" />
-              <input
-                type="text"
-                required
-                placeholder="ตั้งชื่อผู้ใช้ภาษาอังกฤษ เช่น dragon_26"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="chinese-input"
-              />
-            </div>
-          </div>
-
-          {/* Password & Confirm Password */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">รหัสผ่าน</label>
-              <div className="chinese-input-wrapper">
-                <Lock className="chinese-input-icon" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="อย่างน้อย 6 ตัวอักษร"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="chinese-input"
-                />
-                <button
-                  type="button"
-                  className="chinese-input-password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="chinese-form-group">
-              <label className="chinese-form-label">ยืนยันรหัสผ่าน</label>
-              <div className="chinese-input-wrapper">
-                <Lock className="chinese-input-icon" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  placeholder="พิมพ์ซ้ำอีกครั้ง"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="chinese-input"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Consent Checkbox */}
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "16px 0 20px" }}>
-            <input
-              type="checkbox"
-              id="consent"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              style={{ marginTop: 3, accentColor: "var(--color-red-800)", width: 18, height: 18 }}
-            />
-            <label htmlFor="consent" style={{ fontSize: 12, color: "var(--text-dark-secondary)", lineHeight: 1.4 }}>
-              ฉันยอมรับ{" "}
-              <a href="#terms" style={{ color: "var(--color-red-800)", textDecoration: "underline" }}>
-                ข้อกำหนดและเงื่อนไข
-              </a>{" "}
-              และ{" "}
-              <a href="#privacy" style={{ color: "var(--color-red-800)", textDecoration: "underline" }}>
-                นโยบายความเป็นส่วนตัว
-              </a>{" "}
-              ของ OPH
-            </label>
-          </div>
-
-          {/* Primary CTA */}
-          <button type="submit" disabled={loading || !registrationOpen} className="chinese-btn-primary">
-            {loading ? "กำลังลงทะเบียน..." : "เริ่มต้นการเดินทาง →"}
-          </button>
-        </form>
-
-        <div style={{ textAlign: "center", marginTop: 16 }}>
-          <span style={{ fontSize: 13, color: "var(--text-dark-muted)" }}>มีบัญชีอยู่แล้ว? </span>
-          <Link
-            to="/login"
-            style={{ fontSize: 13, color: "var(--color-red-800)", fontWeight: 700, textDecoration: "underline" }}
-          >
-            เข้าสู่ระบบ
-          </Link>
-        </div>
-
-        {/* Benefits Section */}
-        <div className="gold-divider">การเดินทางครั้งนี้...คุณจะได้อะไร</div>
-
-        <div className="benefit-grid">
-          <div className="benefit-card">
-            <img src="/assets/animations/checkin-stamp.svg" alt="" className="benefit-icon" />
-            <div className="benefit-title">สะสมตราประทับ</div>
-            <div className="benefit-desc">เข้าร่วมกิจกรรม สะสมตราประทับจากดินแดนต่างๆ</div>
-          </div>
-
-          <div className="benefit-card">
-            <img src="/assets/decorations/dragon-seal.svg" alt="" className="benefit-icon" />
-            <div className="benefit-title">ทำภารกิจท้าทาย</div>
-            <div className="benefit-desc">เรียนรู้ พัฒนา และทำภารกิจ ปลดล็อกเรื่องราว</div>
-          </div>
-
-          <div className="benefit-card">
-            <img src="/assets/animations/reward-chest.svg" alt="" className="benefit-icon" />
-            <div className="benefit-title">รับรางวัลพิเศษ</div>
-            <div className="benefit-desc">สะสมครบตามเงื่อนไข แลกรับของรางวัลจาก OPH</div>
-          </div>
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: 24, color: "var(--color-gold-600)", fontSize: 11, letterSpacing: "0.2em" }}>
-          — ONE JOURNEY MANY POSSIBILITIES —
-        </div>
-      </div>
-
-      {loading && <ThemedLoading fullscreen message="กำลังสร้างบัญชีผู้เดินทาง..." />}
-    </div>
-  );
-};
+  return <div className="chinese-auth-page register-flow"><div className="register-shell">
+    <Link to="/" className="register-back"><ArrowLeft size={16} />กลับหน้าแรก</Link>
+    <header><FortuneKnot /><img src="/assets/brand/dragon-seal.svg" alt="" /><span className="eyebrow">YOUR ADVENTURE STARTS HERE</span><h1>รับใบเบิกทางแดนมังกร</h1><p>ลงทะเบียนเพื่อสะสมแต้มและเก็บบัตรรางวัลไว้ในบัญชี</p></header>
+    <ol className="register-stepper" aria-label="ขั้นตอนลงทะเบียน"><li aria-current={step===1 ? "step" : undefined} className={step===1 ? "active" : "done"}><span>{step===2 ? <Check size={16} /> : "1"}</span>ข้อมูลผู้เข้าร่วม</li><li aria-current={step===2 ? "step" : undefined} className={step===2 ? "active" : ""}><span>2</span>สร้างใบเบิกทาง</li></ol>
+    {!registrationOpen && <p className="form-error" role="status">ขณะนี้ปิดรับลงทะเบียน ผู้มีบัญชีแล้วเข้าสู่ระบบได้ตามปกติ</p>}
+    {error && <p className="form-error" role="alert">{error}</p>}
+    <form onSubmit={event => void submit(event)} className="register-step" key={step}>
+      <h2 ref={heading} tabIndex={-1}>{step===1 ? "คุณคือใครในการเดินทางนี้?" : "สร้างบัญชีเพื่อเก็บความคืบหน้า"}</h2>
+      {step===1 ? <>
+        <div className="register-columns"><label htmlFor="register-first">ชื่อ<input id="register-first" value={form.firstName} onChange={e=>change("firstName",e.target.value)} autoComplete="given-name" required maxLength={60} /></label><label htmlFor="register-last">นามสกุล<input id="register-last" value={form.lastName} onChange={e=>change("lastName",e.target.value)} autoComplete="family-name" required maxLength={60} /></label></div>
+        <label htmlFor="register-grade">ระดับการศึกษา / ประเภทผู้เข้าร่วม<select id="register-grade" value={form.grade} onChange={e=>change("grade",e.target.value)} required><option value="">เลือกประเภทผู้เข้าร่วม</option>{grades.map(g=><option key={g}>{g}</option>)}</select></label>
+        <label htmlFor="register-school">{general ? "โรงเรียน / หน่วยงาน (ถ้ามี)" : "โรงเรียน / สถาบันการศึกษา"}<input id="register-school" value={form.school} onChange={e=>change("school",e.target.value)} autoComplete="organization" required={!general} maxLength={160} /></label>
+        {!general && <><label htmlFor="register-track">สายการเรียน<select id="register-track" value={form.academicTrack} onChange={e=>change("academicTrack",e.target.value)} required><option value="">เลือกสายการเรียน</option>{tracks.map(t=><option key={t.id} value={t.label}>{t.label}</option>)}</select></label>{otherTrack && <label htmlFor="register-other">ระบุสายการเรียน<input id="register-other" value={form.academicTrackOther} onChange={e=>change("academicTrackOther",e.target.value)} required maxLength={120} /></label>}</>}
+        <label htmlFor="register-phone">เบอร์โทรศัพท์<input id="register-phone" type="tel" inputMode="tel" value={form.phone} onChange={e=>change("phone",e.target.value)} autoComplete="tel" required minLength={9} maxLength={25} /></label>
+        <label htmlFor="register-email">อีเมล<small>สำหรับติดต่อและกู้คืนบัญชี</small><input id="register-email" type="email" value={form.email} onChange={e=>change("email",e.target.value)} autoComplete="email" required maxLength={120} /></label>
+        <button className="chinese-btn-primary" type="submit" disabled={!registrationOpen || site.loading}>ถัดไป · สร้างใบเบิกทาง <ArrowRight size={17} /></button>
+      </> : <>
+        <p className="register-person"><ScrollText size={19} /><span>{form.firstName} {form.lastName}<small>{form.school || "บุคคลทั่วไป"}</small></span></p>
+        <label htmlFor="register-username">ชื่อผู้ใช้<input id="register-username" value={form.username} onChange={e=>change("username",e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} required pattern="[A-Za-z0-9_-]{3,30}" minLength={3} maxLength={30} aria-describedby="username-help" /></label><small id="username-help" className={usernameStatus.checked && !usernameStatus.available ? "form-error" : "register-hint"}>{usernameStatus.msg || "ภาษาอังกฤษ ตัวเลข _ หรือ - ความยาว 3–30 ตัวอักษร"}</small>
+        <label htmlFor="register-password">รหัสผ่าน<small>อย่างน้อย 6 ตัวอักษร</small><div className="register-password"><input id="register-password" type={showPassword ? "text" : "password"} value={form.password} onChange={e=>change("password",e.target.value)} autoComplete="new-password" required minLength={6} maxLength={128} /><button type="button" aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"} onClick={()=>setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></div></label>
+        <label htmlFor="register-confirm">ยืนยันรหัสผ่าน<input id="register-confirm" type={showPassword ? "text" : "password"} value={form.confirmPassword} onChange={e=>change("confirmPassword",e.target.value)} autoComplete="new-password" required minLength={6} /></label>
+        <label className="register-consent" htmlFor="consent"><input id="consent" type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} required /><span>ยอมรับกติกาการเข้าร่วมและรับทราบการใช้ข้อมูลลงทะเบียน</span></label>
+        <div className="register-information"><button type="button" onClick={()=>setInformation("terms")}>กติกาเข้าร่วมงาน</button><button type="button" onClick={()=>setInformation("privacy")}>ข้อมูลของคุณใช้ทำอะไร?</button></div>
+        <div className="register-actions"><button className="button-gold-outline" type="button" onClick={()=>{setStep(1);setError("");}} disabled={busy}><ArrowLeft size={16} />กลับ</button><button className="chinese-btn-primary" type="submit" disabled={busy || !registrationOpen}>{busy ? "กำลังสร้างใบเบิกทาง..." : "รับใบเบิกทาง"}<ArrowRight size={17} /></button></div>
+      </>}
+    </form>
+    <p className="register-login">มีบัญชีแล้ว? <Link to="/login">เข้าสู่ระบบ</Link></p>
+    {information && <div className="registration-info-modal" role="dialog" aria-modal="true" aria-labelledby="registration-info-title" ref={dialog} tabIndex={-1}><div><button aria-label="ปิดข้อมูล" onClick={()=>setInformation(null)}><X size={21} /></button><h2 id="registration-info-title">{information==="terms" ? "กติกาการเข้าร่วมงาน" : "การใช้ข้อมูลลงทะเบียน"}</h2>{information==="terms" ? <><p>{consentText || "ใบเบิกทางใช้บันทึกการเข้าร่วมกิจกรรม คะแนน และสิทธิ์รางวัลของผู้ลงทะเบียนแต่ละคน"}</p><p>สะสมครบ {rules.pointsRequired} แต้ม สุ่มได้ 1 ครั้งต่อคน คะแนนคงเดิมหลังสุ่ม แสดง Voucher ต่อ Staff เพื่อรับรางวัลตามผลที่บันทึกในระบบ</p></> : <><p>ระบบเก็บชื่อ สถานศึกษา ระดับการศึกษา สายการเรียน เบอร์โทร อีเมล ชื่อผู้ใช้ และประวัติกิจกรรม เพื่อจัดการการเข้าร่วมงาน ใบเบิกทาง คะแนนและรางวัล รวมถึงการติดต่อและกู้คืนบัญชี</p><p>เจ้าหน้าที่ใช้งานข้อมูลตามบทบาทที่ได้รับ หากต้องการแก้ไขข้อมูลหรือความช่วยเหลือ ติดต่อทีมงานที่จุดลงทะเบียน</p></>}</div></div>}
+  </div></div>;
+}

@@ -4,16 +4,22 @@ import {
   HelpCircle,
   Bell,
   MessageCircle,
-  Phone,
-  Mail,
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import { useAnnouncements, useFaq } from "@/data/content";
+import { useAnnouncements, useFaq, useRewardPolicy } from "@/data/content";
 
 export function FaqPage() {
   const faq = useFaq();
   const announcements = useAnnouncements();
+  const { rules } = useRewardPolicy();
+  const questions = [
+    {id:"current-rewards",question:"ต้องทำกี่กิจกรรม ไปกี่สถานที่ถึงรับรางวัลได้?",answer:`ครบ ${rules.pointsRequired} แต้ม สุ่มได้ 1 ครั้งต่อคนโดยไม่หักคะแนน ไม่บังคับจำนวนกิจกรรมหรือสถานที่ การไปครบ 4 แดนเป็นความสำเร็จเพิ่มเติม`},
+    {id:"current-points",question:"สะสมคะแนนอย่างไร และสแกนซ้ำได้ไหม?",answer:`กิจกรรมที่ให้แต้มครั้งแรกในแต่ละสถานที่ +${rules.pointsPerVenue} แต้ม กิจกรรมต่อไปในสถานที่เดิมบันทึกได้แต่ไม่เพิ่มแต้ม แบบประเมิน +${rules.surveyPoints} แต้มครั้งเดียว QR สถานที่ให้ +${rules.pointsPerVenue} แต้มเฉพาะครั้งแรกที่ยังไม่เคยเช็กอินจากกิจกรรม`},
+    {id:"current-voucher",question:"เปิดหีบแล้วรับของรางวัลอย่างไร?",answer:"เปิดบัตร Voucher ในหน้ารางวัล แล้วให้ Staff ตรวจชื่อและยืนยันจ่ายของ รหัสเดิมรับของได้ครั้งเดียว หากรางวัลหมดทั้งคลัง คะแนนและสิทธิ์ที่ยังไม่ได้สุ่มจะคงอยู่"},
+    {id:"current-recovery",question:"เปลี่ยนเครื่องหรือใบเบิกทางหายทำอย่างไร?",answer:"เข้าสู่ระบบด้วยบัญชีเดิมเพื่อเปิดใบเบิกทางและ Voucher หากลืมรหัสผ่าน ใช้หน้ากู้คืนบัญชีหรือติดต่อเจ้าหน้าที่จุดลงทะเบียน"},
+    ...faq.items.filter(item=>!/(คะแนน|แต้ม|รางวัล|Recovery|กู้บัตร|QR Pass)/i.test(`${item.question} ${item.answer}`)),
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: "0 16px 40px" }}>
@@ -93,7 +99,7 @@ export function FaqPage() {
         </h2>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {faq.items.map((item) => (
+          {questions.map((item) => (
             <details
               key={item.id}
               style={{
@@ -160,16 +166,7 @@ export function FaqPage() {
           หากพบปัญหาเกี่ยวกับระบบการสแกน หรือต้องการความช่วยเหลือระหว่างงาน สามารถติดต่อเจ้าหน้าที่ประจำจุด หรือกองอำนวยการกลาง
         </p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "var(--text-dark-primary)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Phone style={{ width: 14, height: 14, color: "var(--color-gold-600)" }} />
-            <span>โทรศัพท์: 02-564-4440 ต่อ 1234 (กองอำนวยการงาน Open House)</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Mail style={{ width: 14, height: 14, color: "var(--color-gold-600)" }} />
-            <span>อีเมล: openhouse@fineart.tu.ac.th</span>
-          </div>
-        </div>
+        <Link className="button-gold-outline" to="/map">ดูสถานที่และเส้นทางไปพบเจ้าหน้าที่</Link>
       </div>
     </div>
   );

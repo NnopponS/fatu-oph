@@ -1,0 +1,49 @@
+.guardian-pet-root {position:fixed;z-index:80;right:max(12px,calc((100vw - 480px)/2 + 12px));bottom:calc(84px + env(safe-area-inset-bottom));color:#143f36;}
+.guardian-pet-root.standalone {right:16px;bottom:16px;}
+.guardian-pet-launcher {position:relative;width:74px;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #c4a56a;border-radius:17px 17px 5px 17px;background:linear-gradient(140deg,#fffdf3,#efe2bb);box-shadow:0 5px 20px #2d39282a;cursor:pointer;}
+.pixel-guardian {width:62px;height:62px;display:block;image-rendering:pixelated;pointer-events:none;}
+.pixel-guardian-body {animation:pixel-pet-idle 3s steps(4,end) infinite;transform-origin:50% 90%;}
+.guardian-pet-launcher>span {font-size:9px;font-weight:800;color:#295345;white-space:nowrap;}
+.guardian-pet-launcher>i {position:absolute;right:-4px;top:-6px;width:23px;height:23px;display:grid;place-items:center;background:#8f1e23;color:#ffe6a5;border:2px solid #f7edcf;border-radius:7px;font-size:13px;font-style:normal;font-weight:800;}
+.guardian-pet-launcher.chat-open {box-shadow:0 0 0 3px #cbab6944;}
+.guardian-pet-hide {position:absolute;top:-8px;left:-8px;width:32px;height:32px;display:grid;place-items:center;border:1px solid #bda36e;border-radius:50%;background:#fff9e8;color:#795335;box-shadow:0 2px 8px #17342c22;cursor:pointer;}
+.guardian-pet-root:has(.guardian-chat-popup:not([hidden]))>.guardian-pet-hide {display:none;}
+.guardian-pet-restore {display:flex;align-items:center;gap:5px;min-height:44px;padding:6px 10px;border:1px solid #c4af80;border-radius:12px;background:#fff9e8;color:#446255;font-size:11px;box-shadow:0 3px 10px #17342c17;cursor:pointer;}
+.guardian-chat-popup {position:absolute;bottom:90px;right:0;width:min(380px,calc(100vw - 24px));height:min(620px,calc(100dvh - 198px));min-height:220px;animation:pet-chat-unfurl .25s ease-out both;filter:drop-shadow(0 10px 24px #17342c33);}
+.standalone .guardian-chat-popup {height:min(640px,calc(100dvh - 125px));}
+.guardian-chat-popup[hidden] {display:none;}
+.guardian-chat {height:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid #bd9b56;border-radius:5px 5px 22px 5px;background:#fffcf2;}
+.guardian-chat-header {display:flex;align-items:center;gap:7px;padding:12px 8px;background:linear-gradient(110deg,#16473b,#0e302e);color:#fff2cf;border-bottom:2px solid #ba9753;flex:none;}
+.guardian-chat-header>.pixel-guardian {width:53px;height:53px;flex:none;filter:drop-shadow(0 2px 4px #0004);}
+.guardian-chat-header>div {flex:1;min-width:0;}
+.guardian-chat-header span {font-size:10px;color:#d5bd82;}.guardian-chat-header h2 {font-size:18px;margin:0;line-height:1.5;color:#fff6e3;}.guardian-chat-header small {font-size:10px;line-height:1.5;display:block;color:#dfd4b5;}
+.guardian-chat-header button {width:44px;height:44px;flex:none;display:grid;place-items:center;border:0;border-radius:5px;background:#ffffff08;color:#fff1cd;cursor:pointer;}
+.guardian-chat button:disabled {opacity:.4;cursor:default;}
+.guardian-chat-messages {flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 12px;scrollbar-width:thin;scrollbar-color:#c2ac73 transparent;}
+.guardian-chat-welcome {text-align:center;padding:4px 0 10px;}
+.pixel-welcome-seal {display:inline-grid;place-items:center;width:36px;height:42px;border:2px solid #a44b35;border-radius:2px;color:#933c2b;font-size:24px;transform:rotate(-6deg);background:#f3e8ce;}
+.guardian-chat-welcome h3 {font-size:17px;margin:13px 0 8px;color:#204e3d;}.guardian-chat-welcome p {font-size:12px;line-height:1.9;color:#72664c;margin:0 0 18px;}
+.guardian-guide-categories {display:flex;gap:4px;overflow-x:auto;position:sticky;top:-1px;z-index:1;background:#fffcf2;padding:5px 0 10px;margin-bottom:3px;scrollbar-width:thin;}
+.guardian-guide-categories button {flex:1 0 auto;min-height:44px;padding:6px 8px;border:1px solid #dccb9f;border-radius:5px;color:#6b644c;background:#f5eddb;font-size:11px;cursor:pointer;}
+.guardian-guide-categories button[aria-pressed="true"] {background:#245242;border-color:#245242;color:#fff2d0;}
+.guardian-answer-title {font-size:16px;line-height:1.7;color:#214d3e;margin:8px 0;}
+.guardian-guide-footer {flex:none;display:grid;gap:7px;padding:10px;background:#f6efdf;border-top:1px solid #decc9f;}
+.guardian-guide-footer>button,.guardian-guide-footer>a {display:flex;justify-content:center;align-items:center;gap:7px;min-height:44px;padding:8px 10px;border:1px solid #bca16a;border-radius:5px;background:#fffaf0;color:#214d3e;font-size:12px;text-decoration:none;cursor:pointer;}
+.guardian-guide-footer small {text-align:center;color:#7a6b51;font-size:9px;line-height:1.6;}
+.guardian-quick-questions {display:grid;gap:7px;}.guardian-quick-questions button {display:flex;align-items:center;justify-content:space-between;text-align:left;gap:8px;min-height:44px;padding:10px 12px;background:#f5eddb;border:1px solid #deca97;border-radius:3px 3px 12px 3px;font-size:12px;line-height:1.6;color:#234c3a;cursor:pointer;}.guardian-quick-questions button svg {flex:none;}
+.guardian-message {padding:12px 13px;margin-bottom:13px;border:1px solid #e5d5ae;background:#fff;border-radius:4px 14px 14px 14px;overflow-wrap:anywhere;}
+.guardian-message.user {margin-left:35px;background:#1c5143;color:#fff5df;border-color:#1c5143;border-radius:14px 4px 14px 14px;}
+.guardian-message-author {font-size:10px;letter-spacing:.03em;opacity:.75;font-weight:700;}.guardian-message p {margin:6px 0 0;font-size:13px;line-height:1.85;white-space:pre-wrap;}
+.guardian-message.error {border-color:#d19680;background:#fff1e8;color:#883623;}.guardian-message a {color:#30594b;font-size:12px;}
+.guardian-answer-notice {display:block;font-size:10px;color:#84632f;background:#faf0d8;padding:5px 7px;margin:7px 0;border-left:2px solid #ba954e;line-height:1.6;}
+.guardian-citations {margin-top:12px;border-top:1px solid #eddfbf;padding-top:8px;}.guardian-citations summary {display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:#785a26;min-height:34px;}.guardian-citations summary::after {content:"⌄";margin-left:auto;}
+.guardian-citations>div {padding:8px 0;border-bottom:1px dotted #e1d5b8;}.guardian-citations a,.guardian-citations strong {display:inline;font-size:11px;line-height:1.7;color:#1b5d50;}.guardian-citations small {display:block;font-size:9px;line-height:1.7;color:#786a51;margin-top:4px;}.guardian-citations svg,.guardian-answer-links svg {display:inline;vertical-align:middle;margin-left:3px;}
+.guardian-answer-links {display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}.guardian-answer-links>a {display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:8px 10px;border:1px solid #d6c49a;border-radius:5px;background:#f7f1e3;line-height:1.5;text-decoration:none;}
+.guardian-chat :focus-visible,.guardian-pet-root :focus-visible {outline:3px solid #e3b95c;outline-offset:2px;}
+.assistant-page {padding:16px 16px 35px;display:grid;gap:20px;}.assistant-page>.chinese-palace-hero {margin:0;}.assistant-page .embedded {height:650px;max-height:calc(100dvh - 120px);min-height:360px;box-shadow:0 10px 25px #54421c12;}
+body:has(.wuxia-opening,.draw-ceremony,.checkin-success-overlay) .guardian-pet-root {visibility:hidden;pointer-events:none;}
+@keyframes pixel-pet-idle {0%,100%{transform:translateY(0);}50%{transform:translateY(-1px);}}
+@keyframes pet-chat-unfurl {from{opacity:0;transform:translateY(10px) scale(.96);}to{opacity:1;transform:none;}}
+@media(max-height:600px) {.guardian-chat-popup{bottom:0;height:calc(100dvh - 24px);}.guardian-pet-launcher.chat-open{visibility:hidden;}.guardian-pet-root:has(.guardian-chat-popup:not([hidden])){bottom:12px;}.guardian-chat-messages{padding:10px;}.guardian-chat-header{padding-block:5px;}}
+@media(prefers-reduced-motion:reduce) {.pixel-guardian-body,.guardian-chat-popup {animation:none!important;}}
+

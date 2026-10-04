@@ -10,11 +10,13 @@ import {
   useFaq,
   usePrizes,
   useVenues,
+  useRewardPolicy,
   venueSchema,
 } from "@/data/content";
 import { AdminAccess } from "@/pages/AdminPage";
 import { adminAction } from "@/services/api";
 import { realtimePaths, setRealtime } from "@/services/realtime";
+import { activityTiming } from "@/lib/schedule";
 
 type Kind = "activities" | "venues" | "prizes" | "faq" | "announcements";
 
@@ -24,6 +26,11 @@ function number(value: FormDataEntryValue | null, fallback = 0) {
 
 function bool(data: FormData, key: string) {
   return data.get(key) === "on";
+}
+
+function thaiTimestamp(value: FormDataEntryValue | null) {
+  const text = String(value || "");
+  return text ? `${text}${text.length === 16 ? ":00" : ""}+07:00` : "";
 }
 
 export function AdminContentPage({ kind }: { kind: Kind }) {
@@ -56,8 +63,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
         description: String(data.get("description") || ""),
         venueId: String(data.get("venueId") || ""),
         coverMediaId: String(data.get("coverMediaId") || ""),
-        startAt: String(data.get("startAt") || ""),
-        endAt: String(data.get("endAt") || ""),
+        startAt: thaiTimestamp(data.get("startAt")),
+        endAt: thaiTimestamp(data.get("endAt")),
         registrationMode: String(data.get("registrationMode") || "none"),
         registrationUrl: String(data.get("registrationUrl") || ""),
         ctaLabel: String(data.get("ctaLabel") || ""),
@@ -103,6 +110,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
         imageMediaId: String(data.get("imageMediaId") || ""),
         stock: number(data.get("stock")),
         pointsRequired: number(data.get("pointsRequired")),
+        drawWeight: number(data.get("drawWeight"), 1),
+        rarity: String(data.get("rarity") || "common"),
         claimLimit: Math.max(1, number(data.get("claimLimit"), 1)),
         displayOrder: number(data.get("displayOrder")),
         isPublished: bool(data, "isPublished"),
@@ -142,8 +151,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
   }
 
   async function showActivityQr(id: string, rotate = false) {
-    const result = await adminAction<{ qrPayload: string }>("activityQr", {
-      activityId: id,
+    const result = await adminAction<{ qrPayload: string }>(kind === "venues" ? "venueQr" : "activityQr", {
+      ...(kind === "venues" ? {venueId:id} : {activityId:id}),
       rotate,
     });
     setQrImage(await QRCode.toDataURL(result.qrPayload, { width: 420, margin: 2 }));
@@ -177,7 +186,7 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
           <div className="action-row">
             <button className="admin-submit" type="submit">บันทึก</button>
             {editingId ? <button className="secondary-button" type="button" onClick={() => void remove(editingId).catch((error) => setMessage(error instanceof Error ? error.message : "ลบไม่สำเร็จ"))}>ลบ</button> : null}
-            {kind === "activities" && editingId ? (
+            {(kind === "activities" || kind === "venues") && editingId ? (
               <>
                 <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId).catch((error) => setMessage(error instanceof Error ? error.message : "โหลด QR ไม่สำเร็จ"))}>แสดง QR</button>
                 <button className="secondary-button" type="button" onClick={() => void showActivityQr(editingId, true).catch((error) => setMessage(error instanceof Error ? error.message : "สร้าง QR ไม่สำเร็จ"))}>สร้าง QR ใหม่</button>
@@ -187,8 +196,8 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
           {message ? <p className="success-message">{message}</p> : null}
           {qrImage ? (
             <div className="admin-qr-wrap">
-              <img className="admin-qr" src={qrImage} alt="QR Code กิจกรรม" />
-              <a className="secondary-button" href={qrImage} download={`fatu-activity-${editingId}.png`}>ดาวน์โหลด QR</a>
+              <img className="admin-qr" src={qrImage} alt={kind === "venues" ? "QR Code สถานที่" : "QR Code กิจกรรม"} />
+              <a className="secondary-button" href={qrImage} download={`fatu-${kind}-${editingId}.png`}>ดาวน์โหลด QR</a>
             </div>
           ) : null}
         </form>
@@ -199,7 +208,9 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
 }
 
 function Field({ label, name, value = "", type = "text", required = false, step }: { label: string; name: string; value?: unknown; type?: string; required?: boolean; step?: string }) {
-  return <label><span>{label}</span><input name={name} type={type} required={required} step={step} defaultValue={String(value ?? "")} /></label>;
+  const timing = type === "datetime-local" ? activityTiming(String(value || "")) : null;
+  const text = timing?.date && timing.time ? `${timing.date}T${timing.time}` : String(value ?? "");
+  return <label><span>{label}</span><input name={name} type={type} required={required} step={step} defaultValue={text} /></label>;
 }
 function Check({ label, name, value }: { label: string; name: string; value?: unknown }) {
   return <label className="check-row"><input name={name} type="checkbox" defaultChecked={Boolean(value)} /><span>{label}</span></label>;
@@ -213,6 +224,7 @@ function Select({ label, name, value, options }: { label: string; name: string; 
 }
 
 function ActivityFields({ current = {}, venues }: { current?: Record<string, unknown>; venues: Array<{ id: string; name?: string }> }) {
+  const { rules } = useRewardPolicy();
   return <>
     <Field label="ชื่อกิจกรรม" name="title" value={current.title} required />
     <Field label="Slug" name="slug" value={current.slug} required />
@@ -229,8 +241,10 @@ function ActivityFields({ current = {}, venues }: { current?: Record<string, unk
     <div className="form-grid"><Field label="ราคา" name="price" value={current.price} type="number" step="0.01" /><Field label="ข้อความราคา" name="priceLabel" value={current.priceLabel} /></div>
     <Check label="เข้าร่วมฟรี" name="isFree" value={current.isFree ?? true} />
     <Field label="Tags (คั่นด้วย ,)" name="tags" value={Array.isArray(current.tags) ? current.tags.join(", ") : ""} />
-    <Check label="ให้คะแนน" name="pointsEnabled" value={current.pointsEnabled} />
-    <div className="form-grid"><Field label="คะแนน" name="pointsAwarded" value={current.pointsAwarded} type="number" /><Field label="Repeat limit" name="repeatLimit" value={current.repeatLimit} type="number" /></div>
+    <Check label={`กิจกรรมนี้ให้คะแนน (${rules.pointsPerVenue} แต้ม · ครั้งแรกของสถานที่)`} name="pointsEnabled" value={current.pointsEnabled && current.pointsAwarded !== 0} />
+    <input name="pointsAwarded" type="hidden" value={rules.pointsPerVenue} />
+    <p className="content-status">ปรับจำนวนแต้มและเกณฑ์รางวัลได้ที่การตั้งค่าเว็บไซต์ กิจกรรมถัดไปในสถานที่เดิมบันทึกได้โดยไม่เพิ่มแต้ม</p>
+    <Field label="จำกัดจำนวนครั้งที่บันทึกกิจกรรม" name="repeatLimit" value={current.repeatLimit} type="number" />
     <Select label="กติกาคะแนน" name="pointGrantMode" value={current.pointGrantMode} options={[["once","ครั้งเดียว"],["per-session","ต่อ session"],["repeat-limited","จำกัดจำนวน"],["manual-only","เจ้าหน้าที่เท่านั้น"]]} />
     <Select label="วิธีจบกิจกรรม" name="completionMethod" value={current.completionMethod} options={[["none","ไม่มี"],["qr","QR"],["staff","เจ้าหน้าที่"]]} />
     <Check label="ต้องให้เจ้าหน้าที่ตรวจ" name="requiresStaffVerification" value={current.requiresStaffVerification} />
@@ -254,11 +268,14 @@ function VenueFields({ current = {} }: { current?: Record<string, unknown> }) {
   </>;
 }
 function PrizeFields({ current = {} }: { current?: Record<string, unknown> }) {
+  const { rules } = useRewardPolicy();
   return <>
     <Field label="ชื่อรางวัล" name="name" value={current.name} required />
     <TextArea label="รายละเอียด" name="description" value={current.description} />
     <Field label="Image media ID หรือ /media/... URL" name="imageMediaId" value={current.imageMediaId} />
-    <div className="form-grid"><Field label="Stock" name="stock" value={current.stock} type="number" /><Field label="คะแนนที่ใช้" name="pointsRequired" value={current.pointsRequired} type="number" /></div>
+    <div className="form-grid"><Field label="จำนวนของทั้งหมด" name="stock" value={current.stock} type="number" /><Field label="น้ำหนักโอกาสสุ่ม (0 = ไม่ร่วมสุ่ม)" name="drawWeight" value={current.drawWeight ?? 1} type="number" step="any" /></div>
+    <Select label="ระดับรางวัล" name="rarity" value={current.rarity} options={[["legendary","รางวัลใหญ่"],["epic","รางวัลรอง"],["rare","พิเศษ"],["uncommon","ของที่ระลึก"],["common","ทั่วไป"]]} />
+    {rules.pointExchangeEnabled ? <Field label="แต้มที่ใช้แลก" name="pointsRequired" value={current.pointsRequired} type="number" /> : <input name="pointsRequired" type="hidden" value={String(current.pointsRequired || 0)} />}
     <div className="form-grid"><Field label="จำกัดต่อคน" name="claimLimit" value={current.claimLimit} type="number" /><Field label="ลำดับ" name="displayOrder" value={current.displayOrder} type="number" /></div>
     <Check label="เผยแพร่" name="isPublished" value={current.isPublished} />
   </>;
