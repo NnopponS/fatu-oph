@@ -20,6 +20,7 @@ import { useVenues } from "@/data/content";
 import { VenuePhoto, GuardianButton } from "@/components/RealmPlaces";
 import { placeName, realmFor } from "@/lib/realms";
 import { RewardProgress } from "@/components/RewardProgress";
+import { RankCard } from "@/components/RankCard";
 import { LatticeCorners, ScrollRolls } from "@/components/ChineseOrnaments";
 
 export function PassPage() {
@@ -216,40 +217,7 @@ export function PassPage() {
         </div>
       </div>
 
-      {/* Lightweight celestial rank card — no WebGL on the mobile critical path. */}
-      <div
-        className="ivory-card"
-        style={{
-          padding: "14px 18px",
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          border: "1.5px solid var(--color-gold-500)",
-          boxShadow: "0 4px 16px rgba(179, 134, 40, 0.15)",
-        }}
-      >
-        <div style={{ width: 84, height: 84, flexShrink: 0, display: "grid", placeItems: "center" }}>
-          <img src="/assets/brand/dragon-seal.svg" alt="" style={{ width: 76, height: 76, objectFit: "contain" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Sparkles style={{ width: 12, height: 12, color: "var(--color-gold-600)" }} />
-            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--color-gold-700)", letterSpacing: "0.08em" }}>
-              มุกมังกรสวรรค์ประจำตัว · CELESTIAL PEARL
-            </span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-red-950)", marginTop: 2 }}>
-            {visitedVenuesCount >= 4
-              ? "ปรมาจารย์สี่แดนศักดิ์สิทธิ์"
-              : visitedVenuesCount >= 2
-              ? "จอมยุทธ์ผู้เกรียงไกร"
-              : "จอมยุทธ์ผู้เริ่มต้น"}
-          </div>
-          <p style={{ fontSize: 11, color: "var(--text-dark-secondary)", margin: "2px 0 0", lineHeight: 1.4 }}>
-            สะสมตราให้ครบ 4 แดนเพื่อปลดล็อกตราสวรรค์ขั้นสูงสุด
-          </p>
-        </div>
-      </div>
+      <RankCard name={profile?.displayName || profile?.username || ""} username={profile?.username || ""} points={profile?.pointTotal ?? 0} visited={visitedVenuesCount} total={totalVenuesCount} venueNames={venues.items.map((v) => v.name)} visitedFlags={venues.items.map((v) => visitedVenueIds.has(v.id))} />
 
       {/* ========================================================================= */}
       {/* 2. 4 MYTHOLOGICAL REALM STAMPS MATRIX (Reference 6)                       */}

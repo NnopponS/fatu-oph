@@ -13,6 +13,7 @@ import "./styles/realms.css";
 import "./styles/cinematic.css";
 import "./styles/imperial.css";
 import "./styles/assistant.css";
+import "./styles/spectacle.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -15,7 +15,8 @@ import {
   Send,
 } from "lucide-react";
 import jsQR from "jsqr";
-import { SealBurst } from "@/components/WuxiaScene";
+import { InkStamp } from "@/components/InkStamp";
+import { sfx } from "@/lib/sfx";
 import { DragonScroll } from "@/components/DragonScroll";
 import { useVenues } from "@/data/content";
 import { placeName, realmForPlace } from "@/lib/realms";
@@ -84,34 +85,6 @@ export const ScanPage: React.FC = () => {
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", keys); previousFocus?.focus({ preventScroll: true }); };
   }, [resultVisible]);
 
-  // Play auspicious success chime using Web Audio API
-  const playSuccessChime = useCallback(() => {
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-      osc.frequency.setValueAtTime(880.0, ctx.currentTime + 0.1); // A5
-      osc.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.2); // D6
-
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.6);
-      osc.onended = () => { void ctx.close(); };
-    } catch {
-      // Audio not permitted or supported
-    }
-  }, []);
-
   const stopCamera = useCallback(() => {
     cameraGenerationRef.current += 1;
     if (frameRef.current) {
@@ -162,17 +135,18 @@ export const ScanPage: React.FC = () => {
           throw new Error(data.error || "ไม่สามารถเช็กอินได้");
         }
 
-        playSuccessChime();
+        if (data.duplicate) sfx.select();
         setCheckinResult(data);
         await refreshProfile();
       } catch (err: unknown) {
+        sfx.error();
         setErrorMessage(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการตรวจสอบ QR Code");
       } finally {
         verifyingRef.current = false;
         setVerifying(false);
       }
     },
-    [firebaseUser, playSuccessChime, refreshProfile, stopCamera]
+    [firebaseUser, refreshProfile, stopCamera]
   );
 
   // Toggle Torch (Flashlight)
@@ -787,7 +761,7 @@ export const ScanPage: React.FC = () => {
           <motion.div className="checkin-result-card" initial={{ y: 24, scale: .92 }} animate={{ y: 0, scale: 1 }}>
             {!checkinResult.duplicate && <><div className="checkin-energy-background" aria-hidden="true" /><div className="checkin-power-label">THE GUARDIAN'S BLESSING</div><DragonScroll empowered identity={realmForPlace(checkinResult.locationName)?.[0] || venues.items.find(venue => venue.name === checkinResult.locationName)?.visualIdentityKey || "azure-dragon"} /></>}
             <button className="checkin-close" aria-label="ปิดผลเช็กอิน" onClick={() => setCheckinResult(null)}><X size={20} /></button>
-            {!checkinResult.duplicate ? <SealBurst label="ประทับตราสำเร็จ" points={checkinResult.pointsAdded} /> : <div className="checkin-duplicate"><CheckCircle size={50} /><h2>บันทึกไว้แล้ว</h2></div>}
+            {!checkinResult.duplicate ? <InkStamp label="ประทับตราสำเร็จ" points={checkinResult.pointsAdded} /> : <div className="checkin-duplicate"><CheckCircle size={50} /><h2>บันทึกไว้แล้ว</h2></div>}
             <h2 id="checkin-result-title">{placeName(checkinResult.locationName)}</h2>
             <strong>{checkinResult.activityTitle}</strong>
             <p>{checkinResult.message}</p>

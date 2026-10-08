@@ -9,6 +9,7 @@ import { Cloudscape, ImperialCouplet, LatticeCorners } from "@/components/Chines
 import { PrizeArtwork } from "@/components/PrizeArtwork";
 import { resolveMediaUrl, useMedia, usePrizes, useRewardPolicy } from "@/data/content";
 import { rewardProgress, type RewardPolicy } from "@/lib/reward-policy";
+import { sfx } from "@/lib/sfx";
 
 interface DrawPrize {
   id: string; title: string; description?: string; tier?: string; claimedAt?: string;
@@ -102,6 +103,7 @@ export function LuckyDrawPage() {
     if (!mounted.current) return;
     stopTimers(); setStatus(data); setPhase(skipAnimation.current ? "idle" : "revealed"); setNeedsRecovery(false);
     if (sound) { [587, 740, 880, 1174].forEach((frequency, index) => tone(frequency, index * .13, .45)); }
+    if (!skipAnimation.current) sfx.fanfare();
     if (!reduced) navigator.vibrate?.([60, 30, 90]);
   }
   async function recover() {
@@ -112,15 +114,15 @@ export function LuckyDrawPage() {
   }
   async function handleDraw() {
     if (!firebaseUser || drawing.current || !status?.eligible || status.claimed || needsRecovery) return;
-    drawing.current = true; skipAnimation.current = false; setDrawBusy(true); setError(null); setPhase("charging");
+    drawing.current = true; skipAnimation.current = false; setDrawBusy(true); setError(null); setPhase("charging"); sfx.unlock(); sfx.rise(3);
     const startedAt = performance.now();
     const controller = new AbortController(); drawAbort.current = controller;
     if (sound) {
       try { audio.current = new AudioContext(); void audio.current.resume(); [220, 294, 440, 587].forEach((frequency, index) => tone(frequency, index * .35, .4)); } catch { /* Sound is optional. */ }
     }
     if (!reduced) {
-      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) setPhase("summoning"); }, 1200));
-      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) setPhase("opening"); }, 3000));
+      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) { setPhase("summoning"); sfx.whoosh(1.1); } }, 1200));
+      timers.current.push(setTimeout(() => { if (mounted.current && !skipAnimation.current) { setPhase("opening"); sfx.impact(1.3); } }, 3000));
     }
     try {
       const token = await firebaseUser.getIdToken();

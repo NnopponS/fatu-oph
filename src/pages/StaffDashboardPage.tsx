@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Award, CheckCircle2, Gift, QrCode, Search, ShieldCheck, X } from "lucide-react";
 import { useAdminSession } from "@/pages/AdminPage";
 import { useActivities, useVenues } from "@/data/content";
 import { QrScanner } from "@/components/QrScanner";
+import { sfx } from "@/lib/sfx";
 
 interface Participant { id: string; username: string; displayName: string }
 interface Voucher { voucherCode: string; displayName: string; username: string; prizeName: string; status: string; claimedAt?: string }
@@ -21,6 +22,11 @@ export function StaffDashboardPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [fast, setFast] = useState(false);
+  const [scanKey, setScanKey] = useState(0);
+  const [flash, setFlash] = useState<{ ok: boolean; text: string } | null>(null);
+  const [fastCount, setFastCount] = useState(0);
+  const fastBusy = useRef(false);
   const activity = activities.items.find(a => a.id === activityId);
   const venue = venues.items.find(v => v.id === activity?.venueId);
 
@@ -50,6 +56,24 @@ export function StaffDashboardPage() {
       }
     });
   }
+  // Queue-buster: lookup + record in one step, then reopen the camera for the next visitor.
+  async function fastScan(value: string) {
+    if (fastBusy.current) return;
+    fastBusy.current = true; setBusy(true); setError(""); setMessage("");
+    try {
+      const username = value.trim().replace(/^FATU26PASS:/i, "");
+      const found = await request<{ participant: Participant }>("/api/admin", { action: "participantByUsername", username });
+      const result = await request<{ duplicate: boolean; pointsAdded: number; venueCapped?: boolean }>("/api/admin", { action: "completeActivity", participantId: found.participant.id, activityId, reason: "Staff Fast-Track สแกนใบเบิกทาง" });
+      if (result.duplicate) sfx.select(); else { sfx.success(); setFastCount(count => count + 1); }
+      setFlash({ ok: true, text: `${found.participant.displayName} · ${result.duplicate ? "บันทึกแล้ว ไม่เพิ่มซ้ำ" : result.venueCapped ? "ได้ตราประทับ (แต้มสถานที่ครบแล้ว)" : `+${result.pointsAdded} แต้ม`}` });
+    } catch (err) {
+      sfx.error();
+      setFlash({ ok: false, text: err instanceof Error ? err.message : "ทำรายการไม่สำเร็จ" });
+    } finally {
+      setBusy(false);
+      setTimeout(() => { fastBusy.current = false; setFlash(null); setScanKey(key => key + 1); }, 1600);
+    }
+  }
   async function confirm() {
     await perform(async () => {
       if (tab === "activity" && participant && activity) {
@@ -70,6 +94,12 @@ export function StaffDashboardPage() {
       <button id="field-voucher-tab" role="tab" aria-controls="field-panel" aria-selected={tab === "voucher"} onClick={() => { setTab("voucher"); setCamera(false); setError(""); setMessage(""); }} disabled={busy}><Gift size={18} />จ่ายรางวัล</button>
     </div>
     <div id="field-panel" role="tabpanel" aria-labelledby={`field-${tab}-tab`}>
+      {tab === "activity" && <div className={`fast-track ${fast ? "active" : ""}`}>
+        <input id="fast-track" type="checkbox" checked={fast} disabled={!activityId || busy} onChange={event => { setFast(event.target.checked); setCamera(event.target.checked); setParticipant(null); sfx.select(); }} />
+        <label htmlFor="fast-track">โหมดสแกนต่อเนื่อง (Fast-Track)<small>เลือกกิจกรรมก่อน แล้วสแกนใบเบิกทางทีละคน ระบบบันทึกให้ทันที</small></label>
+        {fast && <span className="fast-counter" aria-live="polite">{fastCount} คน</span>}
+      </div>}
+      {fast && flash && <div className={`fast-flash ${flash.ok ? "ok" : "bad"}`} role="status">{flash.text}</div>}
       {error && <p className="form-error" role="alert">{error}</p>}
       {message && <p className="field-success" role="status"><CheckCircle2 size={20} />{message}</p>}
       <form onSubmit={event => { event.preventDefault(); void inspect(); }} className="field-form">
@@ -87,7 +117,7 @@ export function StaffDashboardPage() {
           <input id="field-reason" value={reason} onChange={event => { setReason(event.target.value); setParticipant(null); }} required minLength={3} disabled={busy} />
         </> : <><label htmlFor="field-voucher">รหัส Voucher ของผู้เข้าร่วม</label><input id="field-voucher" value={code} onChange={event => { setCode(event.target.value); setVoucher(null); }} placeholder="FATU26LUCKY:LKY-..." required autoComplete="off" disabled={busy} /><p>สแกนหรือกรอกรหัสเพื่อตรวจชื่อและรางวัลก่อนจ่ายของ</p></>}
         <div className="field-actions"><button className="admin-submit" type="submit" disabled={busy || tab === "activity" && !activityId}><Search size={17} />{busy ? "กำลังตรวจสอบ..." : "ตรวจข้อมูล"}</button><button className="secondary-button" type="button" disabled={busy} onClick={() => setCamera(!camera)}>{camera ? <X size={17} /> : <QrCode size={17} />}{camera ? "ปิดกล้อง" : "สแกน QR"}</button></div>
-        {camera && <QrScanner onScan={value => { if (tab === "activity") { setIdentifier(value); setParticipant(null); } else { setCode(value); setVoucher(null); } setCamera(false); }} />}
+        {camera && <QrScanner key={scanKey} onScan={value => { if (fast && tab === "activity" && activityId) { void fastScan(value); return; } if (tab === "activity") { setIdentifier(value); setParticipant(null); } else { setCode(value); setVoucher(null); } setCamera(false); }} />}
       </form>
       {(tab === "activity" && participant && activity || tab === "voucher" && voucher) && <section className="field-confirm" aria-label="ยืนยันรายการ">
         <span className="field-step">02 · ยืนยันรายการ</span>

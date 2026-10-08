@@ -1,6 +1,8 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, Bell } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
+import { AnnouncementBell } from "@/components/AnnouncementBell";
+import { SoundToggle } from "@/components/SoundToggle";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface TopHeaderProps {
@@ -51,6 +53,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ title, showBack }) => {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <SoundToggle />
+        <AnnouncementBell />
         {isStaff && (
           <Link
             to="/admin"
@@ -71,22 +75,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ title, showBack }) => {
 
         {firebaseUser ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ position: "relative", display: "grid", placeItems: "center", color: "#e2ba6b" }}>
-              <Bell style={{ width: 18, height: 18 }} />
-              <span
-                style={{
-                  position: "absolute",
-                  top: -2,
-                  right: -2,
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  backgroundColor: "#a11a1a",
-                  border: "1px solid #040d0f",
-                }}
-              />
-            </div>
-
             <Link
               to="/profile"
               style={{

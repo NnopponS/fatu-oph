@@ -23,7 +23,7 @@ export function RitualChest({ opened = false, active = false }: { opened?: boole
   return <div className={`treasure-art-stage ${active ? "active" : ""} ${opened ? "opened" : ""}`} aria-hidden="true">
     <CelestialArray className="treasure-celestial-array" />
     {active && <div className="treasure-spirit-beams">{[0, 1, 2, 3].map(index => <i key={index} style={{ "--beam": index } as CSSProperties} />)}</div>}
-    <div className="chest-aura" /><div className="chest-orbit orbit-one" /><div className="chest-orbit orbit-two" />
+    {!opened && <div className="chest-talisman" aria-hidden="true">敕令</div>}<div className="chest-aura" /><div className="chest-orbit orbit-one" /><div className="chest-orbit orbit-two" />
     {!imageFailed ? <img className="treasure-cinematic-art" src={opened ? "/images/celestial-mystery-chest.webp" : "/images/treasure-chest-sealed.webp"} alt="" onError={() => setImageFailed(true)} /> : <div className="treasure-chest"><div className="chest-lid"><span /><i /></div><div className="chest-body"><img src="/assets/brand/dragon-seal.svg" alt="" /><span className="chest-band left" /><span className="chest-band right" /><i className="chest-lock" /></div><div className="chest-feet" /></div>}
     {active && !opened && <img className="treasure-open-preload" src="/images/celestial-mystery-chest.webp" alt="" />}
     <img className="treasure-lock-seal" src="/assets/brand/dragon-seal.svg" alt="" />
