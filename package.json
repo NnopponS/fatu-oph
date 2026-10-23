@@ -24,7 +24,9 @@
     "mock:generate": "node scripts/mock-demo.mjs generate",
     "mock:seed": "node scripts/mock-demo.mjs seed",
     "mock:clear": "node scripts/mock-demo.mjs clear",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:event-plan": "tsx --tsconfig tsconfig.app.json scripts/test-event-plan.ts",
+    "test:event-plan-ui": "node scripts/event-plan-browser.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

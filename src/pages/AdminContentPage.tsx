@@ -57,6 +57,10 @@ export function AdminContentPage({ kind }: { kind: Kind }) {
 
     if (kind === "activities") {
       value = activitySchema.parse({
+        room: String(data.get("room") || ""),
+        category: String(data.get("category") || "other"),
+        sessionNumber: data.get("sessionNumber") ? number(data.get("sessionNumber")) : null,
+        sourceId: String(current?.sourceId || ""),
         slug: String(data.get("slug") || id),
         title: String(data.get("title") || ""),
         shortDescription: String(data.get("shortDescription") || ""),
@@ -230,6 +234,9 @@ function ActivityFields({ current = {}, venues }: { current?: Record<string, unk
     <Field label="Slug" name="slug" value={current.slug} required />
     <Select label="สถานที่" name="venueId" value={current.venueId} options={venues.map((v) => [v.id, v.name])} />
     <Field label="คำอธิบายสั้น" name="shortDescription" value={current.shortDescription} />
+    <Field label="ห้องจัดกิจกรรม" name="room" value={current.room} />
+    <Field label="รอบที่" name="sessionNumber" value={current.sessionNumber || ""} type="number" />
+    <label>ประเภทกิจกรรม<select name="category" defaultValue={String(current.category || "other")}><option value="workshop">เวิร์กช็อป</option><option value="performance">การแสดง</option><option value="recreation">สันทนาการ</option><option value="other">อื่น ๆ</option></select></label>
     <Field label="Cover media ID หรือ /media/... URL" name="coverMediaId" value={current.coverMediaId} />
     <TextArea label="รายละเอียด" name="description" value={current.description} />
     <div className="form-grid"><Field label="เริ่ม" name="startAt" value={current.startAt} type="datetime-local" /><Field label="สิ้นสุด" name="endAt" value={current.endAt} type="datetime-local" /></div>

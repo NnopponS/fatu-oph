@@ -7,6 +7,7 @@ import { useMedia, usePrizes, useRewardPolicy, resolveMediaUrl } from "@/data/co
 import { PrizeArtwork } from "@/components/PrizeArtwork";
 import { RewardProgress } from "@/components/RewardProgress";
 import { ChineseHero, LatticeCorners } from "@/components/ChineseOrnaments";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
 type Filter = "all" | "affordable" | "stock";
 export function PrizesPage() {
@@ -32,6 +33,7 @@ export function PrizesPage() {
   const items = collection.filter(prize => filter === "stock" ? (prize.remaining || 0) > 0 : filter === "affordable" ? participant && (prize.remaining || 0) > 0 && points >= prize.pointsRequired : true);
 
   useEffect(() => {
+    if (!isFirebaseConfigured) return;
     const controller = new AbortController();
     void fetch("/api/lucky-draw", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"catalog"}), signal:controller.signal }).then(async response => {
       const data = await response.json();

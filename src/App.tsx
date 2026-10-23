@@ -52,6 +52,7 @@ const AdminOperationsPage = lazyNamed(() => import("@/pages/AdminOperationsPage"
 const AdminMediaPage = lazyNamed(() => import("@/pages/AdminMediaPage"), "AdminMediaPage");
 const AdminAuditPage = lazyNamed(() => import("@/pages/AdminAuditPage"), "AdminAuditPage");
 const AdminSettingsPage = lazyNamed(() => import("@/pages/AdminSettingsPage"), "AdminSettingsPage");
+const AdminPlanPage = lazyNamed(() => import("@/pages/AdminPlanPage"), "AdminPlanPage");
 
 export default function App() {
   return (
@@ -107,6 +108,7 @@ export default function App() {
           <Route path="media" element={<AdminMediaPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="plan" element={<AdminPlanPage />} />
         </Route>
 
         {/* 404 & Redirects */}

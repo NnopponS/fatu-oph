@@ -7,7 +7,15 @@ import {
   update,
   type Unsubscribe,
 } from "firebase/database";
-import { requireDatabase } from "@/lib/firebase";
+import { isFirebaseConfigured, requireDatabase } from "@/lib/firebase";
+import plan from "@/data/open-house-plan.json";
+
+function previewValue(path: string): unknown {
+  if (path === "public") return plan;
+  if (!path.startsWith("public/")) return null;
+  return path.slice(7).split("/").reduce<unknown>((value, key) =>
+    value && typeof value === "object" ? (value as Record<string, unknown>)[key] ?? null : null, plan);
+}
 
 export const realtimePaths = {
   public: {
@@ -40,6 +48,7 @@ export const realtimePaths = {
 } as const;
 
 export async function readRealtime<T>(path: string): Promise<T | null> {
+  if (!isFirebaseConfigured) return previewValue(path) as T | null;
   const snapshot = await get(ref(requireDatabase(), path));
   return snapshot.exists() ? (snapshot.val() as T) : null;
 }
@@ -48,6 +57,10 @@ export function subscribeRealtime<T>(
   path: string,
   callback: (value: T | null) => void,
 ): Unsubscribe {
+  if (!isFirebaseConfigured) {
+    callback(previewValue(path) as T | null);
+    return () => {};
+  }
   return onValue(ref(requireDatabase(), path), (snapshot) => {
     callback(snapshot.exists() ? (snapshot.val() as T) : null);
   });

@@ -10,11 +10,7 @@ const requiredConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-for (const [key, value] of Object.entries(requiredConfig)) {
-  if (!value) {
-    throw new Error("Missing Firebase environment variable for " + key);
-  }
-}
+export const isFirebaseConfigured = Object.values(requiredConfig).every(Boolean);
 
 const databaseURL =
   import.meta.env.VITE_FIREBASE_DATABASE_URL?.trim() ||
@@ -23,13 +19,18 @@ const databaseURL =
 export const firebaseApp =
   getApps()[0] ??
   initializeApp({
-    ...requiredConfig,
+    ...(isFirebaseConfigured ? requiredConfig : {
+      apiKey: "local-preview-only",
+      authDomain: "demo-fatu-oph.firebaseapp.com",
+      projectId: "demo-fatu-oph",
+      appId: "local-preview-only",
+    }),
     ...(databaseURL ? { databaseURL } : {}),
   });
 
 export const auth = getAuth(firebaseApp);
 
-export const database: Database | null = databaseURL
+export const database: Database | null = isFirebaseConfigured && databaseURL
   ? getDatabase(firebaseApp, databaseURL)
   : null;
 
