@@ -1,11 +1,33 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+import { prefersReducedMotion } from "@/lib/anime";
 import { TopHeader } from "@/components/TopHeader";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { OpeningExperience } from "@/components/OpeningExperience";
+import { PageTransition } from "@/components/PageTransition";
+import { CelestialDust } from "@/components/CelestialDust";
 
 export function AppShell() {
   const location = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  const wide = ["/", "/schedule", "/explore"].includes(location.pathname);
-  return <div className={`mobile-viewport premium-shell ${wide ? "wide-page" : "detail-page"}`}><a className="skip-link" href="#main-content">ข้ามไปเนื้อหา</a><TopHeader /><main className="app-content" id="main-content"><Outlet /></main><BottomNavBar /></div>;
+  const first = useRef(true);
+  useEffect(() => {
+    first.current = false;
+  }, []);
+
+  const titles: Record<string, string> = { "/scan": "สแกน QR", "/lucky-draw": "หีบสมบัติ", "/survey": "แบบประเมิน", "/schedule": "กิจกรรม", "/map": "แผนที่" };
+
+  return (
+    <div className="mobile-viewport">
+      <CelestialDust count={24} />
+      {!first.current && !prefersReducedMotion() && <div className="ink-wipe" key={location.pathname} aria-hidden="true" />}
+      <OpeningExperience />
+      <TopHeader title={titles[location.pathname]} />
+      <main className="app-content">
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
+      </main>
+      <BottomNavBar />
+    </div>
+  );
 }

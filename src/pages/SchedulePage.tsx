@@ -1,57 +1,95 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Bookmark, CalendarDays, Clock3, Download, MapPin, Search, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Bookmark, CalendarDays, Clock3, MapPin, Search, SlidersHorizontal, Sparkles, Swords, X } from "lucide-react";
 import { useActivities, useVenues } from "@/data/content";
 import { activityLiveState, activityTiming, scheduleDateLabel } from "@/lib/schedule";
-import { readRealtime } from "@/services/realtime";
+
+import { ChineseHero } from "@/components/ChineseOrnaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { hasVenueActivityAward } from "@/lib/reward-policy";
 
-type Operation = { title: string; venueId: string; startAt: string; endAt: string; category: string };
 const savedKey = "fatu_saved_activities";
-function readSaved(): string[] { try { const value: unknown = JSON.parse(localStorage.getItem(savedKey) || "[]"); return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : []; } catch { return []; } }
+function readSaved(): string[] {
+  try { const ids: unknown = JSON.parse(localStorage.getItem(savedKey) || "[]"); return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []; }
+  catch { return []; }
+}
+
 export function SchedulePage() {
-  const activities = useActivities(); const venues = useVenues(); const [params, setParams] = useSearchParams();
-  const { profile } = useAuth(); const [onlyEarnable, setOnlyEarnable] = useState(false);
-  const [query, setQuery] = useState(""); const [venueId, setVenueId] = useState("all"); const [period, setPeriod] = useState("all");
-  const [saved, setSaved] = useState(readSaved); const [onlySaved, setOnlySaved] = useState(false); const [liveOnly, setLiveOnly] = useState(false);
-  const [storageNotice, setStorageNotice] = useState(""); const [now, setNow] = useState(() => new Date());
-  const [operations, setOperations] = useState<Operation[]>([]);
-  const category = params.get("category") || "all";
+  const activities = useActivities(); const venues = useVenues();
+  const { profile } = useAuth();
+  const [onlyEarnable, setOnlyEarnable] = useState(false);
+  const [liveOnly, setLiveOnly] = useState(false);
+  const [query, setQuery] = useState("");
+  const [venueId, setVenueId] = useState("all");
   const [date, setDate] = useState("all");
-  useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60000); return () => clearInterval(timer); }, []);
-  useEffect(() => { let active = true; readRealtime<Record<string, Operation>>("public/schedule").then(value => { if (active) setOperations(Object.values(value || {})); }).catch(() => {}); return () => { active = false; }; }, []);
-  const dates = useMemo(() => [...new Set(activities.items.map(a => activityTiming(a.startAt).date).filter(Boolean))].sort(), [activities.items]);
-  const venueNames = useMemo(() => Object.fromEntries(venues.items.map(v => [v.id, v.name])), [venues.items]);
-  const filtered = useMemo(() => activities.items.filter(a => {
-    const time = activityTiming(a.startAt);
-    return `${a.title} ${a.room} ${a.shortDescription} ${venueNames[a.venueId] || ""} ${a.tags.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase())
-      && (venueId === "all" || a.venueId === venueId) && (category === "all" || a.category === category)
-      && (date === "all" || time.date === date) && (!onlySaved || saved.includes(a.id))
-      && (period === "all" || (time.minutes !== null && (period === "morning" ? time.minutes < 720 : time.minutes >= 720)))
-      && (!onlyEarnable || (a.pointsEnabled && a.pointsAwarded > 0 && !hasVenueActivityAward(profile?.transactions || [], a.venueId)))
-      && (!liveOnly || (a.availabilityStatus === "open" && activityLiveState(a.startAt, a.endAt, now) === "live"));
-  }).sort((a,b) => a.startAt.localeCompare(b.startAt) || a.displayOrder-b.displayOrder), [activities.items, query, venueId, category, date, onlySaved, saved, period, liveOnly, now, venueNames, onlyEarnable, profile]);
-  const savedActivities = activities.items.filter(a => saved.includes(a.id));
-  function toggleSaved(id: string) { const next = saved.includes(id) ? saved.filter(x => x !== id) : [...saved, id]; setSaved(next); try { localStorage.setItem(savedKey, JSON.stringify(next)); } catch { setStorageNotice("เบราว์เซอร์นี้ไม่อนุญาตให้บันทึก ข้อมูลจะอยู่จนกว่าจะปิดหน้านี้"); } }
-  function clear() { setQuery(""); setVenueId("all"); setPeriod("all"); setOnlySaved(false); setLiveOnly(false); setOnlyEarnable(false); setDate("all"); setParams({}); }
-  return <div className="premium-schedule">
-    <header className="schedule-editorial-hero"><div><span className="editorial-kicker">A DAY FULL OF POSSIBILITIES</span><h1>วางแผนวันของคุณ<span>แล้วมาลองสิ่งใหม่ด้วยกัน.</span></h1><p>เวิร์กช็อป การแสดง และช่วงเวลาที่คุณไม่อยากพลาด</p><div><span><CalendarDays size={17} /> 30 ตุลาคม 2569</span><span><MapPin size={17} /> ธรรมศาสตร์ รังสิต</span></div></div><span className="schedule-hero-number" aria-hidden="true">30<small>OCT / 2026</small></span></header>
-    <div className="schedule-workspace"><aside className="schedule-sidebar"><div className="schedule-sidebar-title"><h2>ค้นหาสิ่งที่ชอบ</h2><button className="reset-filters" onClick={clear}>ล้างตัวกรอง</button></div><label className="schedule-search"><Search size={18} /><input aria-label="ค้นหากิจกรรม" placeholder="กิจกรรม ห้อง หรือสถานที่" value={query} onChange={e => setQuery(e.target.value)} />{query && <button aria-label="ล้างคำค้นหา" onClick={() => setQuery("")}><X size={16} /></button>}</label>
-      <label className="premium-field">สถานที่<select aria-label="เลือกสถานที่" value={venueId} onChange={e => setVenueId(e.target.value)}><option value="all">ทุกสถานที่</option>{venues.items.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
-      <label className="premium-field">ช่วงเวลา<select aria-label="เลือกช่วงเวลา" value={period} onChange={e => setPeriod(e.target.value)}><option value="all">ทุกช่วงเวลา</option><option value="morning">เช้า · ก่อน 12:00 น.</option><option value="afternoon">บ่าย · ตั้งแต่ 12:00 น.</option></select></label>
-      {dates.length > 1 && <label className="premium-field">วันจัดกิจกรรม<select aria-label="เลือกวัน" value={date} onChange={e => setDate(e.target.value)}><option value="all">ทุกวัน</option>{dates.map(day => <option value={day} key={day}>{scheduleDateLabel(day)}</option>)}</select></label>}
-      <button className={`planner-toggle ${onlySaved ? "selected" : ""}`} aria-pressed={onlySaved} onClick={() => setOnlySaved(!onlySaved)}><Bookmark size={17} /> ที่บันทึกไว้ <span>{savedActivities.length}</span></button>
-      <button className={`planner-toggle ${liveOnly ? "selected" : ""}`} aria-pressed={liveOnly} onClick={() => setLiveOnly(!liveOnly)}><i className="live-dot" /> กำลังจัดอยู่</button>
-      {activities.items.some(a => a.pointsEnabled) && <button className={`planner-toggle ${onlyEarnable ? "selected" : ""}`} aria-pressed={onlyEarnable} onClick={() => setOnlyEarnable(!onlyEarnable)}>กิจกรรมที่ยังรับแต้มได้</button>}
-      <div className="planner-note"><Bookmark size={23} /><h3>เก็บกิจกรรมที่สนใจ</h3><p>กดสัญลักษณ์บันทึกบนกิจกรรม แล้วเลือก “ที่บันทึกไว้” เพื่อกลับมาดูแผนของคุณ</p><small>รายการบันทึกเก็บในเบราว์เซอร์นี้</small></div>
-      <a className="plan-pdf-link" href="/documents/open-house-plan-2026.pdf" target="_blank" rel="noreferrer"><Download size={16} /> กำหนดการต้นฉบับ PDF</a>
-    </aside><section className="planner-results"><div className="planner-tabs" aria-label="ประเภทกิจกรรม">{[{id:"all",name:"ทั้งหมด"},{id:"workshop",name:"เวิร์กช็อป"},{id:"performance",name:"การแสดง"},{id:"recreation",name:"สันทนาการ"}].map(c => <button key={c.id} aria-pressed={category===c.id} className={category===c.id ? "selected" : ""} onClick={() => setParams(c.id === "all" ? {} : {category:c.id})}>{c.name}</button>)}</div>
-      <div className="planner-results-heading"><span><strong>ตารางกิจกรรม</strong> · {filtered.length} รายการ</span><span>เวลาประเทศไทย (GMT+7)</span></div>
-      {storageNotice && <p role="status">{storageNotice}</p>}
-      {activities.loading ? <p role="status">กำลังโหลดตารางกิจกรรม...</p> : activities.error ? <p role="alert">{activities.error}</p> : !filtered.length ? <div className="planner-empty"><Search size={30} /><h2>ยังไม่พบกิจกรรมที่ตรงใจ</h2><p>ลองเปลี่ยนคำค้นหา สถานที่ หรือช่วงเวลา</p><button className="premium-button" onClick={clear}>แสดงกิจกรรมทั้งหมด</button></div> : <div className="planner-timeline">{filtered.map(a => { const start = activityTiming(a.startAt); const end = activityTiming(a.endAt); const isSaved = saved.includes(a.id); const state = activityLiveState(a.startAt,a.endAt,now); return <article key={a.id} className={`planner-activity category-${a.category}`}><div className="planner-time"><strong>{start.time || "—"}</strong><span>{end.time || "รอประกาศ"}</span></div><div className="planner-activity-body"><div className="planner-activity-top"><span className="category-label">{a.category==="workshop" ? "WORKSHOP" : a.category==="performance" ? "PERFORMANCE" : "RECREATION"}</span>{state==="live" && a.availabilityStatus==="open" && <span className="live-label">กำลังจัดอยู่</span>}{a.availabilityStatus==="full" && <span>เต็มแล้ว</span>}{a.availabilityStatus==="closed" && <span>ปิดรับแล้ว</span>}<button className={isSaved ? "bookmark-button saved" : "bookmark-button"} onClick={() => toggleSaved(a.id)} aria-label={`${isSaved ? "เลิกบันทึก" : "บันทึก"} ${a.title}`} aria-pressed={isSaved}><Bookmark size={20} fill={isSaved ? "currentColor" : "none"} /></button></div><Link to={`/activity/${a.id}`}><h3>{a.title}</h3><p>{a.shortDescription}</p><div className="planner-activity-footer"><span><MapPin size={14} /> {venueNames[a.venueId] || "รอประกาศสถานที่"}{a.room && <em> / {a.room}</em>}</span><ArrowRight size={17} /></div></Link></div></article>; })}</div>}
-      <details className="day-operations"><summary><Clock3 size={18} /> เวลาเปิดงาน ลงทะเบียน และพัก</summary><p>ช่วงพักและเคลียร์พื้นที่แยกตามสถานที่ เพื่อช่วยวางแผนการเดินทาง</p>{operations.filter(op => (venueId==="all" || op.venueId===venueId) && (date==="all" || activityTiming(op.startAt).date===date)).sort((a,b) => a.startAt.localeCompare(b.startAt)).map((op,i) => <div key={i}><time>{activityTiming(op.startAt).time}–{activityTiming(op.endAt).time}</time><strong>{op.title}</strong><span>{venueNames[op.venueId]}</span></div>)}</details>
-      <p className="schedule-source-note">อ้างอิงแผนโครงการกิจกรรม TU Open House · สถานที่และเวลาอาจเปลี่ยนแปลงตามความเหมาะสม<br />ค่าใช้จ่าย จำนวนที่นั่ง และวิธีเข้าร่วม กรุณาสอบถามเจ้าหน้าที่ที่จุดกิจกรรม</p>
-    </section></div>
-  </div>;
+  const [period, setPeriod] = useState("all");
+  const [onlySaved, setOnlySaved] = useState(false);
+  const [saved, setSaved] = useState(readSaved);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60000); return () => window.clearInterval(timer); }, []);
+  const dates = useMemo(() => [...new Set(activities.items.map(activity => activityTiming(activity.startAt).date).filter(Boolean))].sort(), [activities.items]);
+  const filtered = useMemo(() => activities.items.filter(activity => {
+    const timing = activityTiming(activity.startAt);
+    const venue = venues.items.find(item => item.id === activity.venueId);
+    const matchesText = `${activity.title} ${activity.shortDescription} ${venue?.name || ""} ${activity.tags.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase());
+    return matchesText && (venueId === "all" || activity.venueId === venueId)
+      && (date === "all" || !timing.date || timing.date === date)
+      && (period === "all" || (timing.minutes !== null && (period === "morning" ? timing.minutes < 720 : timing.minutes >= 720)))
+      && (!onlySaved || saved.includes(activity.id))
+      && (!onlyEarnable || (activity.pointsEnabled && activity.pointsAwarded > 0 && !hasVenueActivityAward(profile?.transactions || [], activity.venueId)))
+      && (!liveOnly || (activity.availabilityStatus === "open" && activityLiveState(activity.startAt, activity.endAt, now) === "live"));
+  }).sort((a, b) => {
+    const aa = activityTiming(a.startAt); const bb = activityTiming(b.startAt);
+    if (aa.minutes === null) return bb.minutes === null ? a.displayOrder - b.displayOrder : 1;
+    if (bb.minutes === null) return -1;
+    return aa.date.localeCompare(bb.date) || aa.minutes - bb.minutes;
+  }), [activities.items, venues.items, query, venueId, date, period, onlySaved, saved, onlyEarnable, liveOnly, profile, now]);
+  const live = filtered.filter(activity => activity.availabilityStatus === "open" && activityLiveState(activity.startAt, activity.endAt, now) === "live");
+  const upcoming = filtered.find(activity => activity.availabilityStatus === "open" && activityLiveState(activity.startAt, activity.endAt, now) === "upcoming");
+  function toggleSaved(id: string) {
+    const next = saved.includes(id) ? saved.filter(value => value !== id) : [...saved, id]; setSaved(next);
+    try { localStorage.setItem(savedKey, JSON.stringify(next)); } catch { /* Keep the list usable when storage is unavailable. */ }
+  }
+  function clearFilters() { setQuery(""); setVenueId("all"); setDate("all"); setPeriod("all"); setOnlySaved(false); setOnlyEarnable(false); setLiveOnly(false); }
+
+  return (
+    <div className="schedule-page">
+      <ChineseHero className="quest-banner" seal="藝" kicker={<><Swords size={16} /> YOUR NEXT ADVENTURE</>} title={<>เลือกภารกิจ<br /><em>แล้วออกเดินทาง</em></>} description={<>ตารางกิจกรรม เวิร์กช็อป และการแสดง<br />ค้นหาสิ่งที่ชอบ แล้วเก็บให้ครบทุกสถานที่</>}>
+        <div className="quest-banner-stats"><span><CalendarDays size={16} /> {activities.items.length} กิจกรรม</span><span><MapPin size={16} /> {venues.items.length} สถานที่</span></div>
+      </ChineseHero>
+
+      <section className="schedule-controls" aria-label="ตัวกรองตารางกิจกรรม">
+        <label className="schedule-search"><Search size={19} /><input aria-label="ค้นหากิจกรรม" placeholder="ค้นหากิจกรรมหรือสถานที่..." value={query} onChange={event => setQuery(event.target.value)} />{query && <button aria-label="ล้างคำค้นหา" onClick={() => setQuery("")}><X size={16} /></button>}</label>
+        <div className="filter-scroll" aria-label="เลือกวัน">
+          <button className={date === "all" ? "filter-chip selected" : "filter-chip"} aria-pressed={date === "all"} onClick={() => setDate("all")}>ทุกวัน</button>
+          {dates.map(day => <button key={day} className={date === day ? "filter-chip selected" : "filter-chip"} aria-pressed={date === day} onClick={() => setDate(day)}>{scheduleDateLabel(day)}</button>)}
+        </div>
+        <div className="schedule-selects">
+          <label><MapPin size={16} /><select aria-label="เลือกสถานที่" value={venueId} onChange={event => setVenueId(event.target.value)}><option value="all">ทุกสถานที่</option>{venues.items.map(venue => <option value={venue.id} key={venue.id}>{venue.name}</option>)}</select></label>
+          <label><Clock3 size={16} /><select aria-label="เลือกช่วงเวลา" value={period} onChange={event => setPeriod(event.target.value)}><option value="all">ทุกช่วงเวลา</option><option value="morning">ช่วงเช้า · ก่อน 12:00</option><option value="afternoon">ช่วงบ่าย · ตั้งแต่ 12:00</option></select></label>
+        </div>
+        <button className={`saved-filter ${onlySaved ? "selected" : ""}`} aria-pressed={onlySaved} onClick={() => setOnlySaved(!onlySaved)}><Bookmark size={16} fill={onlySaved ? "currentColor" : "none"} /> กิจกรรมที่บันทึกไว้ <span>{saved.filter(id => activities.items.some(a => a.id === id)).length}</span></button>
+      </section>
+
+      {(live.length > 0 || upcoming) && <section className="schedule-spotlight"><span className="eyebrow"><span className="live-dot" />{live.length > 0 ? "กำลังจัดอยู่" : "กิจกรรมถัดไป"}</span><Link to={`/activity/${(live[0] || upcoming)?.id}`}><strong>{(live[0] || upcoming)?.title}</strong><ArrowRight size={18} /></Link><span><MapPin size={14} /> {venues.items.find(v => v.id === (live[0] || upcoming)?.venueId)?.name} · {scheduleDateLabel(activityTiming((live[0] || upcoming)?.startAt || "").date)} · {activityTiming((live[0] || upcoming)?.startAt || "").time}</span></section>}
+
+      <div className="schedule-results-heading"><h2><SlidersHorizontal size={17} /> ตารางกิจกรรม</h2><span role="status" aria-live="polite">{filtered.length} รายการ</span></div>
+      {activities.loading ? <div className="schedule-empty" role="status"><img src="/assets/animations/loading-seal.svg" alt="" width={60} /><p>กำลังเปิดคัมภีร์กิจกรรม...</p></div> : activities.error ? <div className="schedule-empty" role="alert"><p>{activities.error}</p></div> : filtered.length === 0 ? <div className="schedule-empty"><Search size={32} /><h3>{activities.items.length ? "ยังไม่พบภารกิจที่ตรงกับตัวกรอง" : "กำหนดการกำลังจะมา"}</h3><p>{activities.items.length ? "ลองเลือกสถานที่หรือช่วงเวลาอื่น" : "เมื่อทีมงานประกาศกิจกรรม รายละเอียดจะปรากฏที่นี่"}</p>{activities.items.length ? <button className="button-gold-outline" onClick={clearFilters}>แสดงกิจกรรมทั้งหมด</button> : <Link to="/explore" className="button-imperial-red">สำรวจสถานที่ก่อน <ArrowRight size={16} /></Link>}</div> : <div className="schedule-timeline">
+        {filtered.map((activity, index) => {
+          const timing = activityTiming(activity.startAt); const end = activityTiming(activity.endAt);
+          const venue = venues.items.find(item => item.id === activity.venueId);
+          const state = activityLiveState(activity.startAt, activity.endAt, now);
+          const isSaved = saved.includes(activity.id);
+          const availability = { open: "เข้าร่วมได้", full: "เต็มแล้ว", closed: "ปิดรับแล้ว", "coming-soon": "เร็ว ๆ นี้" }[activity.availabilityStatus];
+          return <article className="schedule-activity" key={activity.id} style={{ animationDelay: `${Math.min(index * 45, 180)}ms` }}>
+            <div className="schedule-time"><span className="timeline-node" /><strong>{timing.time || "—"}</strong><small>{end.time ? `ถึง ${end.time}` : timing.time ? "รอประกาศเวลาสิ้นสุด" : "ยังไม่ระบุเวลา"}</small>{timing.date && <small>{scheduleDateLabel(timing.date)}</small>}</div>
+            <div className="schedule-activity-card">
+              <div className="schedule-card-top"><span className={`activity-state ${activity.availabilityStatus}`}>{state === "live" && activity.availabilityStatus === "open" ? "กำลังจัดอยู่" : availability}</span><button className={isSaved ? "bookmark-button saved" : "bookmark-button"} aria-label={`${isSaved ? "เลิกบันทึก" : "บันทึก"} ${activity.title}`} aria-pressed={isSaved} onClick={() => toggleSaved(activity.id)}><Bookmark size={19} fill={isSaved ? "currentColor" : "none"} /></button></div>
+              <Link to={`/activity/${activity.id}`} className="schedule-card-link"><h3>{activity.title}</h3><span className="schedule-venue"><MapPin size={14} />{venue?.name || "รอประกาศสถานที่"}</span>{activity.shortDescription && <p>{activity.shortDescription}</p>}{!timing.time && <small className="unscheduled-label">ยังไม่ระบุเวลา · สอบถามที่จุดกิจกรรม</small>}<div className="schedule-card-footer">{activity.pointsEnabled && activity.pointsAwarded > 0 ? <span className="points-pill"><Sparkles size={13} />{hasVenueActivityAward(profile?.transactions || [], activity.venueId) ? "รับแต้มสถานที่นี้แล้ว" : `+${activity.pointsAwarded} แต้มครั้งแรกในสถานที่`}</span> : <span>{activity.isFree ? "เข้าร่วมฟรี" : activity.priceLabel || "ดูรายละเอียดค่าเข้าร่วม"}</span>}<span>รายละเอียด <ArrowRight size={15} /></span></div></Link>
+            </div>
+          </article>;
+        })}
+      </div>}
+    </div>
+  );
 }

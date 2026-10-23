@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap");
 
 :root {
   font-family: "Noto Sans Thai", system-ui, sans-serif;
@@ -144,7 +145,7 @@ a {
 
 .hero h1 {
   margin: 16px 0 8px;
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", "Noto Sans Thai", serif;
   font-size: clamp(42px, 13vw, 72px);
   line-height: 0.98;
 }
@@ -191,7 +192,7 @@ a {
 .section-heading h2,
 .page-title {
   margin: 4px 0 0;
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", "Noto Sans Thai", serif;
 }
 
 .section-heading h2 {
@@ -318,7 +319,7 @@ a {
 
 .venue-index {
   color: var(--gold);
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", serif;
   font-size: 18px;
 }
 
@@ -388,7 +389,7 @@ a {
 
 .admin-card h1 {
   margin: 5px 0 8px;
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", "Noto Sans Thai", serif;
   font-size: 32px;
 }
 
@@ -489,7 +490,7 @@ a {
 
 .admin-dashboard-header h1 {
   margin: 4px 0;
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", "Noto Sans Thai", serif;
 }
 
 .admin-dashboard-header p {
@@ -832,7 +833,7 @@ a {
 .score-number {
   display: inline-block;
   color: var(--red);
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", serif;
   font-size: 44px;
   line-height: 1;
 }
@@ -957,7 +958,7 @@ a {
 
 .admin-page-title {
   margin: 4px 0 8px;
-  font-family: var(--font-premium, system-ui, sans-serif);
+  font-family: "Source Serif 4", "Noto Sans Thai", serif;
   font-size: 32px;
 }
 

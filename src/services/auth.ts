@@ -7,13 +7,10 @@ import {
   type User,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { auth, isFirebaseConfigured } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { readRealtime, realtimePaths } from "@/services/realtime";
 
 export const staffRoles = ["admin", "editor", "staff", "staff_pending", "viewer"] as const;
-function requireLiveAuth() {
-  if (!isFirebaseConfigured) throw new Error("ขณะนี้เปิดดูข้อมูลกิจกรรมได้ ระบบสมาชิกยังไม่เปิดใช้งาน กรุณาติดต่อทีมงาน");
-}
 export type StaffRole = (typeof staffRoles)[number];
 
 export interface ParticipantRegistrationData {
@@ -94,7 +91,6 @@ export interface AuthUserProfile {
 
 // 1. Participant Username + Password Registration
 export async function participantRegister(data: ParticipantRegistrationData) {
-  requireLiveAuth();
   const res = await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -113,7 +109,6 @@ export async function participantRegister(data: ParticipantRegistrationData) {
 
 // 2. Universal Username + Password Login (Participant or Staff)
 export async function usernameLogin(username: string, password: string) {
-  requireLiveAuth();
   const res = await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -131,7 +126,6 @@ export async function usernameLogin(username: string, password: string) {
 
 // 3. Staff Registration (Enters staff_pending status)
 export async function staffRegister(data: StaffRegistrationData) {
-  requireLiveAuth();
   const res = await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -149,7 +143,6 @@ export async function staffRegister(data: StaffRegistrationData) {
 
 // 4. Check Username Availability
 export async function checkUsername(username: string): Promise<{ available: boolean; reason?: string }> {
-  if (!isFirebaseConfigured) return { available: false, reason: "ระบบสมาชิกยังไม่เปิดใช้งาน" };
   if (!username || username.trim().length < 3) {
     return { available: false, reason: "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร" };
   }
@@ -168,7 +161,6 @@ export async function checkUsername(username: string): Promise<{ available: bool
 
 // 5. Password Reset Request
 export async function requestPasswordReset(identifier: string): Promise<string> {
-  requireLiveAuth();
   const res = await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -218,7 +210,6 @@ export async function fetchCurrentUserProfile(): Promise<AuthUserProfile | null>
 
 // Legacy Admin Helpers (Preserved for compatibility)
 export function signInAdmin(email: string, password: string) {
-  requireLiveAuth();
   return signInWithEmailAndPassword(auth, email, password);
 }
 
@@ -231,7 +222,6 @@ export function signOutUser() {
 }
 
 export function sendAdminPasswordReset(email: string) {
-  requireLiveAuth();
   return sendPasswordResetEmail(auth, email);
 }
 
@@ -245,10 +235,6 @@ export function getAdminAuthErrorMessage(error: unknown) {
 }
 
 export function subscribeToAuthState(callback: (user: User | null) => void) {
-  if (!isFirebaseConfigured) {
-    callback(null);
-    return () => {};
-  }
   return onAuthStateChanged(auth, callback);
 }
 

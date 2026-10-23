@@ -73,7 +73,6 @@ export function AdminLayout() {
     { href: "/admin", label: "ภาพรวม", roles: ["admin", "editor", "staff", "viewer"] },
     { href: "/admin/field", label: "เช็กอิน / จ่ายรางวัล", roles: ["admin", "staff"] },
     { href: "/admin/activities", label: "กิจกรรม", roles: ["admin", "editor"] },
-    { href: "/admin/plan", label: "แผนงาน / เจ้าหน้าที่", roles: ["admin", "editor"] },
     { href: "/admin/venues", label: "สถานที่", roles: ["admin", "editor"] },
     { href: "/admin/prizes", label: "ของรางวัล", roles: ["admin", "editor"] },
     { href: "/admin/faq", label: "FAQ", roles: ["admin", "editor"] },
