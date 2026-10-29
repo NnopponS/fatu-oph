@@ -189,6 +189,11 @@ async function main() {
     projectId: PROJECT_ID,
     exportedAt: now,
     database: root,
+    authUsers: users.map((user) => ({
+      uid: user.uid, email: user.email || null, disabled: user.disabled,
+      displayName: user.displayName || null,
+      customClaims: user.customClaims || {},
+    })),
   }), { flag: "wx", mode: 0o600 });
 
   // Generate QR locally before any destructive operation. This stays outside Git.
