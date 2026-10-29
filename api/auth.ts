@@ -267,6 +267,10 @@ export async function POST(request: Request) {
 
     // 4. Staff Registration (Creates account in 'staff_pending' status)
     if (body.action === "staff-register") {
+      const staffRegistrationEnabled = (await adminDb.ref("public/settings/staffRegistrationOpen").get()).val();
+      if (staffRegistrationEnabled === false) {
+        return json({ error: "ปิดรับสมัครเจ้าหน้าที่แล้ว กรุณาติดต่อผู้ดูแลระบบ" }, 403);
+      }
       await enforceRateLimit(request, "auth-staff-reg", 5, 60_000);
       const input = staffRegisterSchema.parse(body);
       const normalized = normalizeUsername(input.username);
